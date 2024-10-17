@@ -18,7 +18,7 @@ actions:
 ## 创建vuepress步骤
 
 ~~~bash
-# 命令行创建
+# 命令行创建 vuepress模板
 npm init vuepress vuepress-starter
 
 ~~~
