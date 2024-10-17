@@ -3,7 +3,7 @@ import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 
 export default defineUserConfig({
-
+  base: "vuepress-blog",
   lang: 'zh-CN',
   title: 'VuePress', // 设置所有页面的title后缀
   description: '基于MarkDown文档使用VuePress搭建的博客',
