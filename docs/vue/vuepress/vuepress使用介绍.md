@@ -136,7 +136,105 @@ export default {
 
 ### GitHub部署
 
+#### 工作流文件
 
+项目中的触发分支建立配置工作流文件.github/workflows/docs.yml。
+
+还需要配置工作流推送代码所用的token。
+
+~~~yml
+name: docs
+
+on:
+  # 每当 push 到 main 分支时触发部署
+  push:
+    branches: [main]
+  # 手动触发部署
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # “最近更新时间” 等 git 日志相关信息，需要拉取全部提交记录
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          # 选择要使用的 pnpm 版本
+          version: 8
+          # 使用 pnpm 安装依赖
+          run_install: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 选择要使用的 node 版本
+          node-version: 20
+          # 缓存 pnpm 依赖
+          cache: pnpm
+
+      # 运行构建脚本
+      - name: Build VuePress site
+        run: pnpm docs:build
+
+      # 查看 workflow 的文档来获取更多信息
+      # @see https://github.com/crazy-max/ghaction-github-pages
+      - name: Deploy to GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          # 打包之后的文件部署到 gh-pages 分支,需要
+          target_branch: gh-pages
+          # 部署目录为 VuePress 的默认输出目录
+          build_dir: docs/.vuepress/dist
+        env:
+          # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
+          # GITHUB_TOKEN换成后面项目生成的token名称
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+~~~
+
+
+
+#### token准备
+
+账号的Setting>Developer Settings>Personal access tokens>Token(classic)>Generate new token>Generate new token>创建token选择repo。
+
+创建完成复制对应的token值，后续还需要用到。
+
+![image-20241018155758368](http://47.101.155.205/image-20241018155758368.png)
+
+
+
+![image-20241018160125154](http://47.101.155.205/image-20241018160125154.png)
+
+使用前面的token值创建工作流token，项目的Setting>Secrets and variables>Actions>New Repository secret新建token，name为工作流配置文件GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}所需要改的名称，secret为账号Setting创建的token值。
+
+
+
+![image-20241018160355612](http://47.101.155.205/image-20241018160355612.png)
+
+![image-20241018160849591](http://47.101.155.205/image-20241018160849591.png)
+
+#### 配置工作流权限(可能不需要)
+
+![image-20241018171146566](http://47.101.155.205/image-20241018171146566.png)
+
+
+
+#### page
+
+
+
+#### 其它情况
+
+项目以及启动能访问，一个项目部署成功后，两个项目都不能访问了。
+
+![image-20241018171721766](http://47.101.155.205/image-20241018171721766.png)
 
 
 
