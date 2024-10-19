@@ -194,7 +194,7 @@ jobs:
         env:
           # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-VUEPRESS_BLOG_ACTION-secret
           # VUEPRESS_BLOG_ACTION换成后面项目生成的token名称
-          VUEPRESS_BLOG_ACTION: ${{ secrets.VUEPRESS_BLOG_ACTION }}
+          VUEPRESS_BLOG_ACTION: `${{ secrets.VUEPRESS_BLOG_ACTION }}`
 
 ~~~
 
@@ -212,7 +212,7 @@ jobs:
 
 ![image-20241018160125154](http://47.101.155.205/image-20241018160125154.png)
 
-使用前面的token值创建工作流token，项目的Setting>Secrets and variables>Actions>New Repository secret新建token，name为工作流配置文件VUEPRESS_BLOG_ACTION: ${{ secrets.VUEPRESS_BLOG_ACTION }}所需要改的名称，secret为账号Setting创建的token值。
+使用前面的token值创建工作流token，项目的Setting>Secrets and variables>Actions>New Repository secret新建token，name为工作流配置文件VUEPRESS_BLOG_ACTION: `${{ secrets.VUEPRESS_BLOG_ACTION }}`所需要改的名称，secret为账号Setting创建的token值。
 
 
 
