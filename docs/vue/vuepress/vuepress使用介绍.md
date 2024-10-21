@@ -194,7 +194,7 @@ jobs:
         env:
           # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-VUEPRESS_BLOG_ACTION-secret
           # VUEPRESS_BLOG_ACTION换成后面项目生成的token名称
-          VUEPRESS_BLOG_ACTION: `${{ secrets.VUEPRESS_BLOG_ACTION }}`
+          VUEPRESS_BLOG_ACTION: ${{ secrets.VUEPRESS_BLOG_ACTION }}
 
 ~~~
 
@@ -232,11 +232,29 @@ jobs:
 
 #### 其它情况
 
+##### 404
+
 项目以及启动能访问，一个项目部署成功后，两个项目都不能访问了。
 
 ![image-20241018171721766](http://47.101.155.205/image-20241018171721766.png)
 
 ![image-20241021130606242](http://47.101.155.205/image-20241021130606242.png)
+
+
+
+
+
+##### 变量
+
+~~~txt
+${{ secrets.VUEPRESS_BLOG_ACTION }}不能直接出现在纯文本中,否则浏览器报错
+可以用`${{ secrets.VUEPRESS_BLOG_ACTION }}`表示
+
+~~~
+
+![image-20241018172535420](http://47.101.155.205/image-20241018172535420.png)
+
+
 
 ## npm使用
 
