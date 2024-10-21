@@ -15,13 +15,38 @@ export default defineUserConfig({
   description: '基于MarkDown文档使用VuePress搭建的博客',
 
   bundler: viteBundler(), // 设置打包工具
-  
+
   // 设置网站的主题
   theme: defaultTheme({
     search: true,
     sidebarDepth: 5,
     navbar: [
       // 嵌套 Group - 最大深度为 2
+      {
+        text: '首页',
+        link: '/'
+      },
+      {
+        text: '算法策略',
+        prefix: '/algorithmStrategy',
+        children: [
+
+          {
+            text: '递归',
+            link: 'recursion'
+          },
+          {
+            text: '分治',
+            link: 'divideAndConquer'
+          },
+          {
+            text: '动态规划',
+            link: 'dp'
+          }
+
+
+        ]
+      },
       {
         text: 'vue',
         prefix: '/vue/',
@@ -33,7 +58,7 @@ export default defineUserConfig({
               'vuepress使用介绍.md', // 解析为 `/guide/group/sub1/bar.md`
               'bar.md', // 解析为 `/guide/group/sub1/bar.md`
 
-              
+
               {
                 text: 'Example',
                 link: 'https://example.com',
@@ -75,7 +100,7 @@ export default defineUserConfig({
       },
     ],
   }),
-  
+
   plugins: [
     docsearchPlugin({
       appId: '${{ secrets.SEARCH_APP_ID }}',
@@ -98,9 +123,9 @@ export default defineUserConfig({
       // 空白符渲染
       whitespace: true
     }),
-    
+
   ]
-  
-  
+
+
 })
 

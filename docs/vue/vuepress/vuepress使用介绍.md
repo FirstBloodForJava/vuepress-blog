@@ -1,4 +1,4 @@
-
+[图片](https://47.101.155.205/image-20241015161110834.png)
 
 # vuepress使用介绍
 
@@ -46,10 +46,11 @@ cnpm install -D sass
 
 ![image-20241015161110834](http://47.101.155.205/image-20241015161110834.png)
 
-### config配置
-
+### config配置(默认主题)
 
 #### navbar
+
+https://ecosystem.vuejs.press/zh/themes/default/config.html#navbar
 
 导航栏配置
 
