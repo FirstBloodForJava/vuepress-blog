@@ -1,6 +1,7 @@
 import { viteBundler } from '@vuepress/bundler-vite'
 import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
+import { docsearchPlugin } from '@vuepress/plugin-docsearch'
 
 export default defineUserConfig({
   base: "vuepress-blog",
@@ -70,11 +71,23 @@ export default defineUserConfig({
     ],
   }),
   
-  // plugins: [
-  //   docsearchPlugin({
-  //     // 配置项
-  //   }),
-  // ]
+  plugins: [
+    docsearchPlugin({
+      appId: 'WEZNU7P28F',
+      apiKey: '01ac7acb9469c08dd21ba57208cf15f4',
+      indexName: '<INDEX_NAME>',
+      locales: {
+        '/': {
+          placeholder: '搜索文档',
+          translations: {
+            button: {
+              buttonText: '搜索文档',
+            },
+          },
+        }
+      },
+    }),
+  ]
   
   
 })
