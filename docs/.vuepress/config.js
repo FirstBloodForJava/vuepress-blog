@@ -6,7 +6,8 @@ import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 
 export default defineUserConfig({
   head: [
-    ['meta', { 'http-equiv': 'Content-Security-Policy', content: "default-src https: data: 'unsafe-inline' 'unsafe-eval'; img-src http: https: data:" }]
+    // 表示所有http协议增强为https协议
+    ['meta', { 'http-equiv': 'Content-Security-Policy', content: "upgrade-insecure-requests" }]
   ],
   base: "vuepress-blog",
   lang: 'zh-CN',
