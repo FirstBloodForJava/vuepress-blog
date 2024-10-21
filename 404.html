@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="VuePress 2.0.0-rc.18" />
+    <style>
+      :root {
+        --vp-c-bg: #fff;
+      }
+
+      [data-theme='dark'] {
+        --vp-c-bg: #1b1b1f;
+      }
+
+      html,
+      body {
+        background-color: var(--vp-c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme')
+      const systemDarkMode =
+        'matchMedia' in window
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : false
+
+      if (userMode === 'light') {
+        document.documentElement.dataset.theme = 'light'
+      } else if (userMode === 'dark' || systemDarkMode) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"><title>VuePress</title><meta name="description" content="基于MarkDown文档使用VuePress搭建的博客">
+    <link rel="preload" href="/vuepress-blog/assets/style-Dv7Q-Esk.css" as="style"><link rel="stylesheet" href="/vuepress-blog/assets/style-Dv7Q-Esk.css">
+    <link rel="modulepreload" href="/vuepress-blog/assets/app-C5v5oV1S.js"><link rel="modulepreload" href="/vuepress-blog/assets/404.html-CvZcpCei.js">
+    <link rel="prefetch" href="/vuepress-blog/assets/index.html-CvGtlY9S.js" as="script"><link rel="prefetch" href="/vuepress-blog/assets/recursion.html-LgYT2eT3.js" as="script"><link rel="prefetch" href="/vuepress-blog/assets/divideAndConquer.html-CxGRKWwX.js" as="script"><link rel="prefetch" href="/vuepress-blog/assets/dp.html-CPSK12Ef.js" as="script"><link rel="prefetch" href="/vuepress-blog/assets/vuepress使用介绍.html-C1jrD6J4.js" as="script"><link rel="prefetch" href="/vuepress-blog/assets/index-DCs6OeCW.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="vp-theme-container" vp-container data-v-40ab3246><main class="page" data-v-40ab3246><div class="theme-default-content" vp-content data-v-40ab3246><h1 data-v-40ab3246>404</h1><blockquote data-v-40ab3246>How did we get here?</blockquote><a class="route-link" href="/vuepress-blog/" data-v-40ab3246>Take me home</a></div></main></div><!--[--><!----><!--]--><!--]--></div>
+    <script type="module" src="/vuepress-blog/assets/app-C5v5oV1S.js" defer></script>
+  </body>
+</html>
