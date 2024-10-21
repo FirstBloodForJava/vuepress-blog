@@ -126,11 +126,11 @@ export default {
 
 ~~~
 
-![image-20241021133507181](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241021133507181.png)
+![image-20241021133507181](http://47.101.155.205/image-20241021133507181.png)
 
 
 
-![image-20241021133623456](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241021133623456.png)
+![image-20241021133623456](http://47.101.155.205/image-20241021133623456.png)
 
 indexName索引名称需要再等邮件。
 
