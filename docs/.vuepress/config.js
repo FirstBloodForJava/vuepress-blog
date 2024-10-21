@@ -2,6 +2,7 @@ import { viteBundler } from '@vuepress/bundler-vite'
 import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 import { docsearchPlugin } from '@vuepress/plugin-docsearch'
+import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 
 export default defineUserConfig({
   base: "vuepress-blog",
@@ -87,6 +88,13 @@ export default defineUserConfig({
         }
       },
     }),
+    prismjsPlugin({
+      // 代码块折叠配置,超过15行折叠
+      collapsedLines: true,
+      // 空白符渲染
+      whitespace: true
+    }),
+    
   ]
   
   

@@ -136,6 +136,44 @@ indexName索引名称需要再等邮件。
 
 
 
+### prismjs
+
+为 Markdown 代码块启用代码高亮。实现代码块折叠功能。
+
+问题：**代码块的折叠打开后，导致代码块底部的左右滚动窗口被覆盖，无法滑动。**
+
+~~~bash
+# 安装@vuepress/plugin-prismjs插件
+cnpm i -D @vuepress/plugin-prismjs@next
+
+~~~
+
+config.js配置文件
+
+~~~javascript
+import { prismjsPlugin } from '@vuepress/plugin-prismjs'
+
+export default defineUserConfig({
+  plugins: [
+    prismjsPlugin({
+      // 代码块折叠配置,超过15行折叠
+      collapsedLines: true,
+      // 空白符渲染
+      whitespace: true
+    }),
+  ]
+  
+})
+
+
+~~~
+
+
+
+
+
+
+
 ## 部署
 
 ### GitHub部署
