@@ -78,8 +78,8 @@ export default defineUserConfig({
   
   plugins: [
     docsearchPlugin({
-      appId: 'WEZNU7P28F',
-      apiKey: '01ac7acb9469c08dd21ba57208cf15f4',
+      appId: '${{ secrets.SEARCH_APP_ID }}',
+      apiKey: '${{ secrets.SEARCH_API_KEY }}',
       indexName: '<INDEX_NAME>',
       locales: {
         '/': {
