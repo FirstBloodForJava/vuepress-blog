@@ -5,6 +5,9 @@ import { docsearchPlugin } from '@vuepress/plugin-docsearch'
 import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 
 export default defineUserConfig({
+  head: [
+    ['meta', { 'http-equiv': 'Content-Security-Policy', content: "default-src https: data: 'unsafe-inline' 'unsafe-eval'; img-src http: https: data:" }]
+  ],
   base: "vuepress-blog",
   lang: 'zh-CN',
   title: 'VuePress', // 设置所有页面的title后缀
