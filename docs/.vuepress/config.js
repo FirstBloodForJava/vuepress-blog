@@ -9,10 +9,10 @@ export default defineUserConfig({
     // 表示所有http协议增强为https协议
     [
       'meta', { 
-        //"name": "algolia-site-verification", 
-        //"content": "02635CF78DCEC3A902635CF78DCEC3A9",
-        'http-equiv': 'Content-Security-Policy', 
-        "content": "upgrade-insecure-requests" 
+        "name": "algolia-site-verification", 
+        "content": "02635CF78DCEC3A902635CF78DCEC3A9",
+        //'http-equiv': 'Content-Security-Policy', 
+        //"content": "upgrade-insecure-requests" 
       },
       
     ]
