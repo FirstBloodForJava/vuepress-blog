@@ -1,3 +1,10 @@
+---
+head:
+  - - link
+    - rel: icon
+      href: http://47.101.155.205/nginx.ico
+---
+
 [[toc]]
 
 # nginx配置代理https请求步骤
