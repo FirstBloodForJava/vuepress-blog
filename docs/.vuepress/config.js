@@ -113,6 +113,25 @@ export default defineUserConfig({
           },
         ]
       },
+      // JavaEE
+      {
+        text: 'JavaEE',
+        prefix: '/JavaEE',
+        children: [
+          'JavaSE.md',
+          'JavaWeb.md',
+          'JUC.md',
+          {
+            text: 'EnumSet集合',
+            link: 'EnumSet集合',
+          },
+          {
+            text: 'Java多线程使用',
+            link: 'Java多线程使用',
+          },
+          
+        ]
+      },
     ],
     // 修改主题的footer
     locales: {
