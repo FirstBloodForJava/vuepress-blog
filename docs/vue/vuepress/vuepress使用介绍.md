@@ -85,7 +85,7 @@ footer增加GitHub编辑地址，及描述。
 
 **注意在defaultTheme中增加配置。**
 
-![image-20241022144459426](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241022144459426.png)
+![image-20241022144459426](http://47.101.155.205/image-20241022144459426.png)
 
 ~~~javascript
 import { defineUserConfig } from 'vuepress'
