@@ -6,13 +6,15 @@ import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 
 export default defineUserConfig({
   head: [
-    // 表示所有http协议增强为https协议
+    
     [
       'meta', { 
-        "name": "algolia-site-verification", 
-        "content": "02635CF78DCEC3A9",
-        //'http-equiv': 'Content-Security-Policy', 
-        //"content": "upgrade-insecure-requests" 
+        // 实现域名校验
+        //"name": "algolia-site-verification", 
+        //"content": "02635CF78DCEC3A9",
+        // 表示所有http协议增强为https协议
+        'http-equiv': 'Content-Security-Policy', 
+        "content": "upgrade-insecure-requests" 
       },
       
     ]
@@ -113,7 +115,7 @@ export default defineUserConfig({
     docsearchPlugin({
       appId: 'WEZNU7P28F',
       apiKey: '01ac7acb9469c08dd21ba57208cf15f4',
-      indexName: 'firstbloodforjavaio',
+      indexName: 'vuepress_blog',
       locales: {
         '/': {
           placeholder: '搜索文档',
