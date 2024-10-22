@@ -414,7 +414,7 @@ npm config set http-proxy http://127.0.0.1:33210
 
 
 ~~~bash
-# 使用淘宝的 npm 镜像
+# 使用淘宝的 npm 镜像,该镜像有问题
 npm config set registry http://registry.npm.taobao.org
 # 设置为官方源
 npm config set registry http://registry.npmjs.org/
@@ -423,11 +423,26 @@ npm config set registry http://registry.npmjs.org/
 
 
 
+~~~bash
+# 安装cnpm,镜像是http://registry.npmmirror.com
+npm install -g cnpm --registry=http://registry.npmmirror.com
+
+~~~
+
 
 
 ~~~bash
-# 安装cnpm
-npm install -g cnpm --registry=http://registry.npmmirror.com
+# 安装依赖具体版本,-D表示--save-dev
+npm i -D <dependency>@version
+npm install <dependency>@version --save-dev
+
+~~~
+
+
+
+~~~bash
+# 查询依赖的所有版本
+npm show <dependency> versions --json
 
 ~~~
 
