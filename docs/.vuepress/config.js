@@ -150,8 +150,8 @@ export default defineUserConfig({
     prismjsPlugin({
       // 超过10行才显示行号
       lineNumbers: 10,
-      // 代码块折叠配置,超过15行折叠
-      collapsedLines: true,
+      // 代码块折叠配置,超过15行折叠(有问题关闭,使用其它方式折叠)
+      collapsedLines: false,
       // 空白符渲染
       whitespace: true
     }),
