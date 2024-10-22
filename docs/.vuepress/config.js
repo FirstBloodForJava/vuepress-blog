@@ -10,7 +10,7 @@ export default defineUserConfig({
     [
       'meta', { 
         "name": "algolia-site-verification", 
-        "content": "02635CF78DCEC3A902635CF78DCEC3A9",
+        "content": "02635CF78DCEC3A9",
         //'http-equiv': 'Content-Security-Policy', 
         //"content": "upgrade-insecure-requests" 
       },
