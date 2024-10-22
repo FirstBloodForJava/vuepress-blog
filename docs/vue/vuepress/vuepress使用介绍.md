@@ -50,7 +50,7 @@ cnpm install -D sass
 
 #### navbar
 
-https://ecosystem.vuejs.press/zh/themes/default/config.html#navbar
+http://ecosystem.vuejs.press/zh/themes/default/config.html#navbar
 
 导航栏配置
 
@@ -85,7 +85,7 @@ export default {
 
 ## 插件
 
-### 搜索插件
+### 搜索插件(服务端)
 
 ~~~bash
 cnpm i -D @vuepress/plugin-docsearch@next
@@ -134,6 +134,63 @@ export default {
 ![image-20241021133623456](http://47.101.155.205/image-20241021133623456.png)
 
 indexName索引名称需要再等邮件。
+
+
+
+#### algolia创建爬虫(索引)
+
+dashboard.algolia.com->data sources->crawler->click on your crawler->点击Domains
+
+![image-20241022111515610](http://47.101.155.205/image-20241022111515610.png)
+
+![image-20241022111553867](http://47.101.155.205/image-20241022111553867.png)
+
+![image-20241022111603332](http://47.101.155.205/image-20241022111603332.png)
+
+域名验证，部署在GitHub上的vuepress项目，可以通过修改config.js来操作。
+
+~~~javascript
+// config.js文件中使用vue的head设置meta标签
+export default defineUserConfig({
+  head: [
+    [
+      'meta', { 
+        "name": "algolia-site-verification", 
+        "content": "02635CF78DCEC3A9"
+      },
+      
+    ]
+  ],
+  
+
+
+})
+
+~~~
+
+![image-20241022111919838](http://47.101.155.205/image-20241022111919838.png)
+
+
+
+
+
+dashboard.algolia.com->data sources->crawler->click on your crawler->Add new crawler
+
+![image-20241022110300153](http://47.101.155.205/image-20241022110300153.png)
+
+![image-20241022110714099](http://47.101.155.205/image-20241022110714099.png)
+
+打开页面，SETUP->Editor->修改配置->右上角Save ->Start Crawl
+
+![image-20241022112333211](http://47.101.155.205/image-20241022112333211.png)
+
+![image-20241022112556284](http://47.101.155.205/image-20241022112556284.png)
+
+![image-20241022112647005](http://47.101.155.205/image-20241022112647005.png)
+
+http://ecosystem.vuejs.press/zh/plugins/search/docsearch.html#%E8%8E%B7%E5%8F%96%E6%90%9C%E7%B4%A2%E7%B4%A2%E5%BC%95
+
+配置config.js文件即可使用，在GitHub上才会生效，因为查询放回的url信息是之前网站的域名。
 
 
 
@@ -226,7 +283,7 @@ jobs:
         run: pnpm docs:build
 
       # 查看 workflow 的文档来获取更多信息
-      # @see https://github.com/crazy-max/ghaction-github-pages
+      # @see http://github.com/crazy-max/ghaction-github-pages
       - name: Deploy to GitHub Pages
         uses: crazy-max/ghaction-github-pages@v4
         with:
@@ -235,7 +292,7 @@ jobs:
           # 部署目录为 VuePress 的默认输出目录
           build_dir: docs/.vuepress/dist
         env:
-          # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-VUEPRESS_BLOG_ACTION-secret
+          # @see http://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-VUEPRESS_BLOG_ACTION-secret
           # VUEPRESS_BLOG_ACTION换成后面项目生成的token名称
           VUEPRESS_BLOG_ACTION: ${{ secrets.VUEPRESS_BLOG_ACTION }}
 
@@ -304,7 +361,7 @@ ${{ secrets.VUEPRESS_BLOG_ACTION }}不能直接出现在纯文本中,否则浏�
 ~~~bash
 # npm配置代理无效
 npm config set proxy http://127.0.0.1:33210
-npm config set https-proxy https://127.0.0.1:33210
+npm config set http-proxy http://127.0.0.1:33210
 
 
 ~~~
@@ -313,9 +370,9 @@ npm config set https-proxy https://127.0.0.1:33210
 
 ~~~bash
 # 使用淘宝的 npm 镜像
-npm config set registry https://registry.npm.taobao.org
+npm config set registry http://registry.npm.taobao.org
 # 设置为官方源
-npm config set registry https://registry.npmjs.org/
+npm config set registry http://registry.npmjs.org/
 
 ~~~
 
@@ -325,7 +382,7 @@ npm config set registry https://registry.npmjs.org/
 
 ~~~bash
 # 安装cnpm
-npm install -g cnpm --registry=https://registry.npmmirror.com
+npm install -g cnpm --registry=http://registry.npmmirror.com
 
 ~~~
 
