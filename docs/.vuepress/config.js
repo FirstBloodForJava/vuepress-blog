@@ -48,6 +48,7 @@ export default defineUserConfig({
         text: '首页',
         link: '/'
       },
+      //  算法策略
       {
         text: '算法策略',
         prefix: '/algorithmStrategy',
@@ -69,6 +70,7 @@ export default defineUserConfig({
 
         ]
       },
+      // vue
       {
         text: 'vue',
         prefix: '/vue/',
@@ -78,46 +80,18 @@ export default defineUserConfig({
             prefix: 'vuepress/',
             children: [
               'vuepress使用介绍.md', // 解析为 `/guide/group/sub1/bar.md`
-              'bar.md', // 解析为 `/guide/group/sub1/bar.md`
-
-
-              {
-                text: 'Example',
-                link: 'https://example.com',
-              },
+              //'bar.md', // 解析为 `/vue/vuepress/bar.md`
             ],
           },
-          {
-            text: 'SubGroup2',
-            prefix: 'sub2/',
-            // 项目内链接的 .md 或 .html 后缀是可以省略的
-            children: [
-              'foo', // 解析为 `/guide/group/sub2/foo.md`
-              'bar', // 解析为 `/guide/group/sub2/bar.md`
-
-              // 不在 SubGroup2 内的链接
-              '/baz/', // 解析为 `/baz/README.md`
-            ],
-          },
+        
         ],
       },
       // 控制元素何时被激活
       {
-        text: 'Group 2',
+        text: 'nginx',
+        prefix: '/nginx',
         children: [
-          {
-            text: 'Always active',
-            link: '/',
-            // 该元素将一直处于激活状态
-            activeMatch: '/',
-          },
-          {
-            text: 'Active on /foo/',
-            link: '/not-foo/',
-            // 该元素在当前路由路径是 /foo/ 开头时激活
-            // 支持正则表达式
-            activeMatch: '^/foo/',
-          },
+          'nginx配置代理https请求步骤.md'
         ],
       },
     ],
