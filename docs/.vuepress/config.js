@@ -94,6 +94,25 @@ export default defineUserConfig({
           'nginx配置代理https请求步骤.md'
         ],
       },
+      // ELK
+      {
+        text: 'ELK',
+        prefix: '/ELK',
+        children: [
+          {
+            text: 'Elasticsearch',
+            link: 'Elasticsearch'
+          },
+          {
+            text: 'ELK',
+            link: 'ELK',
+          },
+          {
+            text: 'Logstash',
+            link: 'logstash-8.5',
+          },
+        ]
+      },
     ],
     // 修改主题的footer
     locales: {
