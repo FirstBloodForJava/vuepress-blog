@@ -1,5 +1,6 @@
 ---
 title: 我的博客标题
+editLink: true
 sidebarDepth: 5
 lang: zh-CN
 actions:

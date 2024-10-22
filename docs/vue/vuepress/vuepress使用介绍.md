@@ -79,6 +79,51 @@ export default {
 
 
 
+#### footer配置
+
+footer增加GitHub编辑地址，及描述。
+
+**注意在defaultTheme中增加配置。**
+
+![image-20241022144459426](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241022144459426.png)
+
+~~~javascript
+import { defineUserConfig } from 'vuepress'
+import { defaultTheme } from '@vuepress/theme-default'
+
+export default defineUserConfig({
+  // 设置网站的主题
+  theme: defaultTheme({
+    search: true,
+    sidebarDepth: 5,
+    
+    editLink: true,
+    // 文档源文件的仓库 URL 
+    docsRepo: 'http://github.com/FirstBloodForJava/vuepress-blog',
+    // 文档源文件的仓库分支,默认main
+    docsBranch: 'main',
+    // 文档源文件存放在仓库中的目录名
+    docsDir: 'docs',
+    // 编辑此页的链接
+    editLinkPattern: ':repo/edit/:branch/:path',
+    // 修改主题的footer
+    locales: {
+      '/': {
+        lastUpdatedText: '上次更新',
+        contributorsText: '贡献者',
+        editLinkText: '在 GitHub 上编辑此页',
+      }
+    }
+  }),
+
+})
+
+~~~
+
+
+
+
+
 ### client配置
 
 

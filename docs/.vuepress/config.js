@@ -6,17 +6,17 @@ import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 
 export default defineUserConfig({
   head: [
-    
+
     [
-      'meta', { 
+      'meta', {
         // 实现域名校验
         //"name": "algolia-site-verification", 
         //"content": "02635CF78DCEC3A9",
         // 表示所有http协议增强为https协议
-        'http-equiv': 'Content-Security-Policy', 
-        "content": "upgrade-insecure-requests" 
+        'http-equiv': 'Content-Security-Policy',
+        "content": "upgrade-insecure-requests"
       },
-      
+
     ]
   ],
   base: "vuepress-blog",
@@ -24,12 +24,24 @@ export default defineUserConfig({
   title: 'VuePress', // 设置所有页面的title后缀
   description: '基于MarkDown文档使用VuePress搭建的博客',
 
+
   bundler: viteBundler(), // 设置打包工具
 
   // 设置网站的主题
   theme: defaultTheme({
     search: true,
     sidebarDepth: 5,
+    
+    editLink: true,
+    // 文档源文件的仓库 URL 
+    docsRepo: 'http://github.com/FirstBloodForJava/vuepress-blog',
+    // 文档源文件的仓库分支,默认main
+    docsBranch: 'main',
+    // 文档源文件存放在仓库中的目录名
+    docsDir: 'docs',
+    // 编辑此页的链接
+    editLinkPattern: ':repo/edit/:branch/:path',
+
     navbar: [
       // 嵌套 Group - 最大深度为 2
       {
@@ -109,6 +121,14 @@ export default defineUserConfig({
         ],
       },
     ],
+    // 修改主题的footer
+    locales: {
+      '/': {
+        lastUpdatedText: '上次更新',
+        contributorsText: '贡献者',
+        editLinkText: '在 GitHub 上编辑此页',
+      }
+    }
   }),
 
   plugins: [
@@ -128,6 +148,8 @@ export default defineUserConfig({
       },
     }),
     prismjsPlugin({
+      // 超过10行才显示行号
+      lineNumbers: 10,
       // 代码块折叠配置,超过15行折叠
       collapsedLines: true,
       // 空白符渲染
