@@ -132,6 +132,30 @@ export default defineUserConfig({
           
         ]
       },
+      // JVM
+      {
+        text: 'JVM',
+        prefix: '/JVM',
+        children: [
+          'JVM.md',
+          {
+            text: '垃圾收集器和内存分配策略',
+            link: '垃圾收集器和内存分配策略',
+          },
+          {
+            text: '虚拟机性能监控工具',
+            link: '虚拟机性能监控工具',
+          },
+          {
+            text: 'JVM调优理论',
+            link: 'JVM调优理论',
+          },
+          {
+            text: 'Java多线程理论',
+            link: 'Java多线程理论',
+          }
+        ]
+      }
     ],
     // 修改主题的footer
     locales: {
