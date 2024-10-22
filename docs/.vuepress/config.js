@@ -7,7 +7,15 @@ import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 export default defineUserConfig({
   head: [
     // 表示所有http协议增强为https协议
-    ['meta', { 'http-equiv': 'Content-Security-Policy', content: "upgrade-insecure-requests" }]
+    [
+      'meta', { 
+        //"name": "algolia-site-verification", 
+        //"content": "02635CF78DCEC3A902635CF78DCEC3A9",
+        'http-equiv': 'Content-Security-Policy', 
+        "content": "upgrade-insecure-requests" 
+      },
+      
+    ]
   ],
   base: "vuepress-blog",
   lang: 'zh-CN',
@@ -103,9 +111,9 @@ export default defineUserConfig({
 
   plugins: [
     docsearchPlugin({
-      appId: '${{ secrets.SEARCH_APP_ID }}',
-      apiKey: '${{ secrets.SEARCH_API_KEY }}',
-      indexName: '<INDEX_NAME>',
+      appId: 'WEZNU7P28F',
+      apiKey: '01ac7acb9469c08dd21ba57208cf15f4',
+      indexName: 'firstbloodforjavaio',
       locales: {
         '/': {
           placeholder: '搜索文档',
