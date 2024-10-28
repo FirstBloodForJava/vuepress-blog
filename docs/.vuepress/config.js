@@ -155,7 +155,19 @@ export default defineUserConfig({
             link: 'Java多线程理论',
           }
         ]
-      }
+      },
+      // linux
+      {
+        text: 'linux',
+        prefix: '/linux',
+        children: [
+          'Linux.md',
+          {
+            text: 'shell语法',
+            link: 'shell语法'
+          }
+        ]
+      },
     ],
     // 修改主题的footer
     locales: {
