@@ -3,6 +3,7 @@ import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 import { docsearchPlugin } from '@vuepress/plugin-docsearch'
 import { prismjsPlugin } from '@vuepress/plugin-prismjs'
+import { markdownImagePlugin } from '@vuepress/plugin-markdown-image'
 
 export default defineUserConfig({
   head: [
@@ -202,6 +203,16 @@ export default defineUserConfig({
       collapsedLines: false,
       // 空白符渲染
       whitespace: true
+    }),
+    markdownImagePlugin({
+      // 启用 figure，图片底部描述
+      figure: true,
+      // 启用图片懒加载
+      lazyload: true,
+      // 启用图片标记
+      mark: true,
+      // 启用图片大小
+      size: true,
     }),
 
   ]
