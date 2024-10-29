@@ -936,7 +936,7 @@ groupmod 参数 groupname
 
 
 
-#####newgrp
+##### newgrp
 
 ![image-20220614003505524](http://47.101.155.205/image-20220614003505524.png)
 
