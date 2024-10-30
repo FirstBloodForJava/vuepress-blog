@@ -169,6 +169,16 @@ export default defineUserConfig({
           }
         ]
       },
+      // mq
+      {
+        text: '消息队列',
+        prefix: '/mq',
+        children: [
+          'RabbitMQ.md',
+          'ActiveMQ.md',
+          'kafka.md',
+        ]
+      },
     ],
     // 修改主题的footer
     locales: {
