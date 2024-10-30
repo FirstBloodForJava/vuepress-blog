@@ -1512,8 +1512,12 @@ yum update <package-name>
 
 # 卸载指定的软件包
 yum remove <package-name>
+
 # -y确认卸载
 yum -y remove grep  yum list installed | grep httpd
+
+# 卸载查询到的安装
+yum list installed | grep <name> | xargs yum remove -y
 
 
 ~~~
@@ -1548,7 +1552,9 @@ rpm -ivh jdk-23_linux-aarch64_bin.rpm
 rpm -qa | grep jdk
 
 # 卸载jdk，上面-aq查询的内容名
-rpm -de nodeps <name> 
+rpm -de --nodeps <name> 
+
+rpm -qa | grep <name> | xargs rpm -de --nodeps
 
 ~~~
 
