@@ -130,6 +130,10 @@ export default defineUserConfig({
             text: 'Java多线程使用',
             link: 'Java多线程使用',
           },
+          {
+            text: 'Java注解',
+            link: 'Java注解',
+          },
           
         ]
       },
