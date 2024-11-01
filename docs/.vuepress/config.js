@@ -183,6 +183,17 @@ export default defineUserConfig({
           'kafka.md',
         ]
       },
+      // Spring
+      {
+        text: 'Spring',
+        prefix: '/Spring',
+        children: [
+          {
+            text: 'Spring注解介绍',
+            link: 'Spring注解介绍'
+          }
+        ]
+      },
     ],
     // 修改主题的footer
     locales: {
