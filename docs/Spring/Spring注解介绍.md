@@ -350,6 +350,22 @@ public class ProfileDatabaseConfig {
 
 
 
+~~~java
+// 定义在抽象类上，只有子类被Spring容器管理，则这里的@Bean生效
+@Configuration
+@EnableConfigurationProperties(JpaProperties.class)
+@Import(DataSourceInitializedPublisher.Registrar.class)
+public abstract class JpaBaseConfiguration implements BeanFactoryAware {
+    
+    @Bean
+    public ...;
+}
+
+
+~~~
+
+
+
 
 
 ##### @Controller
@@ -531,6 +547,58 @@ public class MyAutoConfiguration {
 }
 
 ~~~
+
+
+
+##### @ConditionalOnSingleCandidate
+
+匹配单个Bean生效
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.Conditional;
+
+// 指定的Bean类型只在容器中出现一次，则匹配
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnBeanCondition.class)
+public @interface ConditionalOnSingleCandidate {
+
+	// 不能和type一起使用
+	Class<?> value() default Object.class;
+
+	// 不能和value一起使用
+	String type() default "";
+
+	
+	SearchStrategy search() default SearchStrategy.ALL;
+
+}
+
+~~~
+
+
+
+~~~java
+@Configuration
+@EnableConfigurationProperties(HibernateProperties.class)
+@ConditionalOnSingleCandidate(DataSource.class)
+class HibernateJpaConfiguration extends JpaBaseConfiguration { 
+
+}
+
+~~~
+
+![image-20241107160235885](http://47.101.155.205/image-20241107160235885.png)
 
 
 
