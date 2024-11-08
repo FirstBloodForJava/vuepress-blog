@@ -4,6 +4,59 @@
 
 
 
+### spring-beans
+
+
+
+#### @Autowired
+
+~~~java
+package org.springframework.beans.factory.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+// 将Spring容器中的对象赋值给属性
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Autowired {
+
+	// 标注Bean是否是必须的，true不存在Bean启动失败
+	boolean required() default true;
+
+}
+
+~~~
+
+使用方式：
+
+1. 字段注入，@Autowired放在字段上；
+2. 构造函数注入，@Autowired放在构造函数上(只有有一个带注解的)；
+3. set注入，@Autowired方法set方法上；
+4. 注入一类对象，使用List或Map接收，Map的key为Bean的名称，List会根据Order的值情况排序。
+
+~~~java
+// 注入一类对象
+@Configuration
+protected static class ZuulFilterConfiguration {
+
+	@Autowired
+	private Map<String, ZuulFilter> filters;
+
+}
+
+~~~
+
+**由于注入Bean是通过BeanPostProcessor，意味着不能将BeanPostProcessor或BeanFactoryPostProcessor类型的对象注入。**
+
+
+
+
+
 ### spring-core
 
 
@@ -360,11 +413,11 @@ public abstract class JpaBaseConfiguration implements BeanFactoryAware {
     @Bean
     public ...;
 }
-
+// 定义在类上，子类被Spring容器管理，则这里的条件还需要满足才能生效
 
 ~~~
 
-
+![image-20241108144626046](http://47.101.155.205/image-20241108144626046.png)
 
 
 
@@ -639,6 +692,77 @@ public @interface Profile {
 
 
 
+##### @ConditionalOnProperty
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.env.Environment;
+
+// name和value同样的效果，不能同时出现
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Documented
+@Conditional(OnPropertyCondition.class)
+public @interface ConditionalOnProperty {
+
+	
+	String[] value() default {};
+
+	// 属性的前缀,没有.结尾，会加上这个'.'
+	String prefix() default "";
+
+	// 待校验的一个或多个配置名
+	String[] name() default {};
+
+	// 配置的要求,默认是可以是任何值，除了"false"，具体规则见下图
+	String havingValue() default "";
+
+	// 不存在配置key,是否匹配：默认不匹配
+	boolean matchIfMissing() default false;
+
+}
+
+~~~
+
+![image-20241108152506073](http://47.101.155.205/image-20241108152506073.png)
+
+![image-20241108153142441](http://47.101.155.205/image-20241108153142441.png)
+
+
+
+##### @ConditionalOnRibbonRestClient
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnRibbonRestClientCondition.class)
+@interface ConditionalOnRibbonRestClient { }
+
+private static class OnRibbonRestClientCondition extends AnyNestedCondition {
+	public OnRibbonRestClientCondition() {
+		super(ConfigurationPhase.PARSE_CONFIGURATION);
+	}
+	@ConditionalOnProperty("ribbon.restclient.enabled")
+	static class RibbonProperty {}
+	
+}
+// 继承AnyNestedCondition的作用是可以将OnRibbonRestClientCondition中的匹配条件算上，这里作用是相当于要有ribbon.restclient.enabled存在配置中，且值不为false，则匹配这个@Configuration才生效，否则不会作为配置类
+
+~~~
+
+![image-20241108155207715](http://47.101.155.205/image-20241108155207715.png)
+
+![image-20241108155346860](http://47.101.155.205/image-20241108155346860.png)
+
 
 
 ### @Import
@@ -653,6 +777,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 // 将配置类或普通类或ImportSelector实现类或ImportBeanDefinitionRegistrar实现类引入到当前Spring容器
+// 对于没有被扫描到的Configuration类,相当于扫描到该类
+// Import的类没有@Configuration也可以导入
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -667,11 +793,89 @@ public @interface Import {
 
 
 
+SpringBoot的自动注入就经常使用这个注解，相当于扫描到该类的作用，注入容器。
+
+例如SpringBoot项目启动会自动扫描启动类所在目录下的所有包，上级包不会被扫描，就可以使用Import。
+
+![image-20241108142203040](http://47.101.155.205/image-20241108142203040.png)
+
 
 
 ## SpringBoot
 
+### spring-boot
 
+
+
+#### @ConfigurationProperties
+
+~~~java
+package org.springframework.boot.context.properties;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.core.annotation.AliasFor;
+
+// 通过@Component或@EnableConfigurationProperties将其注入到Spirng容器中
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ConfigurationProperties {
+
+	@AliasFor("prefix")
+	String value() default "";
+
+
+	@AliasFor("value")
+	String prefix() default "";
+
+	// false:当属性类型不匹配时会抛出异常；true:则不会
+	boolean ignoreInvalidFields() default false;
+
+	// true:允许忽略未在类中定义的属性；false:则会抛出异常
+	boolean ignoreUnknownFields() default true;
+
+}
+
+~~~
+
+![image-20241108164702171](http://47.101.155.205/image-20241108164702171.png)
+
+
+
+
+
+#### @EnableConfigurationProperties
+
+~~~java
+package org.springframework.boot.context.properties;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+
+// 启用并注册带有注解@ConfigurationProperties的类
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Import(EnableConfigurationPropertiesImportSelector.class)
+public @interface EnableConfigurationProperties {
+
+
+	Class<?>[] value() default {};
+
+}
+
+~~~
 
 
 
@@ -681,6 +885,43 @@ public @interface Import {
 
 
 ## SpringCloud
+
+
+
+
+
+## javax
+
+
+
+
+
+
+
+### @PostConstruct
+
+~~~java
+package javax.annotation;
+
+import java.lang.annotation.*;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
+
+// 在构造方法执行后执行
+@Documented
+@Retention (RUNTIME)
+@Target(METHOD)
+public @interface PostConstruct {
+}
+
+~~~
+
+Spring使用要求：
+
+1. 方法不能携带参数；
+2. 方法格式void \<METHOD\>()；
+3. 方法可以是任意的修饰符权限；
+4. 不能是static的方法；
 
 
 
