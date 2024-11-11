@@ -819,3 +819,153 @@ scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit
 
 
 
+## 锁
+
+### synchronized和Lock
+
+锁是一种通过多个线程控制对共享资源的访问的工具。锁提供对共享资源的独占访问：在一个时间，只有一个线程获得锁和访问共享资源。有些锁(ReadWriteLock)允许并发访问。
+
+synchronized是Java的关键字，属于JVM级别的同步机制。可以作用与同步方法或同步代码块。支持锁定的对象有：this对象、指定对象、当前类。JVM自动管理锁和释放锁，不需要手动解锁，线程执行完同步代码块自动释放锁。
+
+Lock：是java.util.concurrent.locks包中的接口，提供了更细粒度的锁控制。Lock锁需要显示的获取和释放锁。Lock常用的实现类有ReentrantLock。
+
+synchronized和Lock直接的区别：
+
+1. 性能：synchronized早期性能较差，从 Java 6 开始进行了优化（偏向锁、轻量级锁），在大多数简单同步场景中性能接近甚至优于Lock；
+2. 可中断性：Lock锁支持中断等待锁的线程，线程等待synchronized块的锁时不可中断；
+3. 公平性：Lock(ReentrantLock)支持设置为公平锁，会影响性能，synchronized不支持；
+4. 等待通知机制：synchronized可以使用wait()、notify()和notifyAll()进行条件等待，但条件控制较少。Lock 提供了Condition对象，可以更灵活地控制线程等待和唤醒的条件，支持多个等待队列。
+
+
+
+### ReentrantLock
+
+可重入锁：一个线程可以多次获取ReentrantLock锁，对应多次获取需要多次释放。
+
+![image-20241111132343033](http://47.101.155.205/image-20241111132343033.png)
+
+
+
+等待通知机制
+
+~~~java
+class Resource {
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition empty = lock.newCondition();
+    private Condition full = lock.newCondition();
+    private Queue<Integer> queue = new LinkedList<>();
+    private final int MAX_CAPACITY = 10;
+
+    public void produce(int value) throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.size() == MAX_CAPACITY) {
+                // 阻塞,直到被其他线程唤醒或中断
+                full.await();
+            }
+            queue.add(value);
+            empty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int consume() throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.isEmpty()) {
+                empty.await();
+            }
+            int value = queue.poll();
+            full.signal();
+            return value;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+
+~~~
+
+
+
+### ReentrantReadWriteLock
+
+读写锁：
+
+1. 读锁：允许多个线程同时持有锁，适用于读多写少操作，多个线程可并发读取资源。读锁只有在写锁中获取或在写锁释放时获取(读锁中不能获取写锁，死锁)。
+2. 写锁：独占锁，当前线程可以持有写锁，其它线程获取读锁及写锁(当前线程可以获取读锁)；其它线程获取读锁，当前线程无法或取写锁。
+
+锁降级：
+
+![image-20241111141945894](http://47.101.155.205/image-20241111141945894.png)
+
+
+
+### StampedLock 
+
+Java 8引入的一种改进的锁机制，提供了三种锁模式：写锁、悲观读锁、乐观读锁。适用于读多写少的场景。
+
+写锁：独占锁，适用于写操作。
+
+悲观读锁：和传统的读锁类似，适用于需要保证数据一致性的读操作。
+
+乐观读锁：一种无阻塞的读锁，适合快速读取的操作。在读取期间其他线程可以获取写锁，因此读取的数据可能会改变，读者需要在读操作完成前进行有效性验证。
+
+**锁是不可重入的，同一线程在持有写锁或悲观读锁的情况下，再去获取这两者任意一个，会导致死锁。**
+
+没有等待通知机制。
+
+~~~java
+// 写锁
+long stamp = stampedLock.writeLock();
+try {
+    
+} finally {
+    stampedLock.unlockWrite(stamp);
+}
+
+// 悲观读锁
+long stamp = stampedLock.readLock();
+try {
+    
+} finally {
+    stampedLock.unlockRead(stamp);
+}
+
+// 乐观读锁
+long stamp = stampedLock.tryOptimisticRead();
+try {
+    // 验证是否被修改,无效回退到悲观读锁
+    if (!stampedLock.validate(stamp)) {
+        // 悲观读锁
+        stamp = stampedLock.readLock();
+        try {
+            
+        } finally {
+            // 释放悲观读锁
+            stampedLock.unlockRead(stamp);
+        }
+    }
+} finally {
+    // 无需手动释放乐观锁
+}
+
+
+~~~
+
+
+
+## 同步器
+
+
+
+## CAS
+
+
+
+## Fork/Join
+
+
+
+## CompletableFuture
