@@ -601,6 +601,24 @@ LIFO(后进先出)栈等效方法：
 
 
 
+#### ArrayBlockingQueue
+
+基于数组实现的有界阻塞队列，遵循先进先出原则。基于ReentrantLock实现线程安全和控制公平策略。
+
+定是否启用公平性。若为 `true`，等待时间最长的线程优先处理。默认为 `false`，非公平策略通常性能更高。
+
+
+
+#### ConcurrentLinkedQeque
+
+基于链表实现的无界的线程安全的Queue。
+
+
+
+
+
+
+
 #### DelayQueue
 
 是一个无界的阻塞队列，队列的功能基于PriorityQueue(优先队列)实现。队列中的元素需要实现Delayed接口，一个是延期时间另外一个是重写compareTo()方法。
@@ -611,13 +629,7 @@ LIFO(后进先出)栈等效方法：
 
 
 
-#### LinkedBlockingDeque
 
-一个阻塞有界的双端队列。
-
-默认的队列容量是Integer.MAX_VALUE。
-
-线程安全：基于Lock锁实现。
 
 
 
@@ -659,4 +671,151 @@ LinkedTransferQueue 提供了 transfer(E e) 方法，该方法允许生产者直
 
 1. 公平模式（FIFO）：插入和移除的操作按顺序（FIFO）进行，线程按照其调用顺序排队。
 2. 非公平模式：线程不按顺序，可以以随机顺序被调度（默认）。
+
+
+
+### BlockingDueue
+
+双端队列，当队列满了添加元素或队列空的获取元素，调用不同的方法会有不同的效果：
+
+![image-20241109165413947](http://47.101.155.205/image-20241109165413947.png)
+
+由于存在返回特定的元素，会返回null，所以队列中的元素不能为null。
+
+![image-20241109165849706](http://47.101.155.205/image-20241109165849706.png)
+
+
+
+#### ConcurrentLinkedDeque
+
+基于链表实现的无界的线程安全的Deque。
+
+
+
+#### LinkedBlockingDeque
+
+一个阻塞有界的双端队列。
+
+默认的队列容量是Integer.MAX_VALUE。
+
+线程安全：基于Lock锁实现。
+
+
+
+## Executor
+
+执行Runnable任务的执行器。
+
+~~~java
+package java.util.concurrent;
+
+public interface Executor {
+
+    // 自定义Runnable任务怎么执行
+    void execute(Runnable command);
+}
+
+~~~
+
+
+
+### ThreadPoolExecutor
+
+线程池：在多线程应用中，频繁创建和销毁线程会带来大量的系统开销，线程池通过复用线程资源和合理管理线程数量来提高效率。
+
+线程池能解决的问题：
+
+1. 线程创建和销毁的高开销：通过复用已创建的线程，避免频繁创建和销毁的开销问题；
+2. 资源管理与控制：避免创建大量的线程，导致资源耗尽，特别是CPU和内容有限的情况；
+3. 任务调度和管理：线程池为任务提供队列，当线程池线程数量达到上限时，新任务会进入队列排队等待处理；
+4. 防止系统过载：线程池中的等待队列和拒绝策略，可以帮助管理任务的浏览。
+
+ThreadPoolExecutor核心配置：
+
+1. corePoolSize：线程池中活跃的线程数，除非allowCoreThreadTimeOut为true，即时线程空闲也不会关闭；
+2. maximumPoolSize：线程池中运行最大的线程数量(队列满了才会创建)；
+3. keepAliveTime：当存活线程数大于核心线程数，多余线程终止前等待新任务的最大时间；
+4. unit：keepAliveTime的时间单位；
+5. workQueue：在执行任务之前保存任务的队列，此队列仅保存通过execute方法执行的任务；
+6. threadFactory：创建新线程的工厂；
+7. handler：达到队列容量和线程处理上限(阻塞)的处理策略；
+
+![image-20241109195233014](http://47.101.155.205/image-20241109195233014.png)
+
+
+
+#### RejectedExecutionHandler
+
+1. AbortPolicy：直接抛出异常；
+2. DiscardPolicy：任务直接放弃；
+3. DiscardOldestPolicy：从队列中移除一个任务；
+4. CallerRunsPolicy：线程池满了，队列满了，直接调用Runnable的run方法，不开线程。
+
+
+
+
+
+
+
+### 第三种创建线程的方式
+
+~~~java
+public class App {
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+
+        FutureTask task = new FutureTask(new Callable<String>(){
+             public String call(){
+                return "123";
+            }
+        });
+
+        Thread thread = new Thread(task);
+        thread.start();
+
+        System.out.println(task.get());
+    }
+}
+
+~~~
+
+
+
+#### FutureTask
+
+实现了Future和Runnable接口，实现Future提供获取异步计算结果的功能，以及取消(cancel)任务的功能。
+
+通过Thread启动调用run方法，FutureTask重写了Run方法的逻辑，实现了计算完成存储计算结果。
+
+重写的run方法。
+
+**Future被一个线程使用后，不能在被其它线程使用，因为可能不会执行里面的Callable的call方法。**
+
+![image-20241110164231095](http://47.101.155.205/image-20241110164231095.png)
+
+
+
+get获取异步结果
+
+![image-20241110164730797](http://47.101.155.205/image-20241110164730797.png)
+
+
+
+
+
+### ScheduledThreadPoolExecutor
+
+基于ThreadPoolExecutor的扩展。
+
+![image-20241109213506276](http://47.101.155.205/image-20241109213506276.png)
+
+
+
+schedule(Runnable command, long delay, TimeUnit unit)：延迟时间执行command;
+
+scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)：initialDelay首次执行延迟时间，period后续每次间隔时间，固定速率执行command(任务开始即计时)；
+
+scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit)：固定延迟执行任务(上一个任务完成才开始执行任务)。
+
+
 
