@@ -178,10 +178,12 @@ class Work02 implements Runnable {
 可以控制一组线程进行循环工作。
 
 ~~~java
-//CyclicBarrier对象调用await()方法，await()调用私有的dowait方法，在方法块中创建了一个final ReentrantLock lock = this.lock;lock.lock();属性index = --count;如果index==0;这个时候当前线程就可以调用CyclicBarrier构造方法传递的Runnable对象的run方法，然后执行nextGeneration方法，给CyclicBarrier的属性重新赋值。如果这个时候Runnable对象调用run方法出现异常，就执行breakBarrie方法。
-//在调用Runnable的run出现异常，直接走breakBarrier方法，没有修改generation对象，只是修改了属性broken为true，count计数为原来的值，唤醒其他线程，这个时候这个线程就退出了，其他线程再此调用dowait的方法时由于broken为true，直接抛出异常。这个时候，在barrier.await();之前的代码可以执行一次，之后由于唤醒之后，直接在for循环里面由于broken为true直接抛出异常。
+// final ReentrantLock lock = new ReentrantLock();await方法通过lock加锁
+// final Condition trip = lock.newCondition();通过这个实现线程间的通知
+// CyclicBarrier对象调用await()方法，await()调用私有的dowait方法，lock.lock()加锁，index = --count;
+// 如果index==0;如果构造方法的Runnable对象不为空，调用run方法，然后执行nextGeneration方法;
+// 重新设置循环值，唤醒其它等待的线程，结束
 
-//再index==0的这个过程中，没有出现异常，调用nextGeneration方法，直接返回结果0。如果不为0，则进行一个for的死循环。
 private void nextGeneration() {
 	// signal completion of last generation
     trip.signalAll();
@@ -189,15 +191,13 @@ private void nextGeneration() {
     count = parties;
     generation = new Generation();
 }
-private void breakBarrier() {
-	generation.broken = true;
-    count = parties;
-    trip.signalAll();
-}
+
 private final Condition trip = lock.newCondition();
-//不为0分为两种情况，第一种情况是直接调用await方法不传参数，第二种情况是传递等待时间参数
+//不为0分为两种情况，第一种情况是直接调用await方法不传参数，第二种情况是传递等待时间参数(期限等待)
 //1.线程直接等待trip.await();这个时候如果线程被唤醒，如果当前线程没有执行interrupt(或者说当前线程的isInterrupted是false)，继续向下执行。如果程序是被interrupt则下次唤醒时，index==0时，会执行上面的breakBarrier方法，直接抛出了异常，根本就没有进入for循环。
 //在第一次执行barrier.await()之后执行Thread.currentThread().interrupt();都可以得到await方法的结果。第二次进入dowait方法，因为Thread.interrupted()方法的结果为true，都直接抛出异常。这个过程，barrier.await()执行之前的代码可以执行两次。
+
+
 ~~~
 
 
