@@ -285,7 +285,7 @@ class PrimeRun implements Runnable {
 | object.wait(0)/object.wait() | object.wait(timeout)    |
 | thread.join(0)/thread.join() | thread.join(timeout)    |
 | LockSupport.park()           | LockSupport.parkNanos() |
-|                              | LockSupport.parkUntil() |
+| LockSupport.park(blocker)    | LockSupport.parkUntil() |
 
 ~~~java
 public class App {
@@ -957,6 +957,140 @@ try {
 
 
 ## 同步器
+
+### CountDownLatch
+
+计数器开关：让调用CountDownLatch(n).awati()方法的线程等待(线程状态WAITING)，直到CountDownLatch.countDown()执行n次，计数器为0，线程开始执行。
+
+通过调用LockSupport.park(this);让线程进入WAITING状态。
+
+
+
+~~~java
+class Driver { 
+	void main() throws InterruptedException { 
+		CountDownLatch startSignal = new CountDownLatch(1);
+		CountDownLatch doneSignal = new CountDownLatch(N);
+		for (int i = 0; i < N; ++i) {
+			new Thread(new Worker(startSignal, doneSignal)).start();
+		}
+		
+		doSomethingElse();
+		// 唤醒startSignal等待的线程
+		startSignal.countDown();
+		// 等待doneSignal被唤醒
+		doneSignal.await();
+		// 唤醒之后执行其它操作
+		doSomethingElse();
+		
+	}  
+}
+class Worker implements Runnable {
+	private final CountDownLatch startSignal;
+	private final CountDownLatch doneSignal;
+	Worker(CountDownLatch startSignal, CountDownLatch doneSignal) {
+		this.startSignal = startSignal;
+		this.doneSignal = doneSignal;
+	}
+	
+	public void run() {
+		try {
+			// 等待被唤醒
+			startSignal.await();
+			doWork();
+			// 计数-1,缓存doneSignal等待的线程
+			doneSignal.countDown();
+		} catch (InterruptedException ex) {
+		
+		} 
+	}      
+	void doWork() { 
+		// ...
+	}  
+}
+
+~~~
+
+
+
+### CyclicBarrier
+
+循环使用计数器：计数器执行到临界点，如果CyclicBarrier的Runnable不为空，则调用一次Runnable的run方法，重置计数器值为初始值，唤醒其它等待线程。
+
+![image-20241113111103315](http://47.101.155.205/image-20241113111103315.png)
+
+await()：计数器减1，如果计数器为0执行可用的run方法，重置计数器；不为0，则释放锁等待。
+
+
+
+### Semaphore
+
+计数信号量：一个信号量维护了一些许可证，acquire()方法每次会消耗一个许可证，如果没有获取到则会阻塞线程；release()添加一个许可证，并唤醒阻塞的线程。
+
+支持公平性：体现在如果有等待获取凭证的线程，应该是先等待的先获取凭证。
+
+![image-20241113135147124](http://47.101.155.205/image-20241113135147124.png)
+
+
+
+acquire：获取一个可用凭证，没有获取到则阻塞(实际线程状态时WAITING)。
+
+acquire(int)：获取指定的可用凭证数量，没有获取到则阻塞(实际线程状态时WAITING)。
+
+![image-20241113132216496](http://47.101.155.205/image-20241113132216496.png)
+
+
+
+tryAcquire()：获取一个可用的的凭证，成功返回true，失败返回false(不阻塞)。
+
+tryAcquire(int)：获取指定数量的可用凭证，成功返回true，失败返回false(不阻塞)。
+
+![image-20241113133115035](http://47.101.155.205/image-20241113133115035.png)
+
+release()：添加一个可用的凭证，避免凭证数量的溢出。
+
+release(int)：添加指定数量的可用凭证。
+
+![image-20241113134003493](http://47.101.155.205/image-20241113134003493.png)
+
+
+
+### Phaser
+
+Phaser最终指定的构造方法是：Phaser(Phaser parent, int parties)，最终会有4种情况，parent代表不为空的Phaser对象，int代表大于0的int值。
+
+1. Phaser(null, 0)：
+2. Phaser(null, int )：
+3. Phaser(parent, 0)：
+4. Phaser(parent, int)：
+
+parties的上限是65535，2^16-1。
+
+
+
+#### Phaser(null, 0)
+
+初始化Phaser，指定需要协同管理的线程数量0，管理的数量不能超过65535(2^16-1)。
+
+![image-20241113165925488](http://47.101.155.205/image-20241113165925488.png)
+
+register()：将需要协同管理的线程线程数量增加1。
+
+![image-20241113173110233](http://47.101.155.205/image-20241113173110233.png)
+
+
+
+arriveAndAwaitAdvance()：线程到达，等待需要到达线程到一定数量，则把等待的线程唤醒执行。
+
+![image-20241114143831518](http://47.101.155.205/image-20241114143831518.png)
+
+![image-20241114144843029](http://47.101.155.205/image-20241114144843029.png)
+
+
+
+#### Phaser(parent, 0)
+
+
 
 
 
