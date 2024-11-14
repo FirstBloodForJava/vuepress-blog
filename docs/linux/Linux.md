@@ -1410,6 +1410,19 @@ stat -c %y /proc/pid
 
 
 
+##### whereis
+
+~~~bash
+# 查询文件的位置
+whereis [option] file
+
+# 可以查找nginx所在的目录
+whereis nginx
+
+~~~
+
+![image-20241114170225505](http://47.101.155.205/image-20241114170225505.png)
+
 
 
 ### 防火墙相关命令
