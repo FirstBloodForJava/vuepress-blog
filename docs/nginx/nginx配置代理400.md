@@ -5,6 +5,8 @@ head:
       href: http://47.101.155.205/nginx.ico
 ---
 
+# nginx配置代理400
+
 缺少proxy_set_header Host $host;配置，nginx代理请求响应400。
 
 如果没有配置使用原有的host，应该是将
