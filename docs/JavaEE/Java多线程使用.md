@@ -1066,6 +1066,10 @@ Phaser最终指定的构造方法是：Phaser(Phaser parent, int parties)，最�
 
 parties的上限是65535，2^16-1。
 
+toString()方法：[phase = 1 parties = 2 arrived = 0]，phase表示Phaser管理线程的循环次数，parties表示管理的线程数量，arrived表示到达的数量。
+
+phase的值位负数时，表示Phaser不管理线程了（调用arriveAndDeregister至parties为0），后续在调用register()也不会管理。
+
 
 
 #### Phaser(null, 0)
@@ -1074,7 +1078,7 @@ parties的上限是65535，2^16-1。
 
 ![image-20241113165925488](http://47.101.155.205/image-20241113165925488.png)
 
-register()：将需要协同管理的线程线程数量增加1。
+register()：将需要协同管理的线程线程数量增加1，如果当前的Phaser对象已经开始管理线程了，调用该方法的线程会等待，可能知道管理的线程都到达才会被释放掉。
 
 ![image-20241113173110233](http://47.101.155.205/image-20241113173110233.png)
 
@@ -1088,7 +1092,176 @@ arriveAndAwaitAdvance()：线程到达，等待需要到达线程到一定数量
 
 
 
+arriveAndDeregister()：与register()作用相反，减少参与的线程调用方，如果Phaser管理的线程数量是1，调用该方法，则后续就不管理线程了。
+
+![image-20241115142532866](http://47.101.155.205/image-20241115142532866.png)
+
+~~~java
+// arriveAndDeregister()方法的parties=0的执行过程
+// 393 unrrived = 1
+n = 0 & 0xffff0000L(((2 << 16)-1) << 16) = 0;
+nextUnarrived = 0 >>> 16 = 0;
+// 397 nextUnarrived = 0
+n |= 1L << 63(-2^63=Long.MIN_VALUE) = Long.MIN_VALUE;
+// 403
+nexePhase = 1 & Integer.MAX_VALUE = 1;
+n |= 1 << 32 = -9223372032559808512(64-1,33-1);
+// 405 state = n, 
+(int) (state >>> 32)高位符号是1,表示负数;
+
+~~~
+
+
+
+
+
 #### Phaser(parent, 0)
+
+![image-20241115134331547](http://47.101.155.205/image-20241115134331547.png)
+
+构建子Phaser，可以只指定parent，默认parties为0，这个子Phaser不能直接使用，会抛出IllegalStateException异常，但是可以子Phaser对象调用register()方法为子Phaser增加1个parties，同时为父Phaser增加1个parties。
+
+![image-20241118154815524](http://47.101.155.205/image-20241118154815524.png)
+
+子Phaser调用arriveAndAwaitAdvance()，如果子Phaser所有线程都到达等待，例如子parties=2，需要两个线程调用子Phaser对象register方法2次，这个时候由于有父Phaser存在，调用parent.arriveAndAwaitAdvance()等待父Phaser所管理的线程都到达。如果这时再调用子Phaser的arriveAndAwaitAdvance方法，则会抛出IllegalStateException异常。
+
+![image-20241118145852540](http://47.101.155.205/image-20241118145852540.png)
+
+##### 父Pahser.parties=0
+
+
+
+父Phaser的对象parties表示父对象需要其它线程管理的数量，如果定义父parties为0，则可以通过这个来管理所有指向父Phaser的子Phaser执行情况。
+
+下面3个Phaser执行一个父Phaser对象，可以通过arriveAndAwaitAdvance方法执行后，控制3个线程之间都会执行相同的次数。
+
+~~~java
+Phaser parent = new Phaser(0);
+Phaser phaser1 = new Phaser(parent, 1);
+Phaser phaser2 = new Phaser(parent, 1);
+Phaser phaser3 = new Phaser(parent, 1);
+new Thread(()->{
+    phaser1.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser2.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser3.arriveAndAwaitAdvance();
+    // ...
+}).start;
+
+~~~
+
+如果子Phaser的parties的值大于1，则是一组线程之间都会执行相同的次数。
+
+下面的例子则表示7个线程都到达后，才都允许arriveAndAwaitAdvance后面的代码一次。
+
+~~~java
+Phaser parent = new Phaser(0);
+Phaser phaser1 = new Phaser(parent, 2);
+Phaser phaser2 = new Phaser(parent, 3);
+Phaser phaser3 = new Phaser(parent, 2);
+new Thread(()->{
+    phaser1.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser1.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser2.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser2.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser2.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser3.arriveAndAwaitAdvance();
+    // ...
+}).start;
+new Thread(()->{
+    phaser3.arriveAndAwaitAdvance();
+    // ...
+}).start;
+
+~~~
+
+
+
+##### 父Pahser.parties>0
+
+指定父Phaser管理的线程和子Phaser管理之间的执行关系，下面的例子，表示2个父Phaser的线程和3个子Phaser管理的3个线程之间都只会同时执行一次，而且它们执行速率在于最慢的一个线程的处理耗时时间。假设下面的可执行代码时间忽略不计(或者一样长)，则这里执行间隔时间是(5+n)s。
+
+批次打印时间应该是：
+
+1. 1000 + ?
+2. 6000 + ?
+3. 1100 + ?
+4. ...
+
+~~~java
+Phaser parent = new Phaser(2);
+Phaser phaser1 = new Phaser(parent, 1);
+Phaser phaser2 = new Phaser(parent, 1);
+Phaser phaser3 = new Phaser(parent, 1);
+new Thread(()->{
+    while(true) {
+        phaser1.arriveAndAwaitAdvance();
+    	try {
+			Thread.sleep(5000);
+    	} catch (InterruptedException e) {
+        	throw new RuntimeException(e);
+    	}
+    }
+    // ...
+}, "s1").start;
+new Thread(()->{
+    while(true) {
+        phaser2.arriveAndAwaitAdvance();
+    	// ...
+    }
+}, "s2").start;
+new Thread(()->{
+    while(true) {
+        phaser3.arriveAndAwaitAdvance();
+    	// ...
+    }
+}, "s3").start;
+
+new Thread(()->{
+    long start = System.currentTimeMillis();
+    while(true) {
+        parent.arriveAndAwaitAdvance();
+    	try {
+			Thread.sleep(1000);
+    	} catch (InterruptedException e) {
+        	throw new RuntimeException(e);
+    	}
+        
+	    // ...
+        System.out.println(Thread.currentThread().getName() + "耗时: " + (System.currentTimeMillis() - start));
+    }
+}, "p1").start;
+
+new Thread(()->{
+     while(true) {
+        parent.arriveAndAwaitAdvance();
+	    // ...
+    }
+}, "p2").start;
+
+~~~
+
+
 
 
 
@@ -1096,9 +1269,69 @@ arriveAndAwaitAdvance()：线程到达，等待需要到达线程到一定数量
 
 ## CAS
 
+CAS(compare and swap 比较并交换)，java.util.concurrent.atomic(原子的)包下的类，如AtomicInteger、AtomicLong等的线程安全操作，就是基于CAS操作。
+
+CAS的核心思想：
+
+1. 比较：比较某个内存位置的当前值是否等于预期值；
+2. 交换：如果等于预期值，则将该内存位置的值更新为新值；
+3. 返回结果：是否成功。
+
+CAS的局限性：
+
+1. ABA问题：如果某个变量从A变成B，然后又变成了A，CAS无法识别这种变化，可能导致误判。解决方案使引入版本号。
+2. 自旋消耗CPU，当多个线程竞争激烈时，CAS操作可能反复失败，浪费CPU资源。
+3. 只能更新一个变量。
+
+
+
+~~~java
+private static final Unsafe unsafe = sun.misc.Unsafe.getUnsafe();
+// 获取修改属性value的字段偏移量，staticFieldOffset方法获取静态属性字段偏移量
+private static final long valueOffset = unsafe.objectFieldOffset
+                (AtomicLong.class.getDeclaredField("value"));
+// var1: 要作用哪个对象,原子类中通常时this
+// var2: 作用属性的偏移量,也就是valueOffset
+// var3: 预期值,原子类使用unsafe.getIntVolatile(var1, var2)获取当前的预期值
+// var4: 要更新的值
+// return 返回是否更新成功
+boolean flag = unsage.compareAndSwapInt(var1, var2, var3, var4);
+
+~~~
+
+![image-20241119104958818](http://47.101.155.205/image-20241119104958818.png)
+
+
+
+### AtomicReference
+
+实现对泛型对象的CAS操作。
+
+![image-20241119105524339](http://47.101.155.205/image-20241119105524339.png)
+
+
+
+### AtomicStampedReference
+
+解决ABA问题，同时提供对泛型对象的CAS操作。
+
+添加版本号的原理是：封装一个对象，作为要修改的值，该对象有两个属性，一个是要修改的值，一个是管理值的版本号。
+
+原理是用对象作为CAS交换的目标。
+
+![image-20241119112557628](http://47.101.155.205/image-20241119112557628.png)
+
+![image-20241119112836075](http://47.101.155.205/image-20241119112836075.png)
+
 
 
 ## Fork/Join
+
+### ForkJoinPool
+
+![image-20241119134736614](http://47.101.155.205/image-20241119134736614.png)
+
+
 
 
 
