@@ -1318,6 +1318,9 @@ hostname
 # 修改(临时的重启后失效)
 hostname root
 
+# 获取机器的所有网络接口的 IP 地址（不包括回环地址）
+hostname -I
+
 ~~~
 
 
