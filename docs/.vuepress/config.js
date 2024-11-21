@@ -92,7 +92,8 @@ export default defineUserConfig({
         text: 'nginx',
         prefix: '/nginx',
         children: [
-          'nginx配置代理https请求步骤.md'
+          'nginx配置代理https请求步骤.md',
+          'nginx配置代理400.md'
         ],
       },
       // ELK
