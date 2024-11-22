@@ -15,6 +15,7 @@ export default defineUserConfig({
         //"content": "02635CF78DCEC3A9",
         // 表示所有http协议增强为https协议
         'http-equiv': 'Content-Security-Policy',
+        // 本地启动需要注释，否则本地访问资源切换成https
         "content": "upgrade-insecure-requests"
       },
 
