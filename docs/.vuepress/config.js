@@ -135,7 +135,16 @@ export default defineUserConfig({
             text: 'Java注解',
             link: 'Java注解',
           },
+          "javaUtil.md"
           
+        ]
+      },
+      // build 构建工具
+      {
+        text: '构建工具',
+        prefix: '/build',
+        children: [
+
         ]
       },
       // JVM
@@ -193,6 +202,22 @@ export default defineUserConfig({
             text: 'Spring注解介绍',
             link: 'Spring注解介绍'
           }
+        ]
+      },
+      // SpringBoot
+      {
+        text: 'SpringBoot',
+        prefix: '/SpringBoot',
+        children: [
+
+        ]
+      },
+      // SpringCloud
+      {
+        text: 'SpringCloud',
+        prefix: '/SpringCloud',
+        children: [
+          
         ]
       },
     ],
