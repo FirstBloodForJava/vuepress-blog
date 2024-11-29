@@ -765,7 +765,7 @@ private static class OnRibbonRestClientCondition extends AnyNestedCondition {
 
 
 
-### @Import
+#### @Import
 
 ~~~java
 package org.springframework.context.annotation;
@@ -798,6 +798,132 @@ SpringBoot的自动注入就经常使用这个注解，相当于扫描到该类�
 例如SpringBoot项目启动会自动扫描启动类所在目录下的所有包，上级包不会被扫描，就可以使用Import。
 
 ![image-20241108142203040](http://47.101.155.205/image-20241108142203040.png)
+
+
+
+#### @ManagedResource
+
+~~~java
+package org.springframework.jmx.export.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.core.annotation.AliasFor;
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface ManagedResource {
+
+	@AliasFor("objectName")
+	String value() default "";
+
+	@AliasFor("value")
+	String objectName() default "";
+
+	String description() default "";
+
+	int currencyTimeLimit() default -1;
+
+	boolean log() default false;
+
+	String logFile() default "";
+
+	String persistPolicy() default "";
+
+	int persistPeriod() default -1;
+
+	String persistName() default "";
+
+	String persistLocation() default "";
+
+}
+
+~~~
+
+用于将一个类暴露给JMX(Java Management Extensions)中的MBean(资源管理)，通过 JMX 客户端（如 JConsole 或 VisualVM）进行监控和操作。
+
+![image-20241125144014498](http://47.101.155.205/image-20241125144014498.png)
+
+
+
+#### @ManagedOperation
+
+~~~java
+package org.springframework.jmx.export.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ManagedOperation {
+
+	String description() default "";
+
+	int currencyTimeLimit() default -1;
+
+}
+
+~~~
+
+暴露一个方法可以在MBean中操作。
+
+下载visualvm：https://visualvm.github.io/download.html
+
+![image-20241125150159870](http://47.101.155.205/image-20241125150159870.png)
+
+安装MBeans插件，重启后。
+
+![image-20241125150401630](http://47.101.155.205/image-20241125150401630.png)
+
+
+
+#### @ManagedAttribute
+
+~~~java
+package org.springframework.jmx.export.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ManagedAttribute {
+
+	String defaultValue() default "";
+
+	String description() default "";
+
+	int currencyTimeLimit() default -1;
+
+	String persistPolicy() default "";
+
+	int persistPeriod() default -1;
+
+}
+
+~~~
+
+作用在方法上，暴露Bean的某个属性，使其可以通过JMX客户端进行访问和修改。
+
+
+
+
 
 
 
@@ -885,6 +1011,31 @@ public @interface EnableConfigurationProperties {
 
 
 ## SpringCloud
+
+
+
+### spring-cloud-context
+
+
+
+#### @RefreshScope
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Scope("refresh")
+@Documented
+public @interface RefreshScope {
+
+	ScopedProxyMode proxyMode() default ScopedProxyMode.TARGET_CLASS;
+
+}
+
+~~~
+
+标志支持动态刷新的Bean，在运行时更新Bean的属性而无需重启。
+
+
 
 
 
