@@ -807,6 +807,8 @@ get获取异步结果
 
 基于ThreadPoolExecutor的扩展。
 
+ScheduledExecutorService的实现，扩展延迟执行功能。
+
 ![image-20241109213506276](http://47.101.155.205/image-20241109213506276.png)
 
 
