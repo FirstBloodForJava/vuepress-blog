@@ -291,6 +291,10 @@ mirrorOf支持的内容：
 
 ## maven使用
 
+参考文档：https://maven.apache.org/pom.html#Introduction
+
+
+
 idea配置项目的maven安装环境、maven配置文件地址、本地仓库地址。
 
 ![image-20230415194900648](http://47.101.155.205/image-20230415194900648.png)
@@ -347,9 +351,323 @@ mvnw clean install是Maven构建的一条命令，具有以下作用：
    3. runtime：不是编译所需要的，当是运行是必须的，例如驱动依赖。
    4. test：只在测试阶段有效，不包含在最终打包文件，不具备传递性。
    5. system：从本地系统获取。
+4. systempath：仅在scope配置是system使用，其它情况是无效的。地址必须是绝对路径，会在本地路径查找对应的jar包。
+5. optional：默认值false，表示该项目引入的依赖具有传递性。true表示不具备传递性，这也是许多spring-boot-starter可拔插就是使用了该选项。
 
 
 
 ![image-20241202172001293](http://47.101.155.205/image-20241202172001293.png)
+
+
+
+### dependencyManagement
+
+依赖管理，父项目定义好依赖的版本，当前或子模块使用依赖可以不用指定版本，整个项目的依赖也便于管理。
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.test</groupId>
+    <version>1.0.0</version>
+    <artifactId>parent</artifactId>
+  </parent>
+  <groupId>com.test</groupId>
+  <artifactId>bom</artifactId>
+  <version>1.0.0</version>
+  <packaging>bom</packaging>
+  <properties>
+    <project1Version>1.0.0</project1Version>
+    <project2Version>1.0.0</project2Version>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.test</groupId>
+        <artifactId>project1</artifactId>
+        <version>${project1Version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.test</groupId>
+        <artifactId>project2</artifactId>
+        <version>${project2Version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+ </project>
+
+~~~
+
+
+
+
+
+### exclusions
+
+引入依赖spring-boot-starter-web，排除里面的依赖spring-boot-starter-tomcat、spring-boot-starter-logging。**只会排除spring-boot-starter-web中引入的传递依赖，在其它地方引入的依赖无法排除。**
+
+可以使用通配符*，排除这个依赖所有的传递依赖。
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  ...
+	<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+	</dependency>
+  ...
+</project>
+
+~~~
+
+
+
+### Inheritance(继承)
+
+对于父项目或多模块项目，其packaging的类型要求为pom。表示这个项目只是一个管理工具，而不会独特的项目制品。使用mvn install将这个项目打包成pom制品。
+
+**packaging不会被继承，默认值是jar。**
+
+![image-20241203134437005](http://47.101.155.205/image-20241203134437005.png)
+
+![image-20241203134603496](http://47.101.155.205/image-20241203134603496.png)
+
+spring-boot-starter-parent就是通过packaging为pom来统一管理的所有依赖(只能用来传递依赖)。
+
+spring-boot-starter-*相关starters没有使用pom来管理依赖，因为pom的局限性，只能传递依赖，不能额外的文件和资源。idea中引入的pom中没有在external libraries中没有显示，但是通过pom能访问到(gradle就访问不到)。
+
+![image-20241203140454455](http://47.101.155.205/image-20241203140454455.png)
+
+
+
+父模块中能被继承的元素：
+
+![image-20241203142944902](http://47.101.155.205/image-20241203142944902.png)
+
+
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+  	<parent>
+    	<groupId>org.codehaus.mojo</groupId>
+    	<artifactId>my-parent</artifactId>
+    	<version>2.0</version>
+    	<relativePath>../my-parent</relativePath>
+  	</parent>
+  	<artifactId>my-project</artifactId>
+</project>
+
+~~~
+
+relativePath元素不是必须，他会优先根据这个地址查找父级的pom文件，然后再从远程仓库或本地残酷查找。
+
+
+
+### 多模块
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  
+    <modelVersion>4.0.0</modelVersion>
+  	<groupId>org.codehaus.mojo</groupId>
+  	<artifactId>my-parent</artifactId>
+  	<version>2.0</version>
+  	<packaging>pom</packaging>
+  
+    <modules>
+        <module>my-project</module>
+        <module>another-project</module>
+        <module>third-project/pom-example.xml</module>
+    </modules>
+</project>
+
+~~~
+
+modeles直接没有顺序要求，子模块要根据相对路径指向父模块。
+
+
+
+### properties
+
+配置属性的值名称为X，可以在maven中通过${X}来引用。也可以作为插件的默认值。
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+  	...
+  	
+    <properties>
+    	<maven.compiler.source>1.8</maven.compiler.source>
+    	<maven.compiler.target>1.8</maven.compiler.target>
+    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+    	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
+        <kafka.version>2.3.2</kafka.version>
+        
+  	</properties>
+  	...
+</project>
+
+~~~
+
+${}不同的表达式不用有不同的作用：
+
+1. evn.X：表示读取环境变量X的值。虽然Windows的环境变量不区分大小写，例如%JAVA_HOME%和%java_home%效果相同，但是${env.JAVA_HOME}和${java_home}结果会不同。
+2. project.X：project.build.sourceEncoding表示标签对的值的value。
+3. setting.X：同上。
+4. Java系统属性的key，java.lang.System.getProperties()支持的key，例如${java.home}。
+5. 普通属性访问：${kafka.version}。
+
+
+
+
+
+### build-resources
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<build>
+    	...
+		<resources>
+			<resource>
+                <targetPath>META-INF/plexus</targetPath>
+                <filtering>false</filtering>
+                <directory>${project.basedir}/src/main/plexus</directory>
+                <includes>
+                    <include>configuration.xml</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        
+        <testResources>
+      		...
+        </testResources>
+    	
+        ...
+  </build>
+</project>
+
+~~~
+
+resources：定义一系列过滤资源resource的处理。
+
+targetPath：资源的目标路径，默认是jar的根路径下。上面指定在根路径下的META-INF/plexus中。
+
+filtering：true/false。默认false。true表示匹配的资源${X}的值会根据读取的值替换。
+
+directory：定义资源所在未知。默认是${project.basedir}/src/main/resources。
+
+includes：包含的一组匹配文件资源配置。
+
+excludes：排除的资源配置，如果include和excludes冲突，则excludes优先。
+
+testResources：测试资源，默认是${project.basedir}/src/test/resources。
+
+
+
+### repositories
+
+默认从https://repo.maven.apache.org/maven2/中央仓库下载依赖。
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  
+    ...
+  	<repositories>
+    	<repository>
+      		<releases>
+        		<enabled>false</enabled>
+      		</releases>
+      		
+            <snapshots>
+        		<enabled>true</enabled>
+        		<updatePolicy>always</updatePolicy>
+        		<checksumPolicy>fail</checksumPolicy>
+      		</snapshots>
+            
+            <name>Nexus Snapshots</name>
+      		
+            <id>snapshots-repo</id>
+            
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            
+            <layout>default</layout>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        ...
+  	</pluginRepositories>
+  	...
+</project>
+
+~~~
+
+releases, snapshots：releases对没有 `-SNAPSHOT` 后缀的依赖处理策略。snapshots表示处理快照版本的处理策略，带有 `-SNAPSHOT` 后缀的工件。
+
+enabled：表示是否激活这个策略。
+
+updatePolicy：更新本地依赖的策略。always(每次构建更新)、dailay(每天检查一次)、interval:X(间隔X分钟检查)、never(从不)。
+
+checksumPolicy：默认值warn。文件下载到本地的校验：ignore、fail、warn。
+
+id：默认是default，这个和maven的setting.xml文件的镜像匹配则会被镜像。
+
+name：可选标签。
+
+layout：布局。
+
+
+
+### 命令
+
+mvn clean：清理项目，删除target/目录中已编译的文件。
+
+mvn compile：编译项目的源代码。
+
+mvn package：将项目编译并打包成指定的格式(jar或war)。
+
+mvn install：将项目打包并安装到本地仓库。
+
+mvn deploy：将构建好的包部署到中央仓库。
+
+mvn validate：验证项目的是否正确。
+
+mvn site：生成项目的文档。
+
+mvn dependency:tree：打印项目的依赖树。
+
+mvn clean install：清理项目、打包安装到本地仓库。
+
+mvn clean install -DskipTests：请求项目，跳过测试编译打包部署到本地仓库。
+
+
+
 
 

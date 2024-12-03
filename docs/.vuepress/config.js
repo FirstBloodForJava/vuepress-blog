@@ -145,7 +145,7 @@ export default defineUserConfig({
         text: '构建工具',
         prefix: '/build',
         children: [
-
+          'maven.md',
         ]
       },
       // JVM
