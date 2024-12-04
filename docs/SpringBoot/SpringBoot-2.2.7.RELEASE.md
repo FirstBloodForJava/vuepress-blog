@@ -175,3 +175,76 @@ SpringBoot的每个版本都提供了一些列它支持的第三方依赖，在�
 
 ### Maven
 
+使用spring-boot-starter-parent做为maven项目的父模块，可以继承parent的一些属性。
+
+1. 编译时java的版本。
+2. spring-boot-starter-parent继承spring-boot-dependencies，继承了父模块的依赖管理，所有在自己模块中定义被管理的依赖时，可以不用指定依赖的版本。
+3. 提供了spring-boot-maven-plugin插件，将项目打包成可指向的jar包。
+4. parent配置了对resources目录下application.yml、application.yaml、application.properties名称开始的文件，将里面的@name@进行占位替换。
+5. 可以通过覆盖spring-boot-dependencies中定义的属性值，来替换成你想要的版本。
+
+spring-boot-dependencies依赖源码：https://github.com/spring-projects/spring-boot/blob/v2.2.7.RELEASE/spring-boot-project/spring-boot-dependencies/pom.xml
+
+
+
+#### 不指定parent
+
+maven的parent可以不用指向spring-boot-starter-parent，但是你有需要parent的依赖管理功能，则可以这样做(但是构建的插件不能少)。
+
+~~~xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <!-- 从Spring Boot导入依赖管理 -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.2.7.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<build>
+    <plugins>
+        <!-- 构建可执行文件的插件 -->
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+
+~~~
+
+但是这种方式不能通过修改属性值的方式实现依赖版本的升级，而是将依赖定义在dependencies之前的方式。
+
+~~~xml
+<dependencyManagement>
+    <dependencies>
+        <!-- 替换Spring Boot指定的依赖版本 -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-releasetrain</artifactId>
+            <version>Fowler-SR2</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.2.7.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+~~~
+
+
+
+### gradle
+
+官网介绍使用文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/gradle-plugin/reference/html/
+
