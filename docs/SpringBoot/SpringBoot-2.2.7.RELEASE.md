@@ -187,6 +187,29 @@ spring-boot-dependencies依赖源码：https://github.com/spring-projects/spring
 
 
 
+~~~xml
+<!-- 继承spring boot的默认maven配置 -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.7.RELEASE</version>
+</parent>
+
+<properties>
+	<maven.compiler.source>8</maven.compiler.source>
+	<maven.compiler.target>8</maven.compiler.target>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- 替换spring boot 管理的依赖版本 -->
+	<spring-data-releasetrain.version>Fowler-SR2</spring-data-releasetrain.version>
+    
+</properties>
+
+~~~
+
+
+
+
+
 #### 不指定parent
 
 maven的parent可以不用指向spring-boot-starter-parent，但是你有需要parent的依赖管理功能，则可以这样做(但是构建的插件不能少)。
