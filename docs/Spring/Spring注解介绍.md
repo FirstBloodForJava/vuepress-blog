@@ -946,7 +946,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
 
-// 通过@Component或@EnableConfigurationProperties将其注入到Spirng容器中
+// 通过@Import或@Component(扫描到)或@EnableConfigurationProperties将其注入到Spirng容器中
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
