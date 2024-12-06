@@ -234,6 +234,9 @@ maven的parent可以不用指向spring-boot-starter-parent，但是你有需要p
         <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+        		<mainClass>MainClass</mainClass>
+    		</configuration>
         </plugin>
     </plugins>
 </build>
@@ -270,4 +273,319 @@ maven的parent可以不用指向spring-boot-starter-parent，但是你有需要p
 ### gradle
 
 官网介绍使用文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/gradle-plugin/reference/html/
+
+
+
+#### SpringBoot官网初始化
+
+build.gradle
+
+~~~gradle
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.2.7.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+}
+
+// 项目信息
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+// 导入依赖
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+~~~
+
+
+
+
+
+
+
+![image-20241206091649090](http://47.101.155.205/image-20241206091649090.png)
+
+![image-20241206091722557](http://47.101.155.205/image-20241206091722557.png)
+
+
+
+
+
+#### 依赖管理
+
+build.gradle
+
+~~~gradle
+plugins {
+	java
+	// 引入插件不使用,改模块不会被打包成可执行的jar
+	id("org.springframework.boot") version "2.2.7.RELEASE" apply false
+	id("io.spring.dependency-management") version "1.0.9.RELEASE"
+}
+
+
+dependencyManagement {
+    imports {
+    	// 引入spring cloud的相关依赖管理
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Brixton.RELEASE'
+        // 引入spring boot的相关依赖管理
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:2.2.7.RELEASE'
+    }
+}
+
+~~~
+
+
+
+#### 其它配置
+
+build.gradle
+
+~~~gradle
+// 里面的配置应用至所有项目，包括root
+allprojects {
+	
+}
+// 里面的配置应用至所有项目，不包括root
+subprojects {
+
+}
+
+// 是否打成jar包
+jar {
+    enabled = true
+}
+
+// 构建成可执行jar包，添加的后缀boot(org.springframework.boot插件启动才可配置)
+bootJar {
+    classifier = 'boot'
+    // 可执行main的类全路径名称
+    mainClassName = 'com.oycm.SpringBootExample'
+}
+
+~~~
+
+
+
+setting.gradle
+
+~~~gradle
+// 配置远程仓库
+pluginManagement {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/public' }
+    }
+}
+
+~~~
+
+
+
+
+
+#### 命令
+
+task
+
+列出可执行的命令
+
+~~~bash
+gradle task
+
+# gradle wrapper
+./gradlew task
+
+~~~
+
+![image-20241206111556605](http://47.101.155.205/image-20241206111556605.png)
+
+
+
+build
+
+构建成jar或war包。
+
+~~~bash
+gradle build
+
+# gradle wrapper
+./gradlew build
+
+~~~
+
+
+
+#### 自定义task
+
+build.gradle
+
+~~~gradle
+// 定义build命令在 clean之后运行
+build.mustRunAfter clean
+
+// 自定义这个task,名称buildJar，依赖build,和clean之后执行。前面定义了build在clean之后执行
+tasks.register('buildJar', GradleBuild) {
+    dependsOn build, clean
+
+    doLast {
+        String jarName = "$rootProject.name"
+        delete(file("jar"))
+        mkdir("jar")
+        String jarPath = "build/libs"
+        // 复制到一个目录下,并重命名
+        copy {
+            from(jarPath)
+            into  "jar"
+            rename {
+                String fileName -> jarName + '.jar'
+            }
+        }
+        // 删除build及里面的所有东西
+        file("build").deleteDir();
+
+    }
+}
+
+task buildJar1 (type: GradleBuild, dependsOn: [build, clean]) {
+
+}
+
+~~~
+
+
+
+### starter
+
+https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#using-boot-starter
+
+spring官方提供的starter遵循命名规则spring-boot-starter-<name>，name都具有一定的含义。
+
+也可以自定义starter，第三方的starter一般遵循<name>-spring-boot-starter命名规则。
+
+自定义starter文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#boot-features-custom-starter
+
+
+
+starter分为三类：
+
+1. 应用类型starter：如spring-boot-starter-web。
+2. 功能类型starter：spring-boot-starter-actuator。
+3. 嵌入型starter：spring-boot-starter-jetty、spring-boot-starter-undertow；spring-boot-starter-log4j2、spring-boot-starter-logging；spring-boot-starter-reactor-netty。
+
+
+
+### 编码
+
+每个类都定义包名，缺省的包名，会让@ComponentScan, @ConfigurationPropertiesScan, @EntityScan,  @SpringBootApplication扫描所有的类。
+
+@SpringBootApplication注解通过被使用在启动类上，他会自动扫描当前包下的所路径。
+
+不使用@SpringBootApplication主机，可以使用@EnableAutoConfiguration和@ComponentScan注解进行替换。
+
+
+
+### 配置
+
+配置类：配置类可以使用@Configuration修饰，通过@Import(该类)或@ComponentScan扫描的方式将配置类交友Spring容器管理。
+
+
+
+自动配置功能：SpringBoot会自动根据加载的jar，是否启动某个功能。启动这种功能的方式在一个@Configuration上使用一个@SpringBootApplication或@EnableAutoConfiguration注解。通常情况下是在main方法上使用这个注解。
+
+
+
+通过通过添加启动参数--debug查看启动加载了哪些类。
+
+
+
+禁用一些自动配置方式：
+
+1. @SpringBootApplication(exclude={DataSourceAutoConfiguration.class})，exclude指向class，excludeName指向类的全路径名称。
+2. @EnableAutoConfiguration方式同样使用方式，exclude指向class，excludeName指向类的全路径名称。
+
+
+
+### Bean和依赖注入
+
+使用@ComponentScan注解扫描被定义的Bean，使用@Autowired构造方法注入。@Component, @Service, @Repository, @Controller注解的类在根路径的包下，则可以不用配置扫描的包路径。
+
+![image-20241206151407094](http://47.101.155.205/image-20241206151407094.png)
+
+
+
+### 热拔插开发工具
+
+代码修改，编译后生效。
+
+spring.devtools.restart.enabled=false配置禁用重新加载。
+
+System.setProperty("spring.devtools.restart.enabled", "false");代码方式(main方法中)
+
+maven导入，pom.xml
+
+~~~xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+
+~~~
+
+gradle导入，build.gradle
+
+~~~gradle
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+dependencies {
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+}
+
+~~~
+
+
+
+## 4.特点
+
+### 应用
+
+**启动失败**
+
+失败原因分析处理：
+
+spring-boot模块中的META-INF/spring.factories文件中定义了org.springframework.boot.diagnostics.FailureAnalyzer=class名称，实现对SpringBoot启动失败分析。
+
+启动日志记录
+
+org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener注册监听时间，根据日志级别大于自动配置的情况。
+
+实现了ApplicationContextInitializer接口，通过spring-boot-autoconfigure模块META-INF/spring.factories自动注入，org.springframework.context.ApplicationContextInitializer=class。
+
+
+
+main方法启动参数--debug将日期级别设置为debug。
+
+
+
+**延迟初始化**
+
+延迟初始化可以支持Bean不在应用启动的时候创建，而是在被使用的时候创建。如web应用，controller相关的bean知道接收http请求才创建。
+
+延迟加载虽然能减少启动应用的时间，也会带来许多问题。延迟发现程序的问题、程序需要有足够的内存去加载哪些为创建的bean。
+
+可以同@Lazy(false)将已经延迟初始化的设置为立即初始化。
+
+
+
+
 
