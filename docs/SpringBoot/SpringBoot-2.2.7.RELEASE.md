@@ -555,9 +555,25 @@ dependencies {
 
 
 
+可以在$HOME/.config/spring-boot目录下添加以下配置文件实现devtools的全局配置：
+
+1. spring-boot-devtools.properties
+2. spring-boot-devtools.yaml
+3. spring-boot-devtools.yml
+
+~~~properties
+# 程序在.reloadtrigger文件被修改时触发重启(编译后)
+spring.devtools.restart.trigger-file=.reloadtrigger
+
+~~~
+
+
+
+
+
 ## 4.特点
 
-### 应用
+### SpringApplication 
 
 **启动失败**
 
@@ -587,5 +603,837 @@ main方法启动参数--debug将日期级别设置为debug。
 
 
 
+**自定义应用的特点**
 
+~~~java
+public static void main(String[] args) {
+    SpringApplication app = new SpringApplication(MySpringConfiguration.class);
+    // 不打印banner
+    app.setBannerMode(Banner.Mode.OFF);
+    app.run(args);
+}
+
+~~~
+
+api文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/api//org/springframework/boot/SpringApplication.html
+
+
+
+**流式构建启动**
+
+~~~java
+new SpringApplicationBuilder()
+        .sources(Parent.class)
+        .child(Application.class)
+        .bannerMode(Banner.Mode.OFF)
+        .run(args);
+
+~~~
+
+构建的ApplicationContext上下文有层级关系，可以采用这种方式启动。
+
+创建了层级的ApplicationContext，要求Web组件必须在child上下文，parent和child使用相同的Enviroment。
+
+
+
+**ApplicationEvent和ApplicationListener**
+
+除了Spring Framework常见的事件，例如ContextRefreshedEvent，SpringApplication提供了其它的事件。
+
+
+
+有些监听事件是在ApplicationContext创建之前触发的，因此不能将其注册为Bean。可以使用SpringApplication.addListeners(...)或SpringApplicationBuilder.listeners(…)方法注册。
+
+通过META-INF/spring.factories中添加key=org.springframework.context.ApplicationListener，value指向监听器的全路径名称，可以实现自动注册监听器。
+
+应用程序运行时，遵循以下顺序发送事件：
+
+1. ApplicationStartingEvent在运行时发送，在任何程序执行之前，除了注册监听器和初始化程序之外。
+2. ApplicationEnvironmentPreparedEvent在已知context使用Environment来创建context之前发送。
+3. ApplicationContextInitializedEvent在ApplicationContext已创建好和已调用ApplicationContextInitializers，bean未被加载之前发送。
+4. ApplicationPreparedEvent在bean定义加载之后，在refresh之前发送。
+5. ApplicationStartedEvent在context被刷新之后，在应用程序和command-line runners运行之前发送。
+6. ApplicationReadyEvent在应用程序和command-line runners运行后，表明应用程序已准备做好服务请求。
+7. ApplicationFailedEvent在启动出现异常发送。
+
+上面的事件是SpringApplication启动的SpringApplicationEvent事件。除了这些，在ApplicationPreparedEvent之后和ApplicationStartedEvent之前还会发送以下事件：
+
+1. ContextRefreshedEvent在ApplicationContext被刷新时发送。
+2. WebServerInitializedEvent在WebServer准备就绪时发送。ServletWebServerInitializedEvent和ReactiveWebServerInitializedEvent分别是servlet和reactive实现。
+
+
+
+应用程序事件使用了Spring Framework的事件发布机制。
+
+可以通过实现ApplicationContextAware接口注入bean的方式来管理上下文。
+
+
+
+**Web环境**
+
+SpringApplication在启动时，需要确定创建哪种类型的ApplicationContext。用于确认WebApplicationType的算法如下：
+
+1. 如果Spring MVC存在，则使用AnnotationConfigServletWebServerApplicationContext。
+2. 如果Spring MVC不存在且Spring WebFlux存在，则使用AnnotationConfigReactiveWebServerApplicationContext。
+3. 否则使用AnnotationConfigApplicationContext。
+
+
+
+Spring MVC的优先级高于SpringWebFlux，可以通过SpringApplication.setWebApplicationType(WebApplicationType)的方式修改启动的类型或setApplicationContextClass(Class)。
+
+
+
+**命令行参数访问**
+
+注入org.springframework.boot.ApplicationArguments可以实现对命令行参数的访问。
+
+提供了两种方式方式访问：
+
+1. getSourceArgs()访问原始的参数。
+2. 访问解析后的参数：getOptionValues、getNonOptionArgs
+
+~~~java
+import org.springframework.boot.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
+
+@Component
+public class MyBean {
+
+    @Autowired
+    public MyBean(ApplicationArguments args) {
+        boolean debug = args.containsOption("debug");
+        List<String> files = args.getNonOptionArgs();
+        // if run with "--debug logfile.txt" debug=true, files=["logfile.txt"]
+    }
+
+}
+
+~~~
+
+SpringBoot使用Spring的Environment注册了CommandLinePropertySource。可以通过@Value注入单个的应用参数。
+
+
+
+**使用ApplicationRunner或CommandLineRunner**
+
+可以通过实现ApplicationRunner或CommandLineRunner接口，达到在SpringApplication启动后执行某些代码。两个接口的工作方式相同，都提供了一个run方法，该方法在SpringApplication.run(...)完成之前调用。
+
+如果定义了多个ApplicationRunner或CommandLineRunner，可以通过实现org.springframework.core.Ordered接口或使用注解org.springframework.core.annotation.Order的方式来指定执行顺序(值越大优先级越低)。
+
+~~~java
+import org.springframework.boot.*;
+import org.springframework.stereotype.*;
+
+@Component
+public class MyBean implements CommandLineRunner {
+
+    public void run(String... args) {
+        // Do something...
+    }
+
+}
+
+~~~
+
+
+
+
+
+**Application退出**
+
+SpringApplication向JVM注册了一个关闭狗子，确保ApplicationContext在退出时正常关闭。例如：
+
+1. 实现DisposableBean接口。
+2. Bean中被@PreDestroy注解的方法。
+
+
+
+注入一个ExitCodeGenerator对象的作用？
+
+
+
+
+
+**Admin属性**
+
+~~~properties
+# 通过VisualVM可以查看注入的MBean。
+spring.application.admin.enabled=true
+
+~~~
+
+注入了SpringApplicationAdminMXBean对象，可以调用方法getProperty("local.server.port")获取http端口。
+
+shutdown停止程序。
+
+![image-20241207171952985](http://47.101.155.205/image-20241207171952985.png)
+
+
+
+### 外部化配置
+
+SpringBoot支持外部化配置，可以让一份代码以不同的环境启动。可以使用properties文件、yaml(yml)文件、环境变量、命令行参数来外部化配置。属性能通过@Value注入Bean中，@ConfigurationProperties注解可以将配置结构化。
+
+SpringBoot通过PropertySource来实现合理的配置覆盖值。配置遵循以下规则：
+
+1. 当devtools 插件生效时，其全局配置优先级最高。
+2. 测试中的注解@TestPropertySource。
+3. 测试中的属性。@SpringBootTest。
+4. 命令行参数。
+5. 来自SPRING_APPLICATION_JSON(嵌入在环境变量或系统属性的json)的属性。
+6. ServletConfig初始化参数。
+7. ServletConfig初始化参数。
+8. 来自java:comp/env的JNDI属性。
+9. Java系统属性(System.getProperties())。
+10. 操作系统变量。
+11. random.*的属性(RandomValuePropertySource)。
+12. 在jar包外的application-{profile}.properties(yaml|yml)。
+13. 在jar包内的application-{profile}.properties(yaml|yml)。
+14. 在jar包外的application.properties(yaml|yml)。
+15. 在jar包内的application.properties(yaml|yml)。
+16. @Configuration和@PropertySource一起注解的类。这个自会在ApplicationContext被刷新后才生效，对于一些在刷新之前就读取的配置就太迟了，如：logging.、spring.main.。
+17. 默认属性，通过SpringApplication.setDefaultProperties设置。
+
+application.properties配置文件打包jar中和jar包外，生效的是@name@。
+
+~~~properties
+name=@name@
+
+~~~
+
+
+
+
+
+**配置随机值**
+
+~~~properties
+# 随机字符串
+my.secret=${random.value}
+# 随机int
+my.number=${random.int}
+my.bignumber=${random.long}
+# uuid
+my.uuid=${random.uuid}
+# 范围内随机数
+my.number.less.than.ten=${random.int(10)}
+# 区间内随机数
+my.number.in.range=${random.int[1024,65536]}
+
+~~~
+
+
+
+**命令行参数**
+
+命令参数的优先级高于其它配置属性来源。SpringApplication会将--server.port=9000配置添加到Spring的Enviroment中。
+
+通过SpringApplication.setAddCommandLineProperties(false)禁用命令行配置。
+
+
+
+**配置属性文件**
+
+SpringApplication加载application.properties(yaml|yml)文件进入Enviroment。优先级如下：
+
+1. 当前目录的config子目录。
+2. 当前目录。
+3. 包中的config目录下的。
+4. classpath根目录下的。
+
+优先级高的配置值覆盖优先级低的。
+
+
+
+可以通过命令行参数指定修改配置文件的名称，不使用application。
+
+~~~bash
+java -jar my.jar --spring.config.name=myproject
+
+~~~
+
+可以修改配置的文件的路径：
+
+~~~bash
+java -jar myproject.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+
+~~~
+
+spring.config.name和spring.config.location被决定哪个文件被加载。这个变量的配置就需要提前配置，通常在系统环境变量，系统属性或命令行参数使用。
+
+spring.config.location的配置指向目录时，需要/结尾。
+
+spring.config.location的配置按相反顺序搜索，例如：配置为classpath:/,classpath:/config/,file:./,file:./config/(这个也是默认加载配置文件的路径配置)，则按以下顺序搜索：
+
+1. file:./config。
+2. file:./。
+3. classpath:/config。
+4. classpath:/
+
+
+
+spring.config.additional-location可以添加更多的配置文件路径，加载顺序相反，优先级比默认扫码路径高。
+
+
+
+**特定profile配置**
+
+遵循application-{profile}.properties(yaml|yml)命名规则的配置文件，通过指定一系列的profiles，默认是default(application-default.properties)。加载位置的默认规则和application.properties一致。特定配置文件的优先级高于非特定配置文件(无论是jar中的或jar包外的)。
+
+如果spring.config.location指定了具体的文件，则特定配置文件失效。需要生效则只能指向目录。
+
+spring.profiles.active表示指定的{profile}的值。
+
+
+
+
+
+**配置文件占位符**
+
+value值使用前面定义的变量值。
+
+~~~properties
+name=MyApp
+app.description=${name} is a Spring Boot application
+
+~~~
+
+
+
+**加密配置**
+
+SpringBoot没有提供对配置值加密的功能，但是提供了修改Enviroment中属性值的构造。EnvironmentPostProcessor接口运行你在应用启动前修改Enviroment。
+
+
+
+**yaml使用**
+
+https://yaml.org/
+
+yaml可以是JSON数据的表达。
+
+SpringFramework提供了两个类去加载YAML文档。YamlPropertiesFactoryBean将YAML加载成Properties，YamlMapFactoryBean将YAML加载成Map。
+
+list
+
+~~~yaml
+my:
+   servers:
+       - dev.example.com
+       - another.example.com
+
+~~~
+
+~~~properties
+my.servers[0]=dev.example.com
+my.servers[1]=another.example.com
+
+~~~
+
+使用Java代码绑定配置。
+
+~~~java
+@ConfigurationProperties(prefix="my")
+public class Config {
+
+    private List<String> servers = new ArrayList<String>();
+
+    public List<String> getServers() {
+        return this.servers;
+    }
+}
+
+~~~
+
+
+
+多profile YAML文档，下面表示激活development部分的配置。
+
+~~~yaml
+server:
+    address: 192.168.1.100
+spring:
+  	profiles:
+    	active: dev
+---
+spring:
+    profiles: development
+server:
+    address: 127.0.0.1
+---
+spring:
+    profiles: production & eu-central
+server:
+    address: 192.168.1.120
+
+~~~
+
+如果spring.profiles.active指定了值，存在application-{profiles}.yaml的文件，则profile的配置将失效，将以指定文件的配置为准。
+
+
+
+#### ConfigurationProperties
+
+**安全配置属性**
+
+@Value和@ConfigurationProperties
+
+将配置绑定到JavaBean属性(默认是没有被容器管理的)。
+
+~~~java
+package com.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@ConfigurationProperties("acme")
+public class AcmeProperties {
+
+    private boolean enabled;
+
+    private InetAddress remoteAddress;
+
+    private final Security security = new Security();
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public InetAddress getRemoteAddress() {
+        return this.remoteAddress;
+    }
+
+    public void setRemoteAddress(InetAddress remoteAddress) {
+        this.remoteAddress = remoteAddress;
+    }
+
+    public Security getSecurity() {
+        return this.security;
+    }
+
+    public static class Security {
+
+        private String username;
+
+        private String password;
+
+        private List<String> roles = new ArrayList<>(Collections.singleton("USER"));
+
+        public String getUsername() {
+            return this.username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return this.password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public List<String> getRoles() {
+            return this.roles;
+        }
+
+        public void setRoles(List<String> roles) {
+            this.roles = roles;
+        }
+
+    }
+}
+
+~~~
+
+上面的类定义了以下属性：
+
+1. acme.enable：默认值false。
+2. acme.remoteAddress(remote-address)：结果可以从String类型转换而来。
+3. acme.security.username：带有嵌套的属性名称由属性名和类中属性名共同决定。
+4. acme.security.password。
+5. acme.security.roles：默认是有USER的List集合。
+
+
+
+JavaBean绑定私有属性的情况，setter方法可以省略的情况：
+
+1. Map属性，只要被初始化了，就只需要getter而不需要setter方法。
+2. 集合或数组，通过yaml的来配置或使用','分割的配置。确定这个类型是可变的，则推荐添加setter。
+3. 如果是被final修饰属性的可以不添加setter。
+
+
+
+构造方法绑定：
+
+@ConstructorBinding和@ConfigurationProperties。
+
+使用构造方法绑定的类必须使用@EnableConfigurationProperties或配置扫码的方式注入。不能使用@Bean注入或@Import的方式。如果有多个构造函数ConstructorBinding使用在对应的构造方法上。
+
+~~~java
+package com.example;
+
+import java.net.InetAddress;
+import java.util.List;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+
+@ConstructorBinding
+@ConfigurationProperties("acme")
+public class AcmeProperties {
+
+    private final boolean enabled;
+
+    private final InetAddress remoteAddress;
+
+    private final Security security;
+
+    // 如果没有Security的相关配置，则security为null，可以使用DefaultValue注解让对象不为null
+    public AcmeProperties(boolean enabled, InetAddress remoteAddress, Security security) {
+        this.enabled = enabled;
+        this.remoteAddress = remoteAddress;
+        this.security = security;
+    }
+
+    public boolean isEnabled() { ... }
+
+    public InetAddress getRemoteAddress() { ... }
+
+    public Security getSecurity() { ... }
+
+    public static class Security {
+
+        private final String username;
+
+        private final String password;
+
+        private final List<String> roles;
+
+        // DefaultValue指定默认值
+        public Security(String username, String password,
+                @DefaultValue("USER") List<String> roles) {
+            this.username = username;
+            this.password = password;
+            this.roles = roles;
+        }
+
+        public String getUsername() { ... }
+
+        public String getPassword() { ... }
+
+        public List<String> getRoles() { ... }
+
+    }
+
+}
+
+~~~
+
+
+
+**激活(启用)ConfigurationProperties注解**
+
+三种方式激活@ConfigurationProperties配置类。
+
+1. 再@ConfigurationProperties上添加@Configuration(被扫描到)。
+2. @EnableConfigurationProperties中配置这个class。
+3. @ConfigurationPropertiesScan中配置扫码的路径(通常在main方法上使用，也可以在@Configuraion注解上使用)。
+
+ConfigurationProperties注入的Bean命名规则pre-fqn。pre表示配置的前缀；fqn表示类的全路径名称。
+
+
+
+激活之后就可以像一个普通Bean一样使用。
+
+
+
+**第三方配置**
+
+AnotherComponent对象的属性会在返回自动设置属性。
+
+~~~java
+@ConfigurationProperties(prefix = "another")
+@Bean
+public AnotherComponent anotherComponent() {
+    ...
+}
+
+~~~
+
+
+
+**宽松的绑定方式**
+
+~~~java
+@ConfigurationProperties(prefix="acme.my-project.person")
+public class OwnerProperties {
+
+    private String firstName;
+
+    public String getFirstName() {
+        return this.firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+}
+
+~~~
+
+prefix指定的值，单词分割必须使用'-'。
+
+| key                               | 使用说名                          |
+| --------------------------------- | --------------------------------- |
+| acme.my-project.person.first-name | properties和yml中使用             |
+| acme.myProject.person.firstName   | 标准驼峰分割                      |
+| acme.my_project.person.first_name | 下划线分割，properties和yml中使用 |
+| ACME_MYPROJECT_PERSON_FIRSTNAME   | 大写格式，使用系统变量使用        |
+
+
+
+**绑定至Map**
+
+如果Map的key中有非字母数字或'-'，则需要使用"[]"包裹，否则非字母数字或'-'的字符都会被删除。例如：
+
+~~~yaml
+acme:
+  map:
+    "[/key1]": value1
+    "[/key2]": value2
+    /key3: value3
+
+~~~
+
+map的key是：/key1、/key2、key3。
+
+
+
+**绑定环境变量**
+
+Linux系统的环境变量名仅包含字母(a-z|A-Z)、数字、下划线(_)，Unix变量名还会全部大写。
+
+将配置文件的key转换成环境变量遵循以下规则：
+
+1. '.'转换成'_'。
+2. 去掉所有的'-'。
+3. 全部转大写。
+
+spring.main.log-startup-info对应环境变量名：SPRING_MAIN_LOGSTARTUPINFO。
+
+如果绑定的环境变量值是List，则：my.acme[0].other变为MY_ACME_0_OTHER。
+
+
+
+**配置合并规则**
+
+~~~yaml
+acme:
+  list:
+    - name: my name
+      description: my description
+---
+spring:
+  profiles: dev
+acme:
+  list:
+    - name: my another name
+
+~~~
+
+如果dev不激活，则list中只会有一个对象，name的值是my name。
+
+如果dev激活，则list也只会有一个对象，name的值是my another name。
+
+~~~yaml
+acme:
+  list:
+    - name: my name
+      description: my description
+    - name: another name
+      description: another description
+---
+spring:
+  profiles: dev
+acme:
+  list:
+    - name: my another name
+
+~~~
+
+多个配置指向一个列表，只会保留优先级高的配置。
+
+如果dev不激活，则list中有2个对象。
+
+如果dev激活，则list中只有1个对象。
+
+
+
+~~~yaml
+acme:
+  map:
+    key1:
+      name: my name 1
+      description: my description 1
+---
+spring:
+  profiles: dev
+acme:
+  map:
+    key1:
+      name: dev name 1
+    key2:
+      name: dev name 2
+      description: dev description 2
+
+~~~
+
+激活情况同上。
+
+
+
+**属性转换**
+
+SpringBoot在绑定属性时，会自动尝试将外部属性进行转换。自己也可以自定义转换方式。
+
+ConversionService 
+
+CustomEditorConfigurer 
+
+
+
+**Duration转换**
+
+持续事件的设置，定义值的规则：
+
+1. long值表达式，默认的单位时ms(毫秒)，除非通过@DurationUnit指定单位。
+2.  ISO-8601格式(Duration)。
+3. 可读的格式，例如10s意味着10秒。
+
+可读单位表示：
+
+1. ns：纳秒
+2. us：微秒
+3. ms：毫秒
+4. s：秒
+5. m：分钟
+6. h：小时
+7. d：天
+
+500、 PT0.5S、500ms表示500毫秒。
+
+单位指定后可以被覆盖？
+
+
+
+**DataSize转换**
+
+DataSize能识别以下的格式：
+
+1. long值，byte作为默认单位，除非@DataSizeUni指定单位。
+2. 可读的值和单位，例如：1MB。
+
+可读单位：
+
+1. B：
+2. KB：
+3. MB：
+4. GB：
+5. TB：
+
+
+
+**ConfigurationProperties校验**
+
+添加@Validated可以使用
+
+~~~java
+@ConfigurationProperties(prefix="acme")
+@Validated
+public class AcmeProperties {
+
+    @NotNull
+    private InetAddress remoteAddress;
+
+    @Valid
+    private final Security security = new Security();
+
+    // ... getters and setters
+
+    public static class Security {
+
+        @NotEmpty
+        public String username;
+
+        // ... getters and setters
+
+    }
+
+}
+
+~~~
+
+
+
+**@ConfigurationProperties和@Value**
+
+| 特点       | @ConfigurationProperties | @Value |
+| ---------- | ------------------------ | ------ |
+| 宽松的绑定 | 支持                     | 有限   |
+| 元数据支持 | 支持                     | 不支持 |
+| SPEL表达式 | 不支持                   | 支持   |
+
+@Value("{demo.item-price}")支持配置值和@Configuration一致。但是@Value("{demo.itemPrice}")就支持配置文件中key为demo.itemPrice的。
+
+
+
+### Profiles
+
+Spring提供了在代码中使用不同环境的配置文件方式，如在@Component、@Configuration、@ConfigurationProperties上使用@Profile注解来限制配置的加载。
+
+如果@ConfigurationProperties通过@EnableConfigurationProperties的方式加载，则@Profile注解需要在@EnableConfigurationProperties撒谎给你才会生效；如果是扫描加载，则不用。
+
+
+
+**添加激活Profiles**
+
+~~~yml
+my.property: fromyamlfile
+---
+spring.profiles: prod
+spring.profiles.include:
+  - proddb
+  - prodmq
+
+~~~
+
+如果启动时添加了--spring.profiles.active=prod的配置，不存在application-prod.yml(yaml|properties)的配置文件，则proddb、prodmq将被激活。
+
+
+
+**程序添加激活Profiles**
+
+在SpringApplication调用run方法之前，SpringApplication.setAdditionalProfiles(…)添加激活Profiles。
+
+
+
+这个添加的Profiles也遵循特定文件的规则。
+
+
+
+### Logging
 
