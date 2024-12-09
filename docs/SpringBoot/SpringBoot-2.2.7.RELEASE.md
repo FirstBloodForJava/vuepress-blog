@@ -562,6 +562,8 @@ dependencies {
 3. spring-boot-devtools.yml
 
 ~~~properties
+# 禁用重启
+spring.devtools.restart.enabled=false
 # 程序在.reloadtrigger文件被修改时触发重启(编译后)
 spring.devtools.restart.trigger-file=.reloadtrigger
 
@@ -571,7 +573,7 @@ spring.devtools.restart.trigger-file=.reloadtrigger
 
 
 
-## 4.特点
+## 4.功能
 
 ### SpringApplication 
 
@@ -780,7 +782,7 @@ SpringBoot通过PropertySource来实现合理的配置覆盖值。配置遵循�
 1. 当devtools 插件生效时，其全局配置优先级最高。
 2. 测试中的注解@TestPropertySource。
 3. 测试中的属性。@SpringBootTest。
-4. 命令行参数。
+4. 命令行参数(系统属性或args)。
 5. 来自SPRING_APPLICATION_JSON(嵌入在环境变量或系统属性的json)的属性。
 6. ServletConfig初始化参数。
 7. ServletConfig初始化参数。
@@ -1437,3 +1439,221 @@ spring.profiles.include:
 
 ### Logging
 
+SpringBoot使用Apache Logging作为底层，也保证了日志的对外的扩展。
+
+
+
+**默认日志格式**
+
+1. 带毫秒的日期：2024-12-07 17:19:39.073。
+2. LEVEL：日志的级别，ERROR、WARN、INFO、DEBUG、TRACE。
+3. 分割符：---
+4. threadName：线程名
+5. LoggerName：记录日志的log设置的类名。
+6. msg：日志消息。
+
+
+
+**控制台输出**
+
+控制日志的级别：
+
+1. 启动参数：--debug、--trace。
+2. 配置文件：debug=true、trace=true。
+
+
+
+**控制台颜色输出**
+
+%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){yellow}表示日期打印的颜色是黄色。
+
+支持的颜色有：
+
+1. blue
+2. cyan
+3. faint
+4. green
+5. megenta
+6. red
+7. yellow
+
+
+
+**日志输出到文件**
+
+可以通过logging.file.name或logging.file.path配置日志输出到文件。
+
+| logging.file.name | logging.file.path | example         | description                      |
+| ----------------- | ----------------- | --------------- | -------------------------------- |
+| none              | none              |                 | 输出到控制台                     |
+| 特定文件          | none              | application.log | 写入指定文件，文件中也能指定路径 |
+| none              | 特定的目录        | log             | 写入特定目录的spring.log文件中   |
+
+其它配置：
+
+1. logging.file.max-size：指定日志文件文件最大的大小，超过则被压缩成<logName>.yyyy-MM-dd.n.gz文件。
+2. logging.file.max-history：默认保留7天的轮换日志。
+3. logging.file.total-size-cap：设置日志档案的大小，超过阈值则备份被删除(启动时压缩超过阈值会删除备份文档)。
+4. logging.file.clean-history-on-start：启动强制清理存档。
+
+
+
+**日志级别设置**
+
+logging.level.<logger-name>=<level>方式设置日志的隔离级别
+
+logger-name可以指定路径下类的日志级别(也可以到类)，也可以指定根级别root。
+
+~~~properties
+logging.level.root=warn
+logging.level.org.springframework.web=debug
+logging.level.org.hibernate=error
+
+~~~
+
+
+
+**日志组配置**
+
+~~~properties
+# 定义一个组
+logging.group.tomcat=org.apache.catalina, org.apache.coyote, org.apache.tomcat
+# 指定组的日志级别
+logging.level.tomcat=TRACE
+
+~~~
+
+SpringBoot提供的两个预定组：
+
+1. web：org.springframework.core.codec, org.springframework.http, org.springframework.web, org.springframework.boot.actuate.endpoint.web, org.springframework.boot.web.servlet.ServletContextInitializerBeans。
+2. sql：org.springframework.jdbc.core, org.hibernate.SQL, org.jooq.tools.LoggerListener。
+
+
+
+
+
+**自定义日志配置**
+
+SpringBoot使用哪套日志系统，由org.springframework.boot.logging.LoggingSystem类的get(ClassLoader classLoader)方法决定。
+
+![image-20241209131218562](http://47.101.155.205/image-20241209131218562.png)
+
+可以通过系统变量org.springframework.boot.logging.LoggingSystem的值来替换SpringBoot的日志系统，也可以通过none禁用SpringBoot的日志配置。
+
+**日志系统是在ApplicationContext初始化之前确定的，所以改变日志系统或禁用日志配置的方式只能通过系统属性。**
+
+默认日志系统自动加载的配置文件。可以通过logging.config指定加载的文件。
+
+ResourceUtils.*getURL*(logging.config).openStream().close()方法校验文件是否存在。
+
+| 日志系统 | 默认加载文件(位置classpath:)                                 |
+| -------- | ------------------------------------------------------------ |
+| logback  | logback-test[-spring].groovy、logback-test[-spring].xml、logback[-spring].groovy、logback[-spring].xml |
+| Log4j2   | log4j2-test[-spring].properties、log4j2-test[-spring].xml、log4j2[-spring].properties、log4j2[-spring].xml |
+| JDK      | logging[-spring].properties                                  |
+
+
+
+SpringBoot会将配置值转移到Java的系统变量中(变量不存在)。SpringBoot配置和系统变量key关系：
+
+| SpringBoot配置                      | 系统变量                        | 作用                                                         |
+| ----------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| logging.exception-conversion-word   | LOG_EXCEPTION_CONVERSION_WORD   | 记录异常转换的关键字                                         |
+| logging.pattern.console             | CONSOLE_LOG_PATTERN             | 控制台输出的日志格式(仅logback)                              |
+| logging.pattern.file                | FILE_LOG_PATTERN                | 输出到文件日志格式(文件记录开启)(仅logback)                  |
+| logging.file.clean-history-on-start | LOG_FILE_CLEAN_HISTORY_ON_START | 是否启用清理归档日志(文件记录开启)(仅logback)                |
+| logging.file.max-history            | LOG_FILE_MAX_HISTORY            | 日志保留的天数(文件记录开启)(仅logback)                      |
+| logging.file.max-size               | LOG_FILE_MAX_SIZE               | 最大日志文件大小(文件记录开启)(仅logback)                    |
+| logging.file.total-size-cap         | LOG_FILE_TOTAL_SIZE_CAP         | 保留压缩日志的总大小(文件记录开启)(仅logback)                |
+| logging.pattern.level               | LOG_LEVEL_PATTERN               | 日志级别打印的格式(默认%5p)(仅logback)                       |
+| logging.pattern.dateformat          | LOG_DATEFORMAT_PATTERN          | 日志日期打印格式(仅logback)                                  |
+| logging.pattern.rolling-file-name   | ROLLING_FILE_NAME_PATTERN       | 滚动日志的日志名(默认${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz))(仅logback) |
+|                                     | PID                             | 当前Java进程的pid                                            |
+
+![image-20241209140201531](http://47.101.155.205/image-20241209140201531.png)
+
+
+
+%clr在logback.xml配置文件中启动报错。
+
+logback.xml(logback-spring.xml)控制日志行为
+
+~~~xml
+<configuration>
+    <!-- 定义全局属性 -->
+    <property name="LOG_PATH" value="./log"/>
+    <property name="APP_NAME" value="springboot-example"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 日志格式不支持%clr -->
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) ${PID} --- [%thread]  %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 滚动文件输出 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天滚动 -->
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留最近 30 天的日志 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level ${PID} --- [%thread]  %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 定义日志级别 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
+
+~~~
+
+
+
+### 国际化
+
+国际化配置默认情况下在classpath下有messages.properties文件时自动激活。
+
+自动配置类：MessageSourceAutoConfiguration。
+
+![image-20241209171213730](http://47.101.155.205/image-20241209171213730.png)
+
+
+
+### JSON
+
+SpringBoot提供了三个JSON映射库：
+
+1. Gson
+2. Jackson(默认的)
+3. JSON-B
+
+
+
+**Jackson**
+
+spring-boot-starter-json作为自动配置Jackson的一部分。
+
+Jackson自动配置类org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration。
+
+对ObjectMapper的配置https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#howto-customize-the-jackson-objectmapper
+
+
+
+**Gson**
+
+Gson相关依赖存在时会自动配置Gson，提供了sprin.gson.*(org.springframework.boot.autoconfigure.gson.GsonProperties)来自定义Gson的行为。
+
+自动配置类org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration。
+
+怎么定义多个GsonBuilderCustomizer？
