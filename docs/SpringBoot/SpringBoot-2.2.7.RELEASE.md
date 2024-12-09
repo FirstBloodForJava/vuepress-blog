@@ -1657,3 +1657,97 @@ Gson相关依赖存在时会自动配置Gson，提供了sprin.gson.*(org.springf
 自动配置类org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration。
 
 怎么定义多个GsonBuilderCustomizer？
+
+
+
+**JSON-B**
+
+支持自动配置JSON-B。在JSON-B的依赖被加载时自动配置。
+
+
+
+### Web开发
+
+SpringBoot非常适合做web开发，能够通过嵌入容器Tomcat, Jetty, Undertow或Netty快速开发独立的http服务器。有两种方式：
+
+spring-boot-starter-web
+
+spring-boot-starter-webflux
+
+
+
+#### SpringMVC
+
+**自动配置**
+
+SpringMVC自动配置功能。
+
+实现WebMvcConfigurer接口，添加注解@Configuration，来自定义拦截器、json解析、视图控制等功能。
+
+想替换RequestMappingHandlerMapping、RequestMappingHandlerAdapter、ExceptionHandlerExceptionResolver，但是不修改SpringMVC的机制，声明一个WebMvcRegistrations Bean并提供这些对象。
+
+想要完全控制控制SpringMVC的行为，可以通过继承抽象类WebMvcConfigurationSupport，并将其交由Spring管理。
+
+
+
+**HttpMessageConverters**
+
+SpringMVC使用HttpMessageConverter来转换http请求和响应。默认时开箱即用的。Json转换默认使用Jackson，xml使用Jackson XML或JAXB。字符串默认使用UTF-8编码.
+
+也可以自定义HttpMessageConverters
+
+~~~java
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.context.annotation.*;
+import org.springframework.http.converter.*;
+
+@Configuration(proxyBeanMethods = false)
+public class MyConfiguration {
+
+    @Bean
+    public HttpMessageConverters customConverters() {
+        HttpMessageConverter<?> additional = ...
+        HttpMessageConverter<?> another = ...
+        return new HttpMessageConverters(additional, another);
+    }
+
+}
+
+~~~
+
+
+
+**自定义Json序列化和反序列化**
+
+快速支持类的序列化和反序列化
+
+~~~java
+import java.io.*;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import org.springframework.boot.jackson.*;
+
+@JsonComponent
+public class Example {
+
+    public static class Serializer extends JsonSerializer<SomeObject> {
+        // ...
+    }
+
+    public static class Deserializer extends JsonDeserializer<SomeObject> {
+        // ...
+    }
+
+}
+
+~~~
+
+
+
+**MessageCodesResolver**
+
+定义解析出现错误时的提示格式。
+
+spring.mvc.message-codes-resolver-format=prefix_error_code，格式为errorCode + . + objectName + . + field。
+
+spring.mvc.message-codes-resolver-format=postfix_error_code，格式为objectName + . +field + . + errorCode。
