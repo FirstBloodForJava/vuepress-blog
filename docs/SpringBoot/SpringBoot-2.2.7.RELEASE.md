@@ -1407,7 +1407,7 @@ public class AcmeProperties {
 
 Spring提供了在代码中使用不同环境的配置文件方式，如在@Component、@Configuration、@ConfigurationProperties上使用@Profile注解来限制配置的加载。
 
-如果@ConfigurationProperties通过@EnableConfigurationProperties的方式加载，则@Profile注解需要在@EnableConfigurationProperties撒谎给你才会生效；如果是扫描加载，则不用。
+如果@ConfigurationProperties通过@EnableConfigurationProperties的方式加载，则@Profile注解需要在注解@EnableConfigurationProperties上才会生效；如果是扫描加载，则不用。
 
 
 
@@ -2119,39 +2119,110 @@ public ConfigurableServletWebServerFactory webServerFactory() {
 
 ~~~
 
+
+
+#### 内存数据库
+
+SpringBoot支持自动配置的内存数据库有H2、HSQL、Derby。
+
+spring-data-jpa内置了测试hsql。
+
+~~~xml
+<dependency>
+    <groupId>org.hsqldb</groupId>
+    <artifactId>hsqldb</artifactId>
+    <scope>runtime</scope>
+</dependency>
+
+~~~
+
+内存数据库的绑定方式：
+
+1. 引入spring-boot-starter-data-jpa依赖，其引入了spring-boot-starter-jdbc，jdbc提供了HikariCP依赖。
+2. DataSourceConfiguration：SpringBoot根据加载的HikariCP依赖，创建了HikariDataSource(spring.datasource.hikari)。其中DataSourceProperties配置类(DataSourceAutoConfiguration)被其它类激活，该类实现了InitializingBean接口，在属性设置完成只会，调用afterPropertiesSet()，按H2、Debry、Hsql的顺序在看是否有内存数据库相关的驱动类，如果存在则设置这个内存数据库的驱动相关信息。
+3. 然后DataSourceBuilder构造器构造HikariDataSource(bind DataSourceProperties)数据源信息，spring.datasource.hikari再设置相关的数据源配置。
+4. DataSourcePoolMetadataProvidersConfiguration：创建DataSourcePoolMetadataProvider对象。
+5. 创建DataSourcePoolMetadata对象，后面连接池就构建完成了。
+
+
+
+![image-20241210204255423](http://47.101.155.205/image-20241210204255423.png)
+
+内存数据库会根据扫描到的Entity创建表。例如：https://spring.io/guides/gs/accessing-data-jpa
+
+
+
+
+
+
+
+
+
+#### 普通数据库
+
 spring-boot-starter-data-jpa包含了spring-boot-starter-jdbc。
 
 spring-boot-starter-jdbc提供了HikariCP依赖。
 
+SpringBoot支持自动配置的连接池有：HikariCP、tomcat DataSource、DBCP DataSource。
+
+Java Debug SpringBootCondition 的matches方法。可以
+
+~~~java
+((SimpleAnnotationMetadata) metadata).getClassName().contains("Hikari") || ((SimpleAnnotationMetadata) metadata).getClassName().contains("Tomcat") || ((SimpleAnnotationMetadata) metadata).getClassName().contains("Dbcp2")
+
+~~~
+
+SpringBoot官网说加载连接池的优先级：
+
+1. HikariCP可用则选它。
+2. 否则，Tomcat DataSource可用则选它。
+3. 否则，Dbcp2可用则选它。
+
+可以通过spring.datasource.type指定使用哪个连接池。能实现覆盖的原因式这段代码：
+
+看代码是没有这个逻辑的，得debug实测。
+
+~~~java
+// DataSourceBuilder
+private static final String[] DATA_SOURCE_TYPE_NAMES = new String[] { "com.zaxxer.hikari.HikariDataSource",
+			"org.apache.tomcat.jdbc.pool.DataSource", "org.apache.commons.dbcp2.BasicDataSource" };
+
+public static Class<? extends DataSource> findType(ClassLoader classLoader) {
+    for (String name : DATA_SOURCE_TYPE_NAMES) {
+        try {
+            return (Class<? extends DataSource>) ClassUtils.forName(name, classLoader);
+        } catch (Exception ex) {
+            // Swallow and continue
+        }
+    }
+    return null;
+}
+
+// 这里的type不会为null 并不会走到 更具数组定义的顺序加载
+private Class<? extends DataSource> getType() {
+    Class<? extends DataSource> type = (this.type != null) ? this.type : findType(this.classLoader);
+    if (type != null) {
+        return type;
+    }
+    throw new IllegalStateException("No supported DataSource type found");
+}
+
+~~~
 
 
-内存数据库。
 
 
 
-mysql配置
+
+
+url指定后可以不指定驱动类名称，如果驱动为空，后续会推导。指定驱动的类必须要能被ClassLoader加载，否则启动不了。
 
 ~~~properties
 spring.datasource.url=jdbc:mysql://localhost/test
 spring.datasource.username=dbuser
 spring.datasource.password=dbpass
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-
-~~~
-
-
-
-连接池配置？
-
-~~~properties
-# Number of ms to wait before throwing an exception if no connection is available.
-spring.datasource.tomcat.max-wait=10000
-
-# Maximum number of active connections that can be allocated from this pool at the same time.
-spring.datasource.tomcat.max-active=50
-
-# Validate the connection before borrowing it from the pool.
-spring.datasource.tomcat.test-on-borrow=true
 
 ~~~
 
