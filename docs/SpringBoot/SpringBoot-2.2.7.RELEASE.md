@@ -1751,3 +1751,434 @@ public class Example {
 spring.mvc.message-codes-resolver-format=prefix_error_code，格式为errorCode + . + objectName + . + field。
 
 spring.mvc.message-codes-resolver-format=postfix_error_code，格式为objectName + . +field + . + errorCode。
+
+
+
+**静态资源**
+
+静态资源默认从classpath下的/META-INF/resources/、/resources/、/static/、/public/下加载，可以通过注入WebMvcConfigurer Bean重写addResourceHandlers调整资源目录，也可以通过spring.resources.static-locations配置修改目录，默认会在后面补'/'。
+
+访问静态资源的默认路径是/**，spring.mvc.static-path-pattern配置修改访问静态资源的路径。
+
+spring.mvc.static-path-pattern=/resources/**，表示resources/开头的路径才会去访问静态资源。
+
+
+
+**配置WebBindingInitializer**
+
+SpringMVC使用WebBindingInitializer为特定的请求绑定WebDataBinder。
+
+注入ConfigurableWebBindingInitializer Bean有什么作用？
+
+
+
+**模板引擎**
+
+FreeMarker：https://freemarker.apache.org/docs/
+
+Groovy：http://docs.groovy-lang.org/docs/next/html/documentation/template-engines.html#_the_markuptemplateengine
+
+Thymeleaf：https://www.thymeleaf.org/
+
+Mustache：https://mustache.github.io/
+
+
+
+**错误处理**
+
+SpringBoot默认提供一个/error来处理所有的错误。SpringBoot会根据请求头Accept的值来决定返回返回视图还是文本。
+
+BasicErrorController根据配置的路径处理错误。通过@RequestMapping(produces = MediaType.TEXT_HTML_VALUE)，Accept=text/html，将会返回一个错误视图。
+
+如果是其它类型的Accept，例如为PostMan默认的，则会返回json文本。
+
+还可以通过@ControllerAdvice注解，来自定义哪些Controller的异常处理需要处理，例如：
+
+~~~java
+// 可以配置某个具体的类，也可以是包的路径
+@ControllerAdvice(basePackageClasses = AcmeController.class)
+public class AcmeControllerAdvice extends ResponseEntityExceptionHandler {
+
+    // 定义异常处理的类型
+    @ExceptionHandler(YourException.class)
+    // 重写返回的状态码(不是ResponseEntity返回则可以通过这个指定状态码)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
+        HttpStatus status = getStatus(request);
+        return new ResponseEntity<>(new CustomErrorType(status.value(), ex.getMessage()), status);
+    }
+
+    private HttpStatus getStatus(HttpServletRequest request) {
+        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+        if (statusCode == null) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return HttpStatus.valueOf(statusCode);
+    }
+
+}
+
+~~~
+
+
+
+**自定义错误页面**
+
+resources/public/error目录下新建404.html的静态资源文件。也可以是模板文件。
+
+
+
+添加一个重写ErrorViewResolver接口的Bean，定义规则。
+
+
+
+**HATEOA**
+
+功能支持，没有具体介绍，和@EnableHypermediaSupport注解有关。
+
+
+
+**跨域支持**
+
+SpringMVC自4.2版本开始，支持跨域请求。
+
+SpringBoot支持使用注解@CrossOrigin开启跨域功能(局部配置)。
+
+全局配置跨域方式如下：
+
+~~~java
+@Configuration(proxyBeanMethods = false)
+public class MyConfiguration {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**");
+            }
+        };
+    }
+}
+
+~~~
+
+
+
+
+
+#### WebFlux
+
+Spring Framework 5.0开始提供的响应式Web，不像SpringMVC，不需要Servlet API，是完全异步和非阻塞的。
+
+两者定义WebFlux处理接口的方式
+
+~~~java
+@RestController
+@RequestMapping("/users")
+public class MyRestController {
+
+    @GetMapping("/{user}")
+    public Mono<User> getUser(@PathVariable Long user) {
+        // ...
+    }
+
+    @GetMapping("/{user}/customers")
+    public Flux<Customer> getUserCustomers(@PathVariable Long user) {
+        // ...
+    }
+
+    @DeleteMapping("/{user}")
+    public Mono<User> deleteUser(@PathVariable Long user) {
+        // ...
+    }
+
+}
+
+~~~
+
+~~~java
+@Configuration(proxyBeanMethods = false)
+public class RoutingConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> monoRouterFunction(UserHandler userHandler) {
+        return route(GET("/{user}").and(accept(APPLICATION_JSON)), userHandler::getUser)
+                .andRoute(GET("/{user}/customers").and(accept(APPLICATION_JSON)), userHandler::getUserCustomers)
+                .andRoute(DELETE("/{user}").and(accept(APPLICATION_JSON)), userHandler::deleteUser);
+    }
+
+}
+
+@Component
+public class UserHandler {
+
+    public Mono<ServerResponse> getUser(ServerRequest request) {
+        // ...
+    }
+
+    public Mono<ServerResponse> getUserCustomers(ServerRequest request) {
+        // ...
+    }
+
+    public Mono<ServerResponse> deleteUser(ServerRequest request) {
+        // ...
+    }
+}
+
+~~~
+
+
+
+**配置**
+
+可以注入WebFluxConfigurer Bean自定义配置，不适应@EnableWebFlux注解。
+
+添加额外的配置，注入WebFluxConfigurer Bean，不添加注解@EnableWebFlux。
+
+安全控制，注入WebFluxConfigurer Bean，添加注解@EnableWebFlux。
+
+
+
+**HttpMessageReaders和HttpMessageWriters**
+
+使用HttpMessageReader和HttpMessageWriter来转换请求和响应。
+
+spring.codec.*配置作用？
+
+CodecCustomizer 来定义什么？
+
+spring.jackson.*来配置Jackson的行为。
+
+
+
+**静态资源访问**
+
+配置方式略同SpringMVC Web。
+
+没有Servlet，不支持war包部署。
+
+
+
+**模板引擎**
+
+FreeMarker：https://freemarker.apache.org/docs/
+
+Thymeleaf：https://www.thymeleaf.org/
+
+Mustache：https://mustache.github.io/
+
+
+
+**错误处理**
+
+默认的错误处理方式和SpringMVC web相同。
+
+通过WebExceptionHandler去处理错误。
+
+通常注入ErrorWebExceptionHandler Bean来自定义处理错误的方式。因为WebExceptionHandler优先级比较低，也可以通过注入AbstractErrorWebExceptionHandler Bean处理错误。
+
+默认是DefaultErrorWebExceptionHandler。
+
+~~~java
+public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
+
+    // Define constructor here
+
+    @Override
+    protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
+
+        return RouterFunctions
+                .route(aPredicate, aHandler)
+                .andRoute(anotherPredicate, anotherHandler);
+    }
+
+}
+
+~~~
+
+
+
+**自定义错误页面**
+
+配置同SpringMVC Web。
+
+
+
+**Web过滤器**
+
+Spring WebFlux提供了WebFilter接口实现过滤器的效果。
+
+可以通过Ordered接口或注解@Order注解来指定过滤器的指向顺序。
+
+| Web Filter                            | Order                          |
+| :------------------------------------ | :----------------------------- |
+| MetricsWebFilter(Spring Actuator)     | Ordered.HIGHEST_PRECEDENCE + 1 |
+| WebFilterChainProxy (Spring Security) | -100                           |
+| HttpTraceWebFilter(Spring Actuator)   | Ordered.LOWEST_PRECEDENCE - 10 |
+
+
+
+#### JAX-RS和Jersey
+
+作用是什么？
+
+
+
+#### 嵌入式容器
+
+servlet容器可以定义过滤器监听器，并作为Bean注册在Spring中。
+
+过滤器可以通过注解@Order或实现接口Ordered来控制指向的顺序，注解通过@Bean注入不能设置。
+
+通过FilterRegistrationBean注入Bean是另外的方式控制顺序。
+
+顺序的值要小于等于OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER。
+
+@ServletComponentScan注解可以扫描@WebServlet, @WebFilter, @WebListener注解的类。
+
+
+
+可以自定义Servlet的行为：
+
+1. 端口(server.port)，绑定的地址(server.address)。
+2. Session设置：持久(server.servlet.session.persistent)，过期时间(server.servlet.session.timeout)，session存储位置(server.servlet.session.store-dir)，session-cookie配置(server.servlet.session.cookie.*)。
+3. 错误地址配置server.error.path。
+4. SSL。
+5. Http压缩
+
+
+
+ServerProperties：server.*配置。
+
+
+
+**程序配置**
+
+
+
+~~~java
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CustomizationBean implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+
+    @Override
+    public void customize(ConfigurableServletWebServerFactory server) {
+        server.setPort(9000);
+    }
+
+}
+
+~~~
+
+TomcatServletWebServerFactory, JettyServletWebServerFactory, UndertowServletWebServerFactory
+
+~~~java
+@Bean
+public ConfigurableServletWebServerFactory webServerFactory() {
+    TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+    factory.setPort(9000);
+    factory.setSessionTimeout(10, TimeUnit.MINUTES);
+    factory.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notfound.html"));
+    return factory;
+}
+
+~~~
+
+
+
+### RSocket
+
+
+
+### Security
+
+~~~xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+~~~
+
+
+
+
+
+### SQL Database
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+
+~~~
+
+spring-boot-starter-data-jpa包含了spring-boot-starter-jdbc。
+
+spring-boot-starter-jdbc提供了HikariCP依赖。
+
+
+
+内存数据库。
+
+
+
+mysql配置
+
+~~~properties
+spring.datasource.url=jdbc:mysql://localhost/test
+spring.datasource.username=dbuser
+spring.datasource.password=dbpass
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+~~~
+
+
+
+连接池配置？
+
+~~~properties
+# Number of ms to wait before throwing an exception if no connection is available.
+spring.datasource.tomcat.max-wait=10000
+
+# Maximum number of active connections that can be allocated from this pool at the same time.
+spring.datasource.tomcat.max-active=50
+
+# Validate the connection before borrowing it from the pool.
+spring.datasource.tomcat.test-on-borrow=true
+
+~~~
+
+
+
+
+
+JNDI DataSource？
+
+JNDI(Java Naming and Directory Interface)Java提供的API，用于命名和目录服务。
+
+~~~properties
+spring.datasource.jndi-name=java:jboss/datasources/customers
+
+~~~
+
+
+
+
+
+JdbcTemplate
+
+
+
+JPA和Spring Data JPA
+
+JPA(Java Persistence API)是将"Map"对象映射到关系型数据库的技术。
+
+
+
