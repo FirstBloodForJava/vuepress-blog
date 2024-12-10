@@ -462,9 +462,9 @@ task buildJar1 (type: GradleBuild, dependsOn: [build, clean]) {
 
 https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#using-boot-starter
 
-spring官方提供的starter遵循命名规则spring-boot-starter-<name>，name都具有一定的含义。
+spring官方提供的starter遵循命名规则spring-boot-starter-[name]，name都具有一定的含义。
 
-也可以自定义starter，第三方的starter一般遵循<name>-spring-boot-starter命名规则。
+也可以自定义starter，第三方的starter一般遵循[name]-spring-boot-starter命名规则。
 
 自定义starter文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#boot-features-custom-starter
 
@@ -1491,7 +1491,7 @@ SpringBoot使用Apache Logging作为底层，也保证了日志的对外的扩�
 
 其它配置：
 
-1. logging.file.max-size：指定日志文件文件最大的大小，超过则被压缩成<logName>.yyyy-MM-dd.n.gz文件。
+1. logging.file.max-size：指定日志文件文件最大的大小，超过则被压缩成[logName].yyyy-MM-dd.n.gz文件。
 2. logging.file.max-history：默认保留7天的轮换日志。
 3. logging.file.total-size-cap：设置日志档案的大小，超过阈值则备份被删除(启动时压缩超过阈值会删除备份文档)。
 4. logging.file.clean-history-on-start：启动强制清理存档。
@@ -1500,7 +1500,7 @@ SpringBoot使用Apache Logging作为底层，也保证了日志的对外的扩�
 
 **日志级别设置**
 
-logging.level.<logger-name>=<level>方式设置日志的隔离级别
+logging.level.[logger-name]=[level]方式设置日志的隔离级别
 
 logger-name可以指定路径下类的日志级别(也可以到类)，也可以指定根级别root。
 
