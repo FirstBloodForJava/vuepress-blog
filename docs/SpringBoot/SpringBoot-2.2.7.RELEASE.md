@@ -2154,83 +2154,7 @@ spring-data-jpa内置了测试hsql。
 
 
 
-
-
-
-
-#### 普通数据库
-
-spring-boot-starter-data-jpa包含了spring-boot-starter-jdbc。
-
-spring-boot-starter-jdbc提供了HikariCP依赖。
-
-SpringBoot支持自动配置的连接池有：HikariCP、tomcat DataSource、DBCP DataSource。
-
-Java Debug SpringBootCondition 的matches方法。可以
-
-~~~java
-((SimpleAnnotationMetadata) metadata).getClassName().contains("Hikari") || ((SimpleAnnotationMetadata) metadata).getClassName().contains("Tomcat") || ((SimpleAnnotationMetadata) metadata).getClassName().contains("Dbcp2")
-
-~~~
-
-SpringBoot官网说加载连接池的优先级：
-
-1. HikariCP可用则选它。
-2. 否则，Tomcat DataSource可用则选它。
-3. 否则，Dbcp2可用则选它。
-
-可以通过spring.datasource.type指定使用哪个连接池。能实现覆盖的原因式这段代码：
-
-看代码是没有这个逻辑的，得debug实测。
-
-~~~java
-// DataSourceBuilder
-private static final String[] DATA_SOURCE_TYPE_NAMES = new String[] { "com.zaxxer.hikari.HikariDataSource",
-			"org.apache.tomcat.jdbc.pool.DataSource", "org.apache.commons.dbcp2.BasicDataSource" };
-
-public static Class<? extends DataSource> findType(ClassLoader classLoader) {
-    for (String name : DATA_SOURCE_TYPE_NAMES) {
-        try {
-            return (Class<? extends DataSource>) ClassUtils.forName(name, classLoader);
-        } catch (Exception ex) {
-            // Swallow and continue
-        }
-    }
-    return null;
-}
-
-// 这里的type不会为null 并不会走到 更具数组定义的顺序加载
-private Class<? extends DataSource> getType() {
-    Class<? extends DataSource> type = (this.type != null) ? this.type : findType(this.classLoader);
-    if (type != null) {
-        return type;
-    }
-    throw new IllegalStateException("No supported DataSource type found");
-}
-
-~~~
-
-
-
-
-
-
-
-url指定后可以不指定驱动类名称，如果驱动为空，后续会推导。指定驱动的类必须要能被ClassLoader加载，否则启动不了。
-
-~~~properties
-spring.datasource.url=jdbc:mysql://localhost/test
-spring.datasource.username=dbuser
-spring.datasource.password=dbpass
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-
-~~~
-
-
-
-
-
-JNDI DataSource？
+#### JNDI 数据源
 
 JNDI(Java Naming and Directory Interface)Java提供的API，用于命名和目录服务。
 
@@ -2239,17 +2163,147 @@ spring.datasource.jndi-name=java:jboss/datasources/customers
 
 ~~~
 
+context.xml文件。SpringBoot嵌入式容器不支持此方式启动。
+
+~~~xml
+<Context>
+    <Resource name="java:jboss/datasources/customers"
+              url="jdbc:oracle:thin:@//ip:port/database"
+              type="com.zaxxer.hikari.HikariDataSource"
+              username="username"
+              password="password"
+    />
+</Context>
+
+~~~
+
+
+
+#### 普通数据库
+
+SpringBoot支持自动配置的连接池有：HikariCP、tomcat DataSource、DBCP DataSource。
+
+自动配置JdbcTemplate和NamedParameterJdbcTemplate，spring.jdbc.template.*配置JdbcTemplate功能。
+
+~~~xml
+<!-- tomcat 连接池依赖 -->
+<dependency>
+	<groupId>org.apache.tomcat</groupId>
+	<artifactId>tomcat-jdbc</artifactId>
+</dependency>
+<!-- dbcp2连接池依赖 -->
+<dependency>
+	<groupId>org.apache.commons</groupId>
+	<artifactId>commons-dbcp2</artifactId>
+</dependency>
+
+<!-- Oracle驱动 -->
+<dependency>
+	<groupId>com.oracle.ojdbc</groupId>
+	<artifactId>ojdbc8</artifactId>
+    <version>19.3.0.0</version>
+</dependency>
+
+~~~
+
+~~~sql
+-- 自动
+create table customer (id number(19,0) not null, first_name varchar2(255 char), last_name varchar2(255 char), primary key (id));
+
+create sequence seq_customer start with 1 increment by 1;
+
+drop table customer cascade constraints;
+
+drop sequence seq_customer;
+
+~~~
+
+~~~properties
+# 默认nono,内存数据库则为create-drop(根据Entity先删除后创建停止再删除表,强制停止不会指向删除)
+# DataSourceSchemaCreatedEvent时间
+spring.jpa.hibernate.ddl-auto=create-drop
+# 配置和上面的作用一致，优先级更高
+spring.jpa.properties.hibernate.hbm2ddl.auto=create-drop
+# true/false EntityManager 行为
+spring.jpa.open-in-view=false
+
+# 数据库连接配置
+# url指定后可以不指定驱动类名称，如果驱动为空，后续会推导。指定驱动的类必须要能被ClassLoader加载，否则启动不了。
+# oracle
+spring.datasource.url=jdbc:oracle:thin:@//ip:port/database
+# mysql
+spring.datasource.url=jdbc:mysql://ip:port/test
+spring.datasource.username={username}
+spring.datasource.password={password}
+
+~~~
+
+
+
+SpringBoot官网说加载连接池的优先级：
+
+1. HikariCP可用则选它。
+2. 否则，Tomcat DataSource可用则选它。
+3. 否则，Dbcp2可用则选它。
+4. spring.datasource.type指定忽略这个配置规则，因为注解@ConditionalOnProperty。
+
+这里的优先级应该由@Import({ DataSourceConfiguration.Tomcat.class, DataSourceConfiguration.Hikari.class, DataSourceConfiguration.Dbcp2.class, DataSourceConfiguration.Generic.class, DataSourceJmxConfiguration.class })决定加载顺序。
+
+可以Debug测试。
+
+~~~java
+// SpringBootCondition matches
+classOrMethodName.endsWith("$Hikari") || classOrMethodName.endsWith("$Tomcat") || classOrMethodName.endsWith("$Dbcp2")
+
+~~~
+
+~~~java
+// OnBeanCondition getMatchOutcome 方法
+(metadata instanceof SimpleAnnotationMetadata) && (((SimpleAnnotationMetadata) metadata).getClassName().endsWith("$Hikari") || ((SimpleAnnotationMetadata) metadata).getClassName().endsWith("$Tomcat") ||  ((SimpleAnnotationMetadata) metadata).getClassName().endsWith("$Dbcp2"))
+
+~~~
+
+
+
+![image-20241211112902475](http://47.101.155.205/image-20241211112902475.png)
+
+![image-20241211123546596](http://47.101.155.205/image-20241211123546596.png)
 
 
 
 
-JdbcTemplate
 
-
+#### JPA和Spring Data JPA
 
 JPA和Spring Data JPA
 
 JPA(Java Persistence API)是将"Map"对象映射到关系型数据库的技术。
+
+spring-boot-starter-data-jpa包含了spring-boot-starter-jdbc。
+
+spring-boot-starter-jdbc提供了HikariCP依赖。
+
+Spring Data JPA提供了基于JPA技术的实现，在SpringBoot项目可以快速应用。提供了以下依赖：
+
+1. Hibernate：JPA的一种实现。
+2. Spring Data JPA：简化的JPA的操作。
+3. Spring ORMs：Spring提供ORM(映射)。
+
+使用@Entity注解定义数据库的表，属性相当于数据库表的列。
+
+数据库操作通过实现CityRepository 接口。可以通过方法名来生成sql查询数据。
+
+复杂SQL可以使用@Query注解。
+
+Spring Data JPA Repository提供了三种模式加载，defalut、defferred、lazy。通过spring.data.jpa.repositories.bootstrap-mode设置模式。
+
+
+
+@EnableJdbcRepositories指定dao的包路径
+
+
+
+
 
 
 
