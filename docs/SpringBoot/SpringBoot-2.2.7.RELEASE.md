@@ -2305,5 +2305,30 @@ Spring Data JPA Repository提供了三种模式加载，defalut、defferred、la
 
 
 
+### NoSQL Database
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
 
 
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+</dependency>
+
+~~~
+
+SpringBoot为Lettuce和Jedis 客户端提供了自动配置，spring-boot-starter-data-redis默认提供的客户端是Lettuce。
+
+![image-20241211212654269](http://47.101.155.205/image-20241211212654269.png)
+
+注入LettuceClientConfigurationBuilderCustomizer对象可以自定义一些功能。
+
+![image-20241211214831563](http://47.101.155.205/image-20241211214831563.png)
+
+
+
+### Caching(缓存)
