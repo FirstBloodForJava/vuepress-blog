@@ -2305,6 +2305,153 @@ Spring Data JPA Repository提供了三种模式加载，defalut、defferred、la
 
 
 
+#### jooq
+
+快速构建查询和生成代码。
+
+官网生成代码介绍：https://www.jooq.org/doc/3.12.4/manual-single-page/#jooq-in-7-steps-step3
+
+
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jooq</artifactId>
+</dependency>
+
+
+~~~
+
+插件根据数据库表生成类代码：部分数据库类型开源不支持，如Oracle。
+
+引入插件配置
+
+~~~xml
+<plugin>
+    <groupId>org.jooq</groupId>
+    <artifactId>jooq-codegen-maven</artifactId>
+
+    <dependencies>
+        <!-- 项目中有定义即可 -->
+        <dependency>
+            <groupId>com.oracle.ojdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>19.3.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <configuration>
+
+        <!-- jdbc配置 -->
+        <jdbc>
+            <driver>oracle.jdbc.OracleDriver</driver>
+            <url>jdbc:oracle:thin:@//ip:port/database</url>
+            <user>user</user>
+            <password>password</password>
+        </jdbc>
+        <generator>
+            <generate>
+                <pojos>true</pojos>
+            </generate>
+
+            <!-- 代码生成器,默认值 -->
+            <!--<name>org.jooq.codegen.JavaGenerator</name>-->
+            <!-- 支持替换，当前项目打成jar包才能使用 -->
+            <name>com.oycm.codegen.CustomJavaGenerator</name>
+
+            <database>
+                <!-- 配置sql方言，SQLDialect有支持的类型，默认DEFALUT -->
+                <!--<name>org.jooq.meta.mysql.MySQLDatabase</name>-->
+                <!-- 包含哪些表，支持正则匹配 -->
+                <includes>.*</includes>
+                
+                <!-- 排除哪些表(优先级更高)，支持正则匹配 -->
+                <excludes></excludes>
+                
+                <!-- 哪个库(schema) -->
+                <inputSchema>{database/schema}</inputSchema>
+            </database>
+
+
+            <target>
+                <!-- 生产的包前置 -->
+                <packageName>com.oycm.generator</packageName>
+                <!-- 生成代码目标路径 -->
+                <directory>src/main/java</directory>
+            </target>
+        </generator>
+    </configuration>
+</plugin>
+
+~~~
+
+Oracle的方言不支持，可以通过自定义的方式来操作DefaultDataType的属性TYPES_BY_NAME的值。
+
+能通过这种方式实现对表到类的转换。会有一点问题.
+
+~~~java
+public class CustomJavaGenerator extends JavaGenerator {
+
+    public static final DataType<Date> ORIGIN_DATE = new DefaultDataType<>(null, Date.class, "date");
+    static {
+        try {
+            // 新增不支持，替换修改的实现自定义功能
+            Field typesByName = DefaultDataType.class.getDeclaredField("TYPES_BY_NAME");
+            Field typesByType = DefaultDataType.class.getDeclaredField("TYPES_BY_TYPE");
+            Field typesBySqlDatatype = DefaultDataType.class.getDeclaredField("TYPES_BY_SQL_DATATYPE");
+
+            typesByName.setAccessible(true);
+            typesByType.setAccessible(true);
+            typesBySqlDatatype.setAccessible(true);
+
+
+            try {
+                Map<String, DataType<?>>[] nameMap = (Map<String, DataType<?>>[]) typesByName.get(DefaultDataType.class);
+                Map<Class<?>, DataType<?>>[] typeMap = (Map<Class<?>, DataType<?>>[]) typesByType.get(DefaultDataType.class);
+                Map<Map<DataType<?>, DataType<?>>[], DataType<?>>[] sqlDataMap = (Map<Map<DataType<?>, DataType<?>>[], DataType<?>>[]) typesBySqlDatatype.get(DefaultDataType.class);
+                if (nameMap != null && nameMap.length > 1) {
+                    // 替换date中的类型，生成的代码有问题
+                    /*DataType<?> date = nameMap[1].get("DATE");
+                    Field uType = DefaultDataType.class.getDeclaredField("uType");
+                    uType.setAccessible(true);
+                    uType.set(date, Date.class);*/
+                    nameMap[1].remove("DATE");
+                    
+                }
+                if (typeMap != null && typeMap.length > 1) {
+                    //typeMap[1].remove("DATE");
+                }
+                if (sqlDataMap != null && sqlDataMap.length > 1) {
+                    //sqlDataMap[1].remove("DATE");
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    // 使用这个类型，自动生成代码无法识别
+    public static final DataType<Date> SYD_DATE = new DefaultDataType<>(SQLDialect.DEFAULT, ORIGIN_DATE, "sysdate");
+    // java.sql.Date 换成了java.util.Date 但是生成代码过程的类有问题，不能扁你
+    public static final DataType<Date> DATE = new DefaultDataType<>(SQLDialect.DEFAULT, ORIGIN_DATE, "date");
+
+    public static final DataType<String> NVARCHAR2 = new DefaultDataType<>(SQLDialect.DEFAULT, SQLDataType.NVARCHAR, "nvarchar2");
+    public static final DataType<String> VARCHAR2 = new DefaultDataType<>(SQLDialect.DEFAULT, SQLDataType.NVARCHAR, "varchar2");
+    public static final DataType<Integer> NUMBER = new DefaultDataType<>(SQLDialect.DEFAULT, Integer.class, "number");
+}
+
+~~~
+
+
+
+
+
+
+
 ### NoSQL Database
 
 ~~~xml
@@ -2332,3 +2479,238 @@ SpringBoot为Lettuce和Jedis 客户端提供了自动配置，spring-boot-starte
 
 
 ### Caching(缓存)
+
+
+
+
+
+### message
+
+
+
+#### JMS-activemq
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-activemq</artifactId>
+</dependency>
+
+~~~
+
+配置项：spring.activemq.*
+
+~~~properties
+spring.activemq.broker-url=tcp://192.168.1.210:9876
+spring.activemq.user=admin
+spring.activemq.password=secret
+
+~~~
+
+默认使用CachingConnectionFactory连接工厂ConnectionFactory。
+
+添加依赖org.messaginghub:pooled-jms，并添加以下配置，使用JmsPoolConnectionFactory
+
+~~~properties
+spring.activemq.pool.enabled=true
+spring.activemq.pool.max-connections=50
+
+~~~
+
+自动注入JmsTemplate，可以发送消息。
+
+使用注解@JmsListener接收消息。
+
+可以通过@EnableJms自定义一些配置类。
+
+
+
+#### AMQP-RabbitMQ
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+
+~~~
+
+~~~properties
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=admin
+spring.rabbitmq.password=secret
+
+~~~
+
+配置项：spring.rabbitmq.*
+
+自动配置AmqpTemplate、AmqpAdmin，可以用来发送消息。
+
+接收消息使用注解@RabbitListener。
+
+注解@EnableRabbit。
+
+
+
+
+
+#### kafka
+
+~~~xml
+<dependency>
+	<groupId>org.springframework.kafka</groupId>
+	<artifactId>spring-kafka</artifactId>
+</dependency>
+
+~~~
+
+项目中存在spring-kafka项目，会自动配置。
+
+spring.kafka.*
+
+~~~properties
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=myGroup
+
+~~~
+
+
+
+在Spring中注入NewTopic Bean，会创建不存在的topic。
+
+自动注入KafkaTemplate，可以用来发送消息。
+
+存在spring.kafka.producer.transaction-id-prefix配置，自动创建KafkaTransactionManager。
+
+存在RecordMessageConverter 唯一Bean，自动应用至KafkaTemplate。
+
+![image-20241212145407546](http://47.101.155.205/image-20241212145407546.png)
+
+
+
+如果没有定义KafkaListenerContainerFactory Bean，则通过spring.kafka.listener.*配置自动创建。
+
+@KafkaListener注解接收kafka消息。
+
+KafkaTransactionManager Bean会自动和容器工厂关联，相似的，ErrorHandler, AfterRollbackProcessor, ConsumerAwareRebalanceListener Bean也会自动关联默认的工厂。
+
+![image-20241212150522109](http://47.101.155.205/image-20241212150522109.png)
+
+
+
+
+
+### RestTemplate
+
+REST服务(Representational State Transfer Service)：基于REST架构风格的Web服务。
+
+REST架构风格：是一种分布式系统的架构设计原则。核心思想是通过资源(Resource)来表示系统中的实体，客户端与服务器通过操作这些资源进行通信。资源的状态通过一种表述(Representation)传递给客户端，并且操作资源时会发生状态转移(State Transfer)。
+
+REST不是一个标准，而是一种架构风格，有几个关键约束：
+
+1. 客户端-服务端：解耦，客户端只关心何时使用资源，服务端只负责存储和管理资源。
+2. 无状态：每个客户端请求需要包含必要的信息，服务端不会存储客户端上下文信息。
+3. 统一接口：通过URL确定一个地址，资源操作(请求方式)、资源表述：JSON等格式。
+4. 系统分层。
+
+Spring提供了RestTemplate类来调用REST服务。SpringBoot不会自动创建任何RestTemplate Bean，RestTemplate需要在使用之前就被自定义好。然而SrpingBoot自动配置了RestTemplateBuilder(org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration)，可以用来创建RestTemplate。
+
+~~~java
+@Service
+public class MyService {
+
+    private final RestTemplate restTemplate;
+
+    public MyService(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplate = restTemplateBuilder.build();
+    }
+
+    public Details someRestCall(String name) {
+        return this.restTemplate.getForObject("/{name}/details", Details.class, name);
+    }
+
+}
+
+~~~
+
+自定义RestTemplate的方式：
+
+1. 使用自动注入RestTemplateBuilder，在build之前调用其它方法，如basicAuthentication(String username, String password, Charset charset)会返回一个新的RestTemplateBuilder。
+2. 注入RestTemplateCustomizer Bean，这个会作用至RestTemplateBuilder，最终作用于RestTemplate。
+3. 自定义RestTemplateBuilder。
+
+~~~java
+// 第二种方式例子
+static class ProxyCustomizer implements RestTemplateCustomizer {
+
+    @Override
+    public void customize(RestTemplate restTemplate) {
+        HttpHost proxy = new HttpHost("proxy.example.com");
+        HttpClient httpClient = HttpClientBuilder.create().setRoutePlanner(new DefaultProxyRoutePlanner(proxy) {
+
+            @Override
+            public HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context)
+                    throws HttpException {
+                if (target.getHostName().equals("192.168.0.5")) {
+                    return null;
+                }
+                return super.determineProxy(target, request, context);
+            }
+
+        }).build();
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+    }
+
+}
+
+~~~
+
+
+
+### JMX
+
+~~~properties
+# 才会激活JMX功能，idea启动有参数-Dspring.jmx.enabled=true
+spring.jmx.enabled=true
+
+~~~
+
+JmxAutoConfiguration配置类。
+
+
+
+### 测试
+
+
+
+~~~xml
+<!-- test starter为了兼容Junit4和Junit5引入的junit-vintage-engine,完全切换之后使用以下配置-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+    <exclusions>
+        <exclusion>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+
+~~~
+
+test starter提供的依赖库：
+
+1. JUnit5：https://junit.org/junit5/
+2. Spring Test和SpringBoot Test
+3. AssertJ：https://assertj.github.io/doc/
+4. Hamcrest：https://github.com/hamcrest/JavaHamcrest
+5. Mockito：https://site.mockito.org/
+6. JSONassert：https://github.com/skyscreamer/JSONassert
+7. JsonPath：https://github.com/jayway/JsonPath
+
+
+
+Spring Test文件：https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/testing.html
+
