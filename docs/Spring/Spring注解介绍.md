@@ -890,7 +890,7 @@ public @interface ConditionalOnClass {
 
 **当是当这个注解作用于@Bean的方法上时，这个不会被解析成元数据，所以会由于类不存在而导致启动失败。**
 
-![image-20241213151340685](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241213151340685.png)
+![image-20241213151340685](http://47.101.155.205/image-20241213151340685.png)
 
 当一个Bean需要有某个class存在时才添加，可以用以下方式：
 
