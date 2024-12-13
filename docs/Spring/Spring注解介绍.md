@@ -538,120 +538,11 @@ public @interface Conditional {
 
 
 
-##### @ConditionalOnMissingBean
-
-~~~java
-package org.springframework.boot.autoconfigure.condition;
-
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.annotation.Conditional;
-
-// 当满足特定的条件才匹配,多个条件:都匹配才算匹配
-@Target({ ElementType.TYPE, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Conditional(OnBeanCondition.class)
-public @interface ConditionalOnMissingBean {
-
-	// 指定检查的类,指定的类对象都不存在才匹配
-	Class<?>[] value() default {};
-
-	// 指定检查的类名称，指定的类对象都不存在才匹配
-	String[] type() default {};
-
-	// 指定忽略检查的类
-	Class<?>[] ignored() default {};
-
-	// 指定忽略检查的类名称
-	String[] ignoredType() default {};
-
-	// 检查所有Bean的注释类型,存在匹配该值的,则不匹配
-	Class<? extends Annotation>[] annotation() default {};
-
-	// 检查指定Bean的名称,都不存在时才匹配
-	String[] name() default {};
-
-	// 检查的上下文,默认所有。CURRENT ANCESTORS
-	SearchStrategy search() default SearchStrategy.ALL;
-
-}
-
-~~~
 
 
 
-~~~java
-@Configuration
-public class MyAutoConfiguration {
-    // 不携带参数，默认检查自己的是否在容器中存在
-    @Bean
-    @ConditionalOnMissingBean()
-    public TestService testService() {
-        System.out.println("TestService create");
-        return new TestService();
-    }
-}
-
-~~~
 
 
-
-##### @ConditionalOnSingleCandidate
-
-匹配单个Bean生效
-
-~~~java
-package org.springframework.boot.autoconfigure.condition;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.annotation.Conditional;
-
-// 指定的Bean类型只在容器中出现一次，则匹配
-@Target({ ElementType.TYPE, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Conditional(OnBeanCondition.class)
-public @interface ConditionalOnSingleCandidate {
-
-	// 不能和type一起使用
-	Class<?> value() default Object.class;
-
-	// 不能和value一起使用
-	String type() default "";
-
-	
-	SearchStrategy search() default SearchStrategy.ALL;
-
-}
-
-~~~
-
-
-
-~~~java
-@Configuration
-@EnableConfigurationProperties(HibernateProperties.class)
-@ConditionalOnSingleCandidate(DataSource.class)
-class HibernateJpaConfiguration extends JpaBaseConfiguration { 
-
-}
-
-~~~
-
-![image-20241107160235885](http://47.101.155.205/image-20241107160235885.png)
 
 
 
@@ -692,49 +583,11 @@ public @interface Profile {
 
 
 
-##### @ConditionalOnProperty
 
-~~~java
-package org.springframework.boot.autoconfigure.condition;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
-import org.springframework.context.annotation.Conditional;
-import org.springframework.core.env.Environment;
 
-// name和value同样的效果，不能同时出现
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-@Documented
-@Conditional(OnPropertyCondition.class)
-public @interface ConditionalOnProperty {
 
-	
-	String[] value() default {};
-
-	// 属性的前缀,没有.结尾，会加上这个'.'
-	String prefix() default "";
-
-	// 待校验的一个或多个配置名
-	String[] name() default {};
-
-	// 配置的要求,默认是可以是任何值，除了"false"，具体规则见下图
-	String havingValue() default "";
-
-	// 不存在配置key,是否匹配：默认不匹配
-	boolean matchIfMissing() default false;
-
-}
-
-~~~
-
-![image-20241108152506073](http://47.101.155.205/image-20241108152506073.png)
-
-![image-20241108153142441](http://47.101.155.205/image-20241108153142441.png)
 
 
 
@@ -947,6 +800,7 @@ import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
 
 // 通过@Import或@Component(扫描到)或@EnableConfigurationProperties将其注入到Spirng容器中
+// ConfigurationPropertiesScan扫描
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -1003,6 +857,334 @@ public @interface EnableConfigurationProperties {
 
 ~~~
 
+
+
+### spring-boot-autoconfigure
+
+
+
+#### @ConditionalOnClass 
+
+注解上的指定类存在类路径上时匹配。
+
+Spring解析这个注解信息时，不是通过反射获取注解包含的信息，而是通过字节码解析工具ASM将其解析成自动配置元数据，再通过这个使用类加载机制判断这个类是否存在。
+
+可以使用SpringBoot的自动配置的类，它已经被加载成class文件了，直接new对象没有问题，当这个类上的注解的类存在时，使用反射获取类会报错。
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnClassCondition.class)
+public @interface ConditionalOnClass {
+
+	
+	Class<?>[] value() default {};
+
+	
+	String[] name() default {};
+
+}
+
+~~~
+
+**当是当这个注解作用于@Bean的方法上时，这个不会被解析成元数据，所以会由于类不存在而导致启动失败。**
+
+![image-20241213151340685](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20241213151340685.png)
+
+当一个Bean需要有某个class存在时才添加，可以用以下方式：
+
+~~~java
+@Configuration(proxyBeanMethods = false)
+public class MyAutoConfiguration {
+
+    // 通过内部类的方式
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(EmbeddedAcmeService.class)
+    static class EmbeddedConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        public EmbeddedAcmeService embeddedAcmeService() { ... }
+
+    }
+
+}
+
+~~~
+
+**当使用注解ConditionalOnClass/ConditionalOnMissingClass作为元注解使用时，则必须使用名称来引用类。**
+
+
+
+#### @ConditionalOnMissingClass
+
+classpath上不存在指定的类的全路径名称时才匹配。
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnClassCondition.class)
+public @interface ConditionalOnMissingClass {
+
+	String[] value() default {};
+
+}
+
+~~~
+
+
+
+#### @ConditionalOnBean 
+
+配置规则看指定的类重写的getMatchOutcome方法。
+
+**注解作用在配置类上，不匹配，则配置类不会注册(构造方法也不会执行)，配置了中的@Bean也不会注册。**
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnBeanCondition.class)
+public @interface ConditionalOnBean {
+
+	// 要存在Bean的class类型
+	Class<?>[] value() default {};
+
+	// 要存在Bean的类名称
+	String[] type() default {};
+
+	// Bean上需要的注解
+	Class<? extends Annotation>[] annotation() default {};
+
+	// 要存在Bean的名称
+	String[] name() default {};
+
+	// 搜索Bean的范围
+	SearchStrategy search() default SearchStrategy.ALL;
+
+	// value为Name.class,parameterizedContainer=NameRegistration.class 则检查Name和NameRegistration<Name>
+	Class<?>[] parameterizedContainer() default {};
+
+}
+
+~~~
+
+
+
+#### @ConditionalOnMissingBean
+
+单独使用该注解作用于方法方法，表示返回类型Bean不存在时才创建Bean。
+
+支持多条件。
+
+**注解作用在配置类上，不匹配，则配置类不会注册(构造方法也不会执行)，配置了中的@Bean也不会注册。**
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnBeanCondition.class)
+public @interface ConditionalOnMissingBean {
+
+	// 指定被检查的Bean的类,都不存在则匹配
+	Class<?>[] value() default {};
+
+	// 指定被检查的Bean的类,都不存在则匹配
+	String[] type() default {};
+
+	// 被忽略的Bean的类型
+	Class<?>[] ignored() default {};
+
+	// 被忽略的Bean的类型
+	String[] ignoredType() default {};
+
+	// 被检查Bean的注解，指定的Bean都没有该注解时匹配
+	Class<? extends Annotation>[] annotation() default {};
+
+	// 指定被检查Bean的名称
+	String[] name() default {};
+
+	// 搜索的上下文
+	SearchStrategy search() default SearchStrategy.ALL;
+
+	// value为Name.class,parameterizedContainer=NameRegistration.class 则检查Name和NameRegistration<Name>
+	Class<?>[] parameterizedContainer() default {};
+
+}
+
+
+~~~
+
+
+
+#### @ConditionalOnSingleCandidate
+
+匹配单个Bean生效，如果存在多个Bean，如果也指定了主Bean则匹配。
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.Conditional;
+
+// 指定的Bean类型只在容器中出现一次，则匹配
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnBeanCondition.class)
+public @interface ConditionalOnSingleCandidate {
+
+	// 不能和type一起使用
+	Class<?> value() default Object.class;
+
+	// 不能和value一起使用
+	String type() default "";
+
+	
+	SearchStrategy search() default SearchStrategy.ALL;
+
+}
+
+~~~
+
+~~~java
+@Configuration
+@EnableConfigurationProperties(HibernateProperties.class)
+@ConditionalOnSingleCandidate(DataSource.class)
+class HibernateJpaConfiguration extends JpaBaseConfiguration { 
+
+}
+
+~~~
+
+
+
+![image-20241107160235885](http://47.101.155.205/image-20241107160235885.png)
+
+
+
+#### @ConditionalOnProperty
+
+配置文件匹配条件。
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.env.Environment;
+
+// name和value同样的效果，不能同时出现
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Documented
+@Conditional(OnPropertyCondition.class)
+public @interface ConditionalOnProperty {
+
+	
+	String[] value() default {};
+
+	// 属性的前缀,没有.结尾，会加上这个'.'
+	String prefix() default "";
+
+	// 待校验的一个或多个配置名
+	String[] name() default {};
+
+	// 配置的要求,默认是可以是任何值，除了"false"，具体规则见下图
+	String havingValue() default "";
+
+	// 不存在配置key,是否匹配：默认不匹配
+	boolean matchIfMissing() default false;
+
+}
+~~~
+
+![image-20241108152506073](http://47.101.155.205/image-20241108152506073.png)
+
+![image-20241108153142441](http://47.101.155.205/image-20241108153142441.png)
+
+
+
+#### @ConditionalOnResource
+
+当指定的资源在classpath下时匹配。
+
+file:/home/user/test.dat
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
+
+
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnResourceCondition.class)
+public @interface ConditionalOnResource {
+
+	
+	String[] resources() default {};
+
+}
+
+~~~
+
+
+
+#### @ConditionalOnWebApplication和@ConditionalOnNotWebApplication
+
+
+
+#### @ConditionalOnExpression
+
+https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#expressions
+
+SPEL表达式的结果表示是否匹配。
+
+~~~java
+package org.springframework.boot.autoconfigure.condition;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
+
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Documented
+@Conditional(OnExpressionCondition.class)
+public @interface ConditionalOnExpression {
+
+	
+	String value() default "true";
+
+}
+
+~~~
 
 
 
