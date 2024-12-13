@@ -2714,3 +2714,68 @@ test starter提供的依赖库：
 
 Spring Test文件：https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/testing.html
 
+
+
+### 自动配置及自定义starter
+
+**@ConditionalOnClass注解不要直接作用于方法，方法上不是使用元数据的方式解析注解，会使用反射，如果注解的值是class，则会出现错误。使用ConditionalOnClass作为元注解时，其注解的数据也不会被添加到元数据，建议使用name属性，即类的名称。**
+
+
+
+**自动配置类上使用@ConditionalOnBean或@ConditionalOnMissingBean注解的Bean，会在自定义的Bean之后加载。这个注解作用于配置上时，不匹配，则配置类不会被创建(测试发现，类加载也不会触发)，配置了中的Bean方法也失效。**
+
+
+
+**自定义starter依赖**
+
+starter依赖包中应该存在以下内容：
+
+1. 存在自动配置的模块。
+2. 继承了这个模块功能的所有依赖，开箱即用。
+
+
+
+META-INF/目录下添加spring.factories文件，可以定义自动扫描的类。
+
+inject.properties
+
+
+
+~~~xml
+<!-- 构建META-INF/spring-configuration-metadata.json 元数据 -->
+<!-- 依据注解的@ConfigurationProperties类-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+
+<!-- 构建META-INF/spring-autoconfigure-metadata.properties 元数据 -->
+<!-- 依据META-INF/spring.factories中自动配置类的信息生成 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-autoconfigure-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+
+~~~
+
+~~~gradle
+// gradle <= 4.5
+dependencies {
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+}
+dependencies {
+    compileOnly "org.springframework.boot:spring-boot-autoconfigure-processor"
+}
+
+// gradle >= 4.6
+dependencies {
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+}
+dependencies {
+    annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor"
+}
+
+~~~
+
