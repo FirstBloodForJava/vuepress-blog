@@ -16,7 +16,7 @@ export default defineUserConfig({
         // 表示所有http协议增强为https协议
         'http-equiv': 'Content-Security-Policy',
         // 本地启动需要注释，否则本地访问资源切换成https
-        "content": "upgrade-insecure-requests"
+        //"content": "upgrade-insecure-requests"
       },
 
     ]
@@ -196,8 +196,8 @@ export default defineUserConfig({
       },
       // Spring
       {
-        text: 'Spring',
-        prefix: '/Spring',
+        text: 'spring',
+        prefix: '/spring',
         children: [
           {
             text: 'Spring注解介绍',
@@ -207,16 +207,19 @@ export default defineUserConfig({
       },
       // SpringBoot
       {
-        text: 'SpringBoot',
-        prefix: '/SpringBoot',
+        text: 'springboot',
+        prefix: '/springboot',
         children: [
-
+          {
+            text: 'SpringBoot-2.2.7.RELEASE介绍',
+            link: 'SpringBoot-2.2.7.RELEASE'
+          }
         ]
       },
       // SpringCloud
       {
-        text: 'SpringCloud',
-        prefix: '/SpringCloud',
+        text: 'springcloud',
+        prefix: '/springcloud',
         children: [
           
         ]
