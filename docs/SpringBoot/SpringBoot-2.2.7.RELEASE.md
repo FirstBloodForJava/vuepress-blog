@@ -2779,3 +2779,394 @@ dependencies {
 
 ~~~
 
+
+
+## 5.actuator
+
+端点介绍详细文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/actuator-api//html/
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+
+~~~
+
+
+
+非技术型端点：
+
+| ID               | Description                                                  |
+| :--------------- | :----------------------------------------------------------- |
+| auditevents      | 暴露当前应用的审计事件信息，要求AuditEventRepository Bean    |
+| beans            | 展示应用程序中所有的Spring Beans                             |
+| caches           | 暴露应用中的缓存                                             |
+| conditions       | 展示自动配置类的匹配详细信息                                 |
+| configprops      | 自动配置文件类@ConfigurationProperties的信息                 |
+| env              | 激活配置的信息，spring.profiles.active                       |
+| flyway           | 依赖Flyway数据库迁移依赖                                     |
+| health           | 应用的运行情况信息，许多技术层面的集成了这个信息             |
+| httptrace        | 展示Http信息跟踪信息，要求HttpTraceRepository bean，         |
+| info             | 展示应用的信息                                               |
+| integrationgraph | 要求依赖spring-integration-core，展示Spring Integration graph |
+| loggers          | 显示并修改应用的日志记录器配置                               |
+| liquibase        | 显示应用的Liquibase迁移信息，要求Liquibase Bean              |
+| metrics          | 显示应用程序的metrics信息                                    |
+| mappings         | 显示@RequestMapping的路径                                    |
+| scheduledtasks   | 显示应用程序的定时任务                                       |
+| sessions         | 要求spring session，支持查询、操作 session                   |
+| shutdown         | 关闭应用程序                                                 |
+| threaddump       | Performs a thread dump.                                      |
+
+
+
+web应用支持的额外端点：
+
+| ID         | Description                                                  |
+| :--------- | :----------------------------------------------------------- |
+| heapdump   | 返回堆快照hprof文件                                          |
+| jolokia    | 需要jolokia-core依赖，通过Http来暴露JMX                      |
+| logfile    | logging.file.name或logging.file.path配置存在，能获取日志文件资源 |
+| prometheus | 需要micrometer-registry-prometheus依赖，暴露的metrics能被prometheus抓取 |
+
+
+
+默认的web应用只开启2个Http端点：info、health；JMX的端点全部不开启。
+
+spring.jmx.enabled=true，默认JMX的大部分端点开启。
+
+![image-20241214135538447](http://47.101.155.205/image-20241214135538447.png)
+
+当通过management.endpoints.web.exposure.include指定时，则不会走到上图的代码。
+
+
+
+
+
+### 暴露端点情况
+
+~~~properties
+# 是否将所有端点启用默认值设为true/false(false)
+management.endpoints.enabled-by-default=false
+
+# 禁用http的端点
+management.server.port=-1
+management.endpoints.web.exposure.exclude=*
+
+# 绑定的ip地址
+management.server.address=127.0.0.1
+
+# 修改端点端口
+management.server.port=9090
+
+# 修改端点health映射路径
+management.endpoints.web.path-mapping.health=healthcheck
+
+# 配置端点的根路径，默认/actuator，访问该路径可以查询哪些能访问的接口
+management.endpoints.web.basePath=/management
+
+# 端点自动缓存没有携带参数的查询请求,可以给这个端点(beans)配置缓存事件
+management.endpoint.beans.cache.time-to-live=10s
+
+# 跨域配置
+management.endpoints.web.cors.allowed-origins=https://example.com
+management.endpoints.web.cors.allowed-methods=GET,POST
+
+
+~~~
+
+
+
+内置端点在默认配置下的暴露情况：
+
+| ID                 | JMX  | Web  |
+| :----------------- | :--- | :--- |
+| `auditevents`      | Yes  | No   |
+| `beans`            | Yes  | No   |
+| `caches`           | Yes  | No   |
+| `conditions`       | Yes  | No   |
+| `configprops`      | Yes  | No   |
+| `env`              | Yes  | No   |
+| `flyway`           | Yes  | No   |
+| `health`           | Yes  | Yes  |
+| `heapdump`         | N/A  | No   |
+| `httptrace`        | Yes  | No   |
+| `info`             | Yes  | Yes  |
+| `integrationgraph` | Yes  | No   |
+| `jolokia`          | N/A  | No   |
+| `logfile`          | N/A  | No   |
+| `loggers`          | Yes  | No   |
+| `liquibase`        | Yes  | No   |
+| `metrics`          | Yes  | No   |
+| `mappings`         | Yes  | No   |
+| `prometheus`       | N/A  | No   |
+| `scheduledtasks`   | Yes  | No   |
+| `sessions`         | Yes  | No   |
+| `shutdown`         | Yes  | No   |
+| `threaddump`       | Yes  | No   |
+
+配置决定暴露哪些端点：
+
+| 配置                                        | 默认值         | 作用             |
+| :------------------------------------------ | :------------- | ---------------- |
+| `management.endpoints.jmx.exposure.exclude` |                | 开启             |
+| `management.endpoints.jmx.exposure.include` | `*`            | 关闭(优先级更高) |
+| `management.endpoints.web.exposure.exclude` |                | 开启             |
+| `management.endpoints.web.exposure.include` | `info, health` | 关闭(优先级更高) |
+
+通过注入EndpointFilter Bean的方式实现端点暴露的自定义策略。
+
+
+
+### 安全访问
+
+端点默认集成spring security的功能。
+
+
+
+http和https转换
+
+~~~properties
+server.port=8443
+server.ssl.enabled=true
+server.ssl.key-store=classpath:main.jks
+server.ssl.key-password=secret
+
+management.server.port=8080
+management.server.ssl.enabled=true
+management.server.ssl.key-store=classpath:management.jks
+management.server.ssl.key-password=secret
+
+~~~
+
+~~~properties
+server.port=8443
+server.ssl.enabled=true
+server.ssl.key-store=classpath:store.jks
+server.ssl.key-password=secret
+
+management.server.port=8080
+management.server.ssl.enabled=false
+
+~~~
+
+
+
+
+
+需要某个角色才能访问：
+
+~~~java
+@Configuration(proxyBeanMethods = false)
+public class ActuatorSecurity extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests((requests) ->
+                requests.anyRequest().hasRole("ENDPOINT_ADMIN"));
+        http.httpBasic();
+    }
+
+}
+
+~~~
+
+不需要权限就能访问：
+
+~~~java
+@Configuration(proxyBeanMethods = false)
+public class ActuatorSecurity extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests((requests) ->
+            requests.anyRequest().permitAll());
+    }
+
+}
+
+~~~
+
+
+
+### 自定义端点
+
+定义的Bean 有@Endpoint注解，这个类里面的@ReadOperation(HTTP GET)、@WriteOperation(HTTP POST)、@DeleteOperation(HTTP DELETE)注解的方法就能被JMX或Http操作。
+
+@JmxEndpoint、@WebEndpoint表示只针对特定方式开放的端点。
+
+![image-20241214153735581](http://47.101.155.205/image-20241214153735581.png)
+
+@EndpointWebExtension、@EndpointJmxExtension扩展注解。
+
+
+
+### health
+
+~~~properties
+# 默认never,不返回健康信息详情;when-authorized=特定角色才返回
+management.endpoint.health.show-details=always
+management.endpoint.health.roles=ADMIN
+
+~~~
+
+自动配置了许多	，health详情会显示内容。
+
+![image-20241214162602858](http://47.101.155.205/image-20241214162602858.png)
+
+自定义HealthIndicator
+
+~~~java
+@Component
+public class MyHealthIndicator implements HealthIndicator {
+
+    @Override
+    public Health health() {
+        int errorCode = check(); // perform some specific health check
+        if (errorCode != 0) {
+            return Health.down().withDetail("Error Code", errorCode).build();
+        }
+        return Health.up().build();
+    }
+
+}
+
+~~~
+
+自定义ReactiveHealthContributor，响应式非阻塞的。
+
+~~~java
+@Component
+public class MyReactiveHealthIndicator implements ReactiveHealthIndicator {
+
+    @Override
+    public Mono<Health> health() {
+        return doHealthCheck() //perform some specific health check that returns a Mono<Health>
+            .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()));
+    }
+
+}
+
+~~~
+
+
+
+### Metrics
+
+metrics官网：https://micrometer.io/docs
+
+SpringBoot根据classpath加载的MeterRegistry实现自动注册，项目名通常是micrometer-registry-{system}依赖。
+
+
+
+~~~properties
+# 禁用prometheus注册功能
+management.metrics.export.prometheus.enabled=false
+
+~~~
+
+
+
+~~~java
+@Bean
+MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
+    return registry -> registry.config().commonTags("region", "us-east-1");
+}
+
+@Bean
+MeterRegistryCustomizer<GraphiteMeterRegistry> graphiteMetricsNamingConvention() {
+    return registry -> registry.config().namingConvention(MY_CUSTOM_CONVENTION);
+}
+
+~~~
+
+
+
+~~~java
+@Component
+public class SampleBean {
+
+    private final Counter counter;
+
+    public SampleBean(MeterRegistry registry) {
+        this.counter = registry.counter("received.messages");
+    }
+
+    public void handleMessage(String message) {
+        this.counter.increment();
+        // handle message implementation
+    }
+
+}
+
+~~~
+
+
+
+
+
+### 监听器
+
+ApplicationPidFileWriter ：记录应用程序的pid，默认名application.pid。
+
+WebServerPortFileWriter：web程序的端口，默认名为application.port。
+
+默认是不启动的，配置启动方式，META-INF/spring.factories
+
+~~~properties
+org.springframework.context.ApplicationListener=\
+org.springframework.boot.context.ApplicationPidFileWriter,\
+org.springframework.boot.web.context.WebServerPortFileWriter
+
+~~~
+
+
+
+程序方式：SpringApplication.addListeners(…)。
+
+
+
+## 补充
+
+
+
+### 操作context或Environment
+
+通过ApplicationListener和ApplicationContextInitializer来自定义上下文和环境。额外自定义注册这些的方式：
+
+1. 创建SpringApplication对象后，未调用run方法之前，通过addListeners、addInitializers方法。
+2. 通过context.initializer.classes、context.listener.classes。
+3. 通过添加META-INF/spring.factories文件。
+
+在刷新应用程序上下文之前，通过EnvironmentPostProcessor自定义Environment。META-INF/spring.factories，接口指向自定义的类。
+
+~~~java
+// 自定义操作Environment
+public class EnvironmentPostProcessorExample implements EnvironmentPostProcessor {
+
+    private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        Resource path = new ClassPathResource("com/example/myapp/config.yml");
+        PropertySource<?> propertySource = loadYaml(path);
+        environment.getPropertySources().addLast(propertySource);
+    }
+
+    private PropertySource<?> loadYaml(Resource path) {
+        if (!path.exists()) {
+            throw new IllegalArgumentException("Resource " + path + " does not exist");
+        }
+        try {
+            return this.loader.load("custom-resource", path).get(0);
+        }
+        catch (IOException ex) {
+            throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
+        }
+    }
+
+}
+
+~~~
+
