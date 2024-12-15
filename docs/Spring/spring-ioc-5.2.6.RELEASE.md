@@ -239,3 +239,145 @@ xml指定方式：
 
 ## 4.Dependencies
 
+
+
+### 4.1.依赖注入
+
+
+
+#### 构造方法注入
+
+~~~java
+package x.y;
+
+public class ThingOne {
+
+    // 构造方法的参数类型明确
+    public ThingOne(ThingTwo thingTwo, ThingThree thingThree) {
+        
+    }
+}
+
+~~~
+
+~~~xml
+<beans>
+    <bean id="beanOne" class="x.y.ThingOne">
+        <constructor-arg ref="beanTwo"/>
+        <constructor-arg ref="beanThree"/>
+    </bean>
+
+    <bean id="beanTwo" class="x.y.ThingTwo"/>
+
+    <bean id="beanThree" class="x.y.ThingThree"/>
+</beans>
+
+~~~
+
+
+
+~~~java
+package examples;
+
+public class ExampleBean {
+
+    private int years;
+
+    private String ultimateAnswer;
+
+    // 如果编译代码没有开启debug,可能获取不到参数名,使用构造方法参数名注入可能会有问题
+    @ConstructorProperties({"years", "ultimateAnswer"})
+    public ExampleBean(int years, String ultimateAnswer) {
+        this.years = years;
+        this.ultimateAnswer = ultimateAnswer;
+    }
+}
+
+~~~
+
+~~~xml
+<!-- 指定类型匹配 -->
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg type="int" value="7500000"/>
+    <constructor-arg type="java.lang.String" value="42"/>
+</bean>
+
+<!-- 指定顺序匹配 -->
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg index="0" value="7500000"/>
+    <constructor-arg index="1" value="42"/>
+</bean>
+
+<!-- 指定构造函数属性名称匹配 -->
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg name="years" value="7500000"/>
+    <constructor-arg name="ultimateAnswer" value="42"/>
+</bean>
+
+~~~
+
+
+
+#### setter注入
+
+在使用构造方法注入Bean后，还可以通过setter注入Bean。
+
+~~~java
+public class ExampleBean {
+
+    private AnotherBean beanOne;
+
+    private YetAnotherBean beanTwo;
+
+    private int i;
+
+    public void setBeanOne(AnotherBean beanOne) {
+        this.beanOne = beanOne;
+    }
+
+    public void setBeanTwo(YetAnotherBean beanTwo) {
+        this.beanTwo = beanTwo;
+    }
+
+    public void setIntegerProperty(int i) {
+        this.i = i;
+    }
+}
+
+~~~
+
+
+
+~~~xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <!-- setter injection 1 -->
+    <property name="beanOne">
+        <ref bean="anotherExampleBean"/>
+    </property>
+
+    <!-- setter injection 2 -->
+    <property name="beanTwo" ref="yetAnotherBean"/>
+    <property name="integerProperty" value="1"/>
+</bean>
+
+~~~
+
+
+
+#### 依赖关系解决
+
+容器按以下方式执行依赖关系解析：
+
+1. 使用所有beans的配置元数据传创建并初始化ApplicationContext。配置元数据的指定方式有xml、Java代码、java注解。
+2. 对于每个bean，其依赖关系以属性、构造方法参数、静态工厂方法参数的形式表示。当bean被创建时，容器就会提供这些依赖。
+3. 每个属性或构造方法的参数都要设置一个属性的值或者一个bena的引用。
+4. 作为值的属性都会被自动转换成构造参数的指定格式，spring能将string值转换成基本类型及String类型。
+
+Spring在容器被创建的时候校验bean的配置，但是bean的属性直到bean被实际创建才设置。
+
+作用域为单例(singleton)且设置为预实例化(pre-instantiated)(默认)bean会在容器创建时创建。其它作用域会在使用时创建。
+
+
+
+循环依赖：
+
