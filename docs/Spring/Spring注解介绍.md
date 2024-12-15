@@ -915,6 +915,10 @@ public class MyAutoConfiguration {
 
 **当使用注解ConditionalOnClass/ConditionalOnMissingClass作为元注解使用时，则必须使用名称来引用类。**
 
+![image-20241214095420265](http://47.101.155.205/image-20241214095420265.png)
+
+
+
 
 
 #### @ConditionalOnMissingClass
