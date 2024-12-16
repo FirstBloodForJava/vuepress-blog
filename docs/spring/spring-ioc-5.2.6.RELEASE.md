@@ -876,4 +876,176 @@ spring容器提供了自动解决bean直接的依赖关系。自动装配的优�
 
 容器中，bean的作用域一般都是单例(singleton)的。一般情况是：一个单例bean组合使用另外一个单例bean、一个非单例bean组合使用另一个非单例bean。当bean的生命周期不同时，就会出现问题。如一个单例bean A需要使用非单例(prototype) bean B，每次A的方法调用都需要一个新的bean B。容器只会创建一次单例bean A，因此也只会设置一次属性，所有无法每次都提供新的bean B。
 
-一个解决方案时放弃控制反转。通过实现
+一个解决方案时放弃控制反转。通过实现ApplicationContextAware让Bean A拥有一个容器，通过容器getBean()方法获取新的Bean B。
+
+~~~java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+public class CommandManager implements ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
+
+    public Object process(Map commandState) {
+        // 获取新Bean
+        Command command = createCommand();
+        
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    protected Command createCommand() {
+        
+        return this.applicationContext.getBean("command", Command.class);
+    }
+
+    public void setApplicationContext(
+            ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
+
+~~~
+
+
+
+#### lookup方法注入
+
+Spring 框架通过使用 CGLIB 库的字节码生成来动态生成覆盖该方法的子类来实现此方法注入。
+
+这里时覆盖createCommand方法。
+
+~~~java
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        
+        Command command = createCommand();
+        
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    // 
+    protected abstract Command createCommand();
+}
+
+~~~
+
+
+
+~~~java
+// 注入bean的方法的格式
+<public|protected> [abstract] <return-type> theMethodName(no-arguments);
+
+~~~
+
+~~~xml
+<bean id="myCommand" class="fiona.apple.AsyncCommand" scope="prototype">
+    
+</bean>
+
+<!--  -->
+<bean id="commandManager" class="fiona.apple.CommandManager">
+    <lookup-method name="createCommand" bean="myCommand"/>
+</bean>
+
+~~~
+
+
+
+~~~java
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        Command command = createCommand();
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    @Lookup("myCommand")
+    protected abstract Command createCommand();
+}
+
+~~~
+
+~~~java
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        MyCommand command = createCommand();
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    @Lookup
+    protected abstract MyCommand createCommand();
+}
+
+~~~
+
+
+
+#### 任意方法替换
+
+~~~java
+public class MyValueCalculator {
+
+    public String computeValue(String input) {
+        // some real code...
+    }
+
+    // some other methods...
+}
+
+~~~
+
+实现org.springframework.beans.factory.support.MethodReplacer接口，重写方法reimplement：
+
+~~~java
+public class ReplacementComputeValue implements MethodReplacer {
+
+    public Object reimplement(Object o, Method m, Object[] args) throws Throwable {
+        // 相当于代理了
+        String input = (String) args[0];
+        ...
+        return ...;
+    }
+}
+
+~~~
+
+xml配置
+
+~~~xml
+<bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
+    <!-- arbitrary method replacement -->
+    <replaced-method name="computeValue" replacer="replacementComputeValue">
+        <arg-type>String</arg-type>
+    </replaced-method>
+</bean>
+
+<bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/>
+
+~~~
+
+String类型参数支持的写法：java.lang.String、String、Str。
+
+
+
+## 5.Bean的作用域
+
+Spring提供了6中Bean的作用域，其中有4种仅Web的ApplicationContext才能使用。
+
+| Scope       | 描述                                                         |
+| ----------- | ------------------------------------------------------------ |
+| singleton   | 默认。为每个 Spring IoC 容器将单个 Bean 定义限定到单个对象实例 |
+| prototype   | 单个bean可以定义任意数量的对象实例                           |
+| request     | web有效。将单个bean的定义作用域限定在单个http请求的生命周期  |
+| session     | web有效。将单个bean的定义作用域限定在单个http session的生命周期 |
+| application | 将单个Bean定义的作用域限定在ServletContext（Servlet 上下文）的生命周期内 |
+| websocket   | 将单个Bean定义的作用域限定在WebSocket的生命周期内            |
+
+从spring3.0开始，线程作用域是有效的，但是默认没有激活。
+
+https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html
