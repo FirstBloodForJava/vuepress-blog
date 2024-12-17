@@ -1148,3 +1148,265 @@ public class AppPreferences {
 
 ~~~
 
+
+
+### 5.4.Scoped Beans as Dependencies
+
+另外一种跨作用域引用？
+
+https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#beans-factory-scopes-other-injection
+
+
+
+### 5.5.自定义scope
+
+需要实现org.springframework.beans.factory.config.Scope接口。
+
+1. Object get(String name, ObjectFactory? objectFactory)：从作用域获取对象。
+2. Object remove(String name)：从作用域移除对象。返回找到的对象，没有找到返回null。
+3. void registerDestructionCallback(String name, Runnable destructionCallback)：当作用域或指定的对象被销毁时指定的回调。
+4. String getConversationId()：返回作用域的标识符。
+
+
+
+ConfigurableBeanFactory接口执行void registerScope(String scopeName, Scope scope);方法注册作用域。
+
+~~~java
+Scope threadScope = new SimpleThreadScope();
+beanFactory.registerScope("thread", threadScope);
+
+~~~
+
+使用类CustomScopeConfigurer+xml配置注册：
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="thread">
+                    <bean class="org.springframework.context.support.SimpleThreadScope"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="thing2" class="x.y.Thing2" scope="thread">
+        <property name="name" value="Rick"/>
+        <aop:scoped-proxy/>
+    </bean>
+
+    <bean id="thing1" class="x.y.Thing1">
+        <property name="thing2" ref="thing2"/>
+    </bean>
+
+</beans>
+
+~~~
+
+
+
+## 6.自定义Bean的行为
+
+Spring框架提供了许多接口，你可以使用它们来定制Bean的行为。可以分为几个部分：
+
+1. 生命周期回调。
+2. ApplicationContextAware和BeanNameAware。
+3. 其它Aware接口。
+
+
+
+### 6.1.生命周期回调
+
+实现org.springframework.beans.factory.InitializingBean，在bean的所有属性被设置好后，调用接口的afterPropertiesSet()方法。
+
+**BeanPostProcessor作用？**
+
+不推荐使用接口的方式实现这种回调，因为这个会让类和Spring耦合在一起。其它方式有@PostConstruct注解Bean的方法、@Bean(initMethod = "init")、xml指定方法。
+
+~~~java
+public class ExampleBean {
+
+    public void init() {
+        // do some initialization work
+    }
+}
+
+~~~
+
+~~~xml
+<bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
+
+~~~
+
+
+
+实现org.springframework.beans.factory.DisposableBean接口，能在包含这个Bean的容器销毁时，执行回调方法。
+
+同样的，也不推荐使用接口方式实现回调。通过@PreDestroy注解方法、@Bean(destroyMethod = "cleanup")注解、xml配置。
+
+~~~java
+public class ExampleBean {
+
+    public void cleanup() {
+        // do some destruction work (like releasing pooled connections)
+    }
+}
+
+~~~
+
+~~~xml
+<bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/>
+
+~~~
+
+
+
+#### 默认的初始化和销毁方法
+
+~~~xml
+<beans default-init-method="init" default-destroy-method="destroy">
+
+    <bean id="blogService" class="com.something.DefaultBlogService">
+        <property name="blogDao" ref="blogDao" />
+    </bean>
+
+</beans>
+
+~~~
+
+三种指定方式：
+
+1. 实现InitializingBean和DisposableBean接口。
+2. 自定义init()和destroy()方法。
+3. @PostConstruct和@PreDestroy注解作用于方法。
+
+指定了多种方式，初始化方法执行顺序：
+
+1. @PostConstruct注解的方法。
+2. InitializingBean接口的方法afterPropertiesSet()。
+3. 自定义的init()方法。
+
+销毁方法是同样的顺序：
+
+1. @PreDestroy注解的方法。
+2. DisposableBean接口的destroy方法。
+3. 自定义的destroy()方法。
+
+
+
+
+
+#### 启动和停止回调
+
+Lifecycle 接口定义的回调方法：
+
+~~~java
+public interface Lifecycle {
+
+    void start();
+
+    void stop();
+
+    boolean isRunning();
+}
+
+~~~
+
+通过LifecycleProcessor接口分发这些请求：
+
+~~~java
+public interface LifecycleProcessor extends Lifecycle {
+
+    void onRefresh();
+
+    void onClose();
+}
+
+~~~
+
+停止通知不一定在销毁通知之前到达。常规停止，所有的生命周期Bean会先收到停止通知，然后再传播一般销毁回调。
+
+
+
+**SmartLifecycle** 
+
+
+
+#### 非web应用程序注册终止
+
+Web应用针对ApplicationContext已经做了停止处理。
+
+需要向JVM程序注册一个关闭回调。
+
+~~~java
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+
+        // add a shutdown hook for the above context...
+        ctx.registerShutdownHook();
+
+        // app runs here...
+
+        // main method exits, hook is called prior to the app shutting down...
+    }
+}
+
+~~~
+
+
+
+### 6.2.ApplicationContextAware和BeanNameAware
+
+实现org.springframework.context.ApplicationContextAware接口能获取容器对象ApplicationContext实例。使用这个来操作Bean，破坏了IOC的风格，也与Spring相耦合。
+
+ApplicationContext提供了资源访问、发布事件、访问MessageSource功能。
+
+可以通过自动注入的方式(类型或构造方法)来注入ApplicationContext对象，可以使用注解@Autowired。
+
+
+
+实现org.springframework.beans.factory.BeanNameAware接口，setBeanName方法的入参是bean在容器中的名称。
+
+该方法的调用在bean的属性设置之后，在初始化调用方法(afterPropertiesSet、init)之前执行。
+
+
+
+### 6.3.其它Aware接口
+
+一般情况下ApplicationContextAware这种类型的接口，[name]Aware格式，name表示能注入的依赖类型，如：
+
+ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanName(Bean的名称，字符串)。
+
+| 接口名                         | 注入依赖                            | 描述 |
+| ------------------------------ | ----------------------------------- | ---- |
+| ApplicationContextAware        | ApplicationContext                  | 6.2  |
+| ApplicationEventPublisherAware | 事件相关ApplicationContext          |      |
+| BeanClassLoaderAware           | 加载Bean的类加载器                  |      |
+| BeanFactoryAware               | 注入BeanFactory                     | 6.2  |
+| BeanNameAware                  | 注入声明Bean的名称                  | 6.2  |
+| BootstrapContextAware          | JCA的ApplicationContext             |      |
+| LoadTimeWeaverAware            |                                     |      |
+| MessageSourceAware             | 消息解析策略(国际化)                |      |
+| NotificationPublisherAware     | JMX通知发布者                       |      |
+| ResourceLoaderAware            | 为了访问低级资源                    |      |
+| ServletConfigAware             | 容器运行的ServletConfig，web中有效  |      |
+| ServletContextAware            | 容器运行的ServletContext，web中有效 |      |
+
+
+
+## 7.Bean的定义继承
+
