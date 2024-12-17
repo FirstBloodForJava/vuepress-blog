@@ -1046,6 +1046,105 @@ Spring提供了6中Bean的作用域，其中有4种仅Web的ApplicationContext�
 | application | 将单个Bean定义的作用域限定在ServletContext（Servlet 上下文）的生命周期内 |
 | websocket   | 将单个Bean定义的作用域限定在WebSocket的生命周期内            |
 
-从spring3.0开始，线程作用域是有效的，但是默认没有激活。
+从spring3.0开始，线程作用域(SimpleThreadScope)是有效的，但是默认没有激活。
 
 https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html
+
+
+
+### 5.1.singleton
+
+![image-20241217164403914](http://47.101.155.205/image-20241217164403914.png)
+
+![singleton](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/images/singleton.png)
+
+单例bean和设计模式的单例模式不同。单例模式指全局仅有一个类的实例对象。
+
+~~~xml
+<bean id="accountService" class="com.something.DefaultAccountService"/>
+
+<!-- 与上面等价 -->
+<bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
+
+~~~
+
+
+
+### 5.2.prototype
+
+prototype作用域的Bean不参与销毁的回调方法。
+
+~~~xml
+<bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/>
+
+~~~
+
+![image-20241217165741715](http://47.101.155.205/image-20241217165741715.png)
+
+![prototype](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/images/prototype.png)
+
+如果一个单例Bean引用了非单例Bean，这个原型只会注入一个到单例Bean中(因为单例Bean只会实例化一次)，后续的非单例Bean将不会变化。需要使用变化的非单例Bean，需要使用方法注入。
+
+
+
+### 5.3.web启动配置
+
+要配置web.xml文件以web启动。
+
+~~~xml
+
+
+~~~
+
+
+
+
+
+~~~xml
+<bean id="loginAction" class="com.something.LoginAction" scope="request"/>
+
+~~~
+
+~~~java
+@RequestScope
+@Component
+public class LoginAction {
+    // ...
+}
+
+~~~
+
+
+
+~~~xml
+<bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
+
+~~~
+
+~~~java
+@SessionScope
+@Component
+public class UserPreferences {
+    // ...
+}
+
+~~~
+
+
+
+在ServletContext的作用域是单例的，和Spring容器的单例Bean相似。
+
+~~~xml
+<bean id="appPreferences" class="com.something.AppPreferences" scope="application"/>
+
+~~~
+
+~~~java
+@ApplicationScope
+@Component
+public class AppPreferences {
+    // ...
+}
+
+~~~
+
