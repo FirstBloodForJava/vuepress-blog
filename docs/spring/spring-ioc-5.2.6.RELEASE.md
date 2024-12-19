@@ -1471,7 +1471,241 @@ ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanN
 
 #### PropertyPlaceholderAutoConfiguration
 
-解析properties文件到
+解析properties文件到，将properties的key的value替换${key}。
+
+~~~properties
+jdbc.driverClassName=org.hsqldb.jdbcDriver
+jdbc.url=jdbc:hsqldb:hsql://production:9002
+jdbc.username=sa
+jdbc.password=root
+
+~~~
+
+~~~xml
+<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+    <property name="locations" value="classpath:com/something/jdbc.properties"/>
+</bean>
+
+<bean id="dataSource" destroy-method="close"
+        class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+
+~~~
+
+spring2.5后支持命名空间的写法：
+
+~~~xml
+<context:property-placeholder location="classpath:com/something/jdbc.properties"/>
+
+~~~
 
 
+
+
+
+配置文件指定class的名称
+
+~~~xml
+<bean class="org.springframework.beans.factory.config.PropertySourcesPlaceholderConfigurer">
+    <property name="locations">
+        <value>classpath:com/something/strategy.properties</value>
+    </property>
+    <property name="properties">
+        <value>custom.strategy.class=com.something.DefaultStrategy</value>
+    </property>
+</bean>
+
+<bean id="serviceStrategy" class="${custom.strategy.class}"/>
+
+~~~
+
+
+
+#### PropertyOverrideConfigurer
+
+覆盖应用程序上下文定义的bean的属性值。配置文件格式
+
+~~~properties
+# bean的名称.属性名
+beanName.property=value
+
+dataSource.driverClassName=com.mysql.jdbc.Driver
+dataSource.url=jdbc:mysql:mydb
+
+# tom bean的属性fred,fred的属性bob,bob的属性sammy的值设为123
+tom.fred.bob.sammy=123
+
+~~~
+
+
+
+~~~xml
+<context:property-override location="classpath:override.properties"/>
+
+~~~
+
+
+
+### 8.3.自定义实例化逻辑
+
+org.springframework.beans.factory.FactoryBean接口有3个方法：
+
+1. Object getObject()：返回这个工厂创建的对象实例。对象能被共享，取决于工厂返回单例或原型。
+2. boolean isSingleton()：此FactoryBean返回单例则为true，否则为false。
+3. Class getObjectType()：返回getObject方法结构的对象类型，未知则为返回null。
+
+
+
+作用到底是什么？该怎么用？
+
+
+
+## 9.基于注解的容器配置
+
+注释注入在XML注入之前执行(解析)，所以使用两种配置时，XML会覆盖注释配置。
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+</beans>
+
+~~~
+
+AutowiredAnnotationBeanPostProcessor
+
+CommonAnnotationBeanPostProcessor
+
+PersistenceAnnotationBeanPostProcessor
+
+RequiredAnnotationBeanPostProcessor
+
+
+
+### 9.1 @Required
+
+@Required注解作用域属性的setter方法：
+
+~~~java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Required
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+
+~~~
+
+该注解自动注入Bean，且需要Bean存在容器中。Spring 5.1开始弃用。
+
+
+
+### 9.2.@Autowired
+
+@Inject可以替代@Autowired注解，见后面介绍。
+
+@Autowired注解可以作用于构造方法、方法(setter、其它方法)、属性、方法参数、注解。
+
+Spring 4.3开始，如果bean仅定义个一个构造方法，则可以省略@Autowired注解，自动通过构造方法注入。
+
+可以通过实现接口org.springframework.core.Ordered、@Order(类上、@Bean方法上)、@Priority (类上)来定义Bean的创建顺序，否则，将按照Bean的定义顺序创建Bean。
+
+使用@Autowired至少要求该类型的bean一个，否则会启动失败，设置属性required=false可以关闭这个要求。当为false时，作用在方法上时，一个bean不存在，则方法不会被调用。
+
+可以使用@Autowired自动容器相关接口：
+
+1. BeanFactory
+2. ApplicationContext
+3. Environment
+4. ResourceLoader
+5. ApplicationEventPublisher
+6. MessageSource
+7. ConfigurableApplicationContext 
+8. ResourcePatternResolver
+
+@Autowired, @Inject, @Value, @Resource这些注解通过Spring的BeanPostProcessor实现来处理的，BeanPostProcessor或BeanFactoryPostProcessor类型的类中不能使用这些注解?
+
+
+
+
+
+~~~java
+public class MovieRecommender {
+    
+    // 构造方法
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+        
+    }
+    
+    // setter方法
+    @Autowired
+    public void setMovieFinder(MovieFinder movieFinder) {
+        
+    }
+    
+    // 普通方法
+    @Autowired
+    public void prepare(MovieCatalog movieCatalog,
+            CustomerPreferenceDao customerPreferenceDao) {
+        
+    }
+    
+    // 属性和构造方法一起使用
+    @Autowired
+    private MovieCatalog movieCatalog;
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+       	
+    }
+    
+    // 注入容器中该类型的所哟Bean
+    @Autowired
+    private MovieCatalog[] movieCatalogs;
+    public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+    
+    // Map的key的类型是String时,key为bean的名称
+    @Autowired
+    public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+    
+    // 表示可选的bean
+    @Autowired
+    public void setMovieFinder(Optional<MovieFinder> movieFinder) {
+        ...
+    }
+    
+    // spirng 5.0开始,使用@Nullable注解表示可选
+    @Autowired
+    public void setMovieFinder(@Nullable MovieFinder movieFinder) {
+        ...
+    }
+
+}
+
+~~~
+
+
+
+### 9.3.@Primary
 
