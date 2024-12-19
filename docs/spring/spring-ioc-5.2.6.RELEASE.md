@@ -1467,3 +1467,11 @@ ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanN
 
 ### 8.2.自定义配置元数据BeanFactoryPostProcessor
 
+
+
+#### PropertyPlaceholderAutoConfiguration
+
+解析properties文件到
+
+
+
