@@ -1410,3 +1410,60 @@ ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanN
 
 ## 7.Bean的定义继承
 
+
+
+~~~xml
+<bean id="inheritedTestBean" abstract="true"
+        class="org.springframework.beans.TestBean">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithDifferentClass"
+        class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBean" init-method="initialize">  
+    <property name="name" value="override"/>
+    <!-- 继承parent的age属性 -->
+</bean>
+
+~~~
+
+
+
+~~~xml
+<bean id="inheritedTestBeanWithoutClass" abstract="true">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithClass" class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBeanWithoutClass" init-method="initialize">
+    <property name="name" value="override"/>
+    <!-- 从bean的定义中继承age值-->
+</bean>
+
+~~~
+
+
+
+## 8.容器扩展点
+
+
+
+### 8.1.BeanPostProcessor接口
+
+实现BeanPostProcessor接口的Bean，会在Bean的实例化后，触发回调。当有多个该接口时，可以实现Ordered接口来指定回调的执行顺序。
+
+1. postProcessAfterInitialization(Object bean, String beanName)：在Bean的初始化之后，如@Bean指定的初始化方法执行之后。
+2. postProcessBeforeInitialization(Object bean, String beanName)：在Bean的初始化之后，但是在如@Bean指定的方法回调之前。
+
+使用@Bean创建BeanPostProcessor接口的对象时，不要使用Object类型，否则容器ApplicationContext无法在创建Bean之前通过类型自动检测它。
+
+
+
+编程方式注册：通过ConfigurableBeanFactory调用addBeanPostProcessor方法将BeanPostProcessor注入容器，注入的Bean的调用顺序不受order控制，按注册顺序指定，且优先于自动检测注册的实例之前。
+
+
+
+### 8.2.自定义配置元数据BeanFactoryPostProcessor
+
