@@ -32,6 +32,13 @@ public @interface Autowired {
 
 ~~~
 
+@Autowired单独使用注入一个Bean时：
+
+1. 作用在属性上时，存在多个类型时，会根据属性的名称查找bean，存在则注入成功，否则失败。
+2. 作用在方法上，存在多个类型时，会根据方法形参名称查找bean，存在则注入成功，否则失败。
+
+
+
 使用方式：
 
 1. 字段注入，@Autowired放在字段上；
@@ -52,6 +59,94 @@ protected static class ZuulFilterConfiguration {
 ~~~
 
 **由于注入Bean是通过BeanPostProcessor，意味着不能将BeanPostProcessor或BeanFactoryPostProcessor类型的对象注入。**
+
+
+
+#### @Resource
+
+JSR-250规范注解。
+
+默认通过名称注入。
+
+~~~java
+package javax.annotation;
+
+@Target({TYPE, FIELD, METHOD})
+@Retention(RUNTIME)
+public @interface Resource {
+
+    
+    String name() default "";
+
+    
+    String lookup() default "";
+
+    
+    Class<?> type() default java.lang.Object.class;
+
+    
+    enum AuthenticationType {
+            CONTAINER,
+            APPLICATION
+    }
+
+    
+    AuthenticationType authenticationType() default AuthenticationType.CONTAINER;
+
+    
+    boolean shareable() default true;
+
+    
+    String mappedName() default "";
+
+    
+    String description() default "";
+}
+
+~~~
+
+
+
+
+
+#### @Qualifier
+
+~~~java
+package org.springframework.beans.factory.annotation;
+
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface Qualifier {
+
+	String value() default "";
+
+}
+
+~~~
+
+@Qualifier结合@Autowired注解限定注入的bean(容器拥有多个同类型bean时)。
+
+~~~java
+// 作用在方法参数上
+public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(@Qualifier("main") MovieCatalog movieCatalog,
+            CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+}
+
+~~~
 
 
 
@@ -776,7 +871,21 @@ public @interface ManagedAttribute {
 
 
 
+#### @Primary
 
+~~~java
+package org.springframework.context.annotation;
+
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Primary {
+
+}
+
+~~~
+
+标记注入容器的Bean是主要的。如果注解作用于类上，则这个类需要是扫描注入容器才会有效。
 
 
 
