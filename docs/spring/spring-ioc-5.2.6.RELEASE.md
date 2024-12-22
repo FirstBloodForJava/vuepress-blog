@@ -377,7 +377,7 @@ public class ExampleBean {
 
 Spring在容器被创建的时候校验bean的配置，但是bean的属性直到bean被实际创建才设置。
 
-作用域为单例(singleton)且设置为预实例化(pre-instantiated)(默认)bean会在容器创建时创建。其它作用域会在使用时创建。
+作用域为单例(singleton)且设置为预实例化(pre-instantiated)(默认)bean会在容器创建时(过程中，容器还未创建完成)创建。其它作用域会在使用时创建。
 
 
 
