@@ -10,7 +10,6 @@ SpEL表达式支持的功能：
 4. Class expressions
 5. Accessing properties, arrays, lists, and maps
 6. Method invocation
-7. Relational operators
 8. Assignment
 9. Calling constructors
 10. Bean references
@@ -234,4 +233,408 @@ public class LiteralExpression {
 
 
 ### 2.Properties, Arrays, Lists, Maps, and Indexers
+
+属性访问不区分第一个字母的大小写。
+
+数组和集合的所有访问格式[index]。
+
+map元素的value访问，通过['key']格式。
+
+~~~java
+public class PropertiesExpression {
+
+    /**
+     * 访问 对象的属性、数组、集合、map中的属性
+     * @param args
+     */
+    public static void main(String[] args) {
+
+        // 数据准备
+        ClassInfo tesla = new ClassInfo("tesla", "shanghai", new Date(), new String[] {"Su7", "Su7 Pro Max", "Su7 Ultra"});
+        Teacher t1 = new Teacher("China", "shanghai1");
+        Teacher t2 = new Teacher("China", "shanghai2");
+        tesla.setTeachers(t1);
+        tesla.setTeachers(t2);
+
+        ClassInfo xiaomi = new ClassInfo("xiaomi", "beijing", new Date(), new String[] {"Model X", "Model Y", "Model 3", "Model S"});
+        Teacher x1 = new Teacher("China", "beijing1");
+        Teacher x2 = new Teacher("China", "beijing2");
+        xiaomi.setTeachers(x1);
+        xiaomi.setTeachers(x2);
+
+        School school = new School();
+        school.setClassName("xiaomi");
+        school.setMember(tesla);
+        school.setMember(xiaomi);
+
+        Map officers = school.getOfficers();
+        officers.put("xiaomi", xiaomi);
+
+        // 创建一个只读的context
+        EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        // -- 属性访问 第一个字母不区分大小写
+
+        // 2024
+        System.out.println(parser.parseExpression("Birthdate.Year + 1900").getValue(tesla, Integer.class));
+
+        // beijing
+        System.out.println(parser.parseExpression("addr").getValue(xiaomi, String.class));
+
+
+        // -- 访问集合元素
+
+        // Su7 Ultra
+        System.out.println(parser.parseExpression("students[2]").getValue(
+                context, tesla, String.class));
+
+        // Model 3
+        System.out.println(parser.parseExpression("students[2]").getValue(
+                context, xiaomi, String.class));
+
+        // China
+        System.out.println(parser.parseExpression("teachers[0].city").getValue(context, tesla, String.class));
+        // beijing2
+        System.out.println(parser.parseExpression("teachers[1].country").getValue(context, xiaomi, String.class));
+
+        // -- 访问map元素 com.example.spel.ClassInfo
+        System.out.println(parser.parseExpression("officers['xiaomi']").getValue(context, school, ClassInfo.class));
+
+        // beijing1
+        System.out.println(parser.parseExpression("officers['xiaomi'].teachers[0].country").getValue(context, school, String.class));
+        
+
+    }
+}
+
+
+~~~
+
+
+
+### 3.Inline lists
+
+行内list解析：{}格式解析为List集合。解析后的集合是不能修改的。
+
+{}意味着空的集合。
+
+~~~java
+public class InlineListExpression {
+
+    public static void main(String[] args) {
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        SimpleEvaluationContext readContext = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+        List numberList = (List) parser.parseExpression("{0, 1, 2, 3, 4}").getValue(readContext);
+        // 2
+        System.out.println(numberList.get(2));
+
+        List listList = (List) parser.parseExpression("{{'a', 'b'}, {'c', 'd', 'e'}}").getValue(readContext);
+        // [a, b]
+        System.out.println(listList.get(0));
+        
+        List empty = (List) parser.parseExpression("{}").getValue(readContext);
+        // true
+        System.out.println(empty.isEmpty());
+    }
+}
+
+~~~
+
+
+
+### 4.Inline maps
+
+行内map解析：{key: value}，value是字符串需要加''。
+
+map是不能被修改的。
+
+~~~java
+public class InlineMapExpression {
+
+    public static void main(String[] args) {
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        SimpleEvaluationContext readContext = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+        Map m1 = (Map) parser.parseExpression("{name:'Nikola',dob:'10-July-1856', age: 10}").getValue(readContext);
+        // 10
+        System.out.println(m1.get("age"));
+
+        Map mapOfMaps = (Map) parser.parseExpression("{name:{first:'Nikola',last:'Tesla'},dob:{day:10,month:'July',year:1856}}").getValue(readContext);
+
+        // {day=10, month=July, year=1856}
+        System.out.println(mapOfMaps.get("dob"));
+
+        Map empty = (Map) parser.parseExpression("{:}").getValue(readContext);
+        // true
+        System.out.println(empty.isEmpty());
+    }
+}
+
+~~~
+
+
+
+### 5.Array construction
+
+数组构造：支持基本类型数组构造，初始化长度，初始化值。
+
+二维数组不支持初始化值。
+
+~~~java
+public class ArrayContructExpression {
+
+    public static void main(String[] args) {
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        SimpleEvaluationContext readContext = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+        int[] numbers1 = (int[]) parser.parseExpression("new int[4]").getValue(readContext);
+        // 0
+        System.out.println(numbers1[3]);
+
+        int[] numbers2 = (int[]) parser.parseExpression("new int[]{1,2,3}").getValue(readContext);
+        // 3
+        System.out.println(numbers2[2]);
+
+        int[][] numbers3 = (int[][]) parser.parseExpression("new int[4][5]").getValue(readContext);
+        // 0
+        System.out.println(numbers3[3][4]);
+
+    }
+}
+
+~~~
+
+
+
+### 6.Method invocation
+
+方法调用：java语法来调用方法。
+
+~~~java
+// true
+System.out.println(parser.parseExpression("isMember('xiaomi')").getValue(school, Boolean.class));
+
+// country
+System.out.println(parser.parseExpression("'my country'.substring(3)").getValue(String.class));
+
+~~~
+
+
+
+### 7.Operators
+
+#### 关系运算符
+
+支持的关系运算符：等于、不等于、小于、小于或等于(less than or equal)、大于、大于或等于(greater than or equal)。
+
+遵循一些规则，任何与null进行大于、小于运算，则 x > null总是true，x < null总是false。
+
+字符串不要与数字进行比较，如'abc' > 0。
+
+还支持instanceof 、正则表达式的matchs运算。
+
+
+
+~~~java
+public class RelationOperatorExpression {
+
+    public static void main(String[] args) {
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        // -- 关系运算符
+
+        System.out.println(parser.parseExpression("'a' == 'b'").getValue(Boolean.class));
+        System.out.println(parser.parseExpression("'a' != 'b'").getValue(Boolean.class));
+
+        System.out.println(parser.parseExpression("'a' >= 'b'").getValue(Boolean.class));
+        // false
+        System.out.println(parser.parseExpression(" 0 > null").getValue(Boolean.class));
+
+        System.out.println(parser.parseExpression("'xyz' instanceof T(Integer)").getValue(Boolean.class));
+        System.out.println(parser.parseExpression("1 instanceof T(Integer)").getValue(Boolean.class));
+
+        // false 基本数据类型的结果为false
+        System.out.println(parser.parseExpression("1 instanceof T(int)").getValue(Boolean.class));
+        // true
+        System.out.println(parser.parseExpression("'5.00' matches '^-?\\d+(\\.\\d{2})?$'").getValue(Boolean.class));
+
+        // false 小数点2位
+        System.out.println(parser.parseExpression("'5.0067' matches '^-?\\d+(\\.\\d{2})?$'").getValue(Boolean.class));
+
+    }
+}
+
+~~~
+
+xml符号转移运算符：
+
+1. lt (<)
+2. gt (>)
+3. le (<=)
+4. ge (>=)
+5. eq (==)
+6. ne (!=)
+7. div (/)
+8. mod (%)
+9. not (!)
+
+
+
+
+
+#### 逻辑运算符
+
+1. and(&&)：逻辑与。
+2. or(||)：逻辑或。
+3. not(!)：取反。
+
+
+
+~~~java
+public class LogicalOperationExpression {
+
+    public static void main(String[] args) {
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        LogicalOperationExpression object = new LogicalOperationExpression();
+
+        StandardEvaluationContext context = new StandardEvaluationContext(object);
+
+
+        System.out.println(parser.parseExpression("true and false").getValue(Boolean.class));
+        System.out.println(parser.parseExpression("false and isTrue('true')").getValue(Boolean.class));
+
+        System.out.println(parser.parseExpression("true or isTrue('false')").getValue(context, Boolean.class));
+        System.out.println(parser.parseExpression("!false or isTrue('false')").getValue(context, Boolean.class));
+
+
+
+    }
+
+    public boolean isTrue(String flag) {
+        System.out.println("LogicalOperationExpression isTrue: " + flag);
+        return "true".equals(flag);
+    }
+}
+
+~~~
+
+
+
+#### 数学运算符
+
+加、减、乘、除、取余等数学运算符。
+
+~~~java
+public class MathematicalOperationExpression {
+
+    public static void main(String[] args) {
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+
+        System.out.println(parser.parseExpression("1 + 1").getValue(Integer.class));
+
+        System.out.println(parser.parseExpression("'test' + ' ' + 'string'").getValue(String.class));
+
+        System.out.println(parser.parseExpression("1 * 10").getValue(Integer.class));
+    }
+}
+
+~~~
+
+
+
+#### 赋值运算符
+
+使用setValue方法只放属性名。
+
+使用getValue方法，使用属性名 = '值'的格式。
+
+属性名第一个字母不区分大小写。
+
+~~~java
+public class AssignmentOperatorExpression {
+
+    public static void main(String[] args) {
+
+        Teacher teacher = new Teacher("shanghai", "China");
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().build();
+
+        parser.parseExpression("city").setValue(context, teacher,"beijing");
+        System.out.println(teacher.getCity());
+
+        System.out.println(parser.parseExpression("city = 'shanghai'").getValue(context, teacher, String.class));
+        System.out.println(teacher.getCity());
+
+    }
+}
+
+~~~
+
+
+
+### 8.Types
+
+T类型转换使用。T (指定class的类型)。StandardEvaluationContext 使用TypeLocator查找类型，使用的实现StandardTypeLocator，可以被替换。在java.lang包下的类可以省略名称。
+
+
+
+~~~java
+Class dateClass = parser.parseExpression("T(java.util.Date)").getValue(Class.class);
+
+boolean trueValue = parser.parseExpression(
+        "T(java.math.RoundingMode).CEILING < T(java.math.RoundingMode).FLOOR")
+        .getValue(Boolean.class);
+
+~~~
+
+
+
+### 9.Constructors
+
+构造方法调用。使用new调用构造方法，需要使用类的全名称，除了基本类型和String。
+
+~~~java
+Inventor einstein = p.parseExpression(
+        "new org.spring.samples.spel.inventor.Inventor('Albert Einstein', 'German')")
+        .getValue(Inventor.class);
+
+// new 对象后调用add方法
+p.parseExpression(
+        "Members.add(new org.spring.samples.spel.inventor.Inventor(
+            'Albert Einstein', 'German'))").getValue(societyContext);
+
+~~~
+
+
+
+### 10.Variables
+
+通过#变量名来引用变量的值，变量值通过EvaluationContext对象的setVariable方法设置。变量只能由字母、数字、下划线、$组成。
+
+
+
+~~~java
+Inventor tesla = new Inventor("Nikola Tesla", "Serbian");
+
+EvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().build();
+context.setVariable("newName", "Mike Tesla");
+
+// 使用变量设置值
+parser.parseExpression("Name = #newName").getValue(context, tesla);
+System.out.println(tesla.getName())  // 
+
+~~~
 
