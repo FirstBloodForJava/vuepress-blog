@@ -638,3 +638,232 @@ System.out.println(tesla.getName())  //
 
 ~~~
 
+
+
+
+~~~java
+// #this
+// #root
+    
+~~~
+
+
+
+### 11.Functions
+
+通过EvaluationContext对象注册方法。
+
+
+
+~~~java
+Method method = ...;
+
+EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+context.setVariable("myFunction", method);
+
+~~~
+
+
+
+~~~java
+// 字符串反转的函数
+public abstract class StringUtils {
+
+    public static String reverseString(String input) {
+        StringBuilder backwards = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            backwards.append(input.charAt(input.length() - 1 - i));
+        }
+        return backwards.toString();
+    }
+}
+
+~~~
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+
+EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+context.setVariable("reverseString",
+        StringUtils.class.getDeclaredMethod("reverseString", String.class));
+
+String helloWorldReversed = parser.parseExpression(
+        "#reverseString('hello')").getValue(context, String.class);
+
+~~~
+
+
+
+### 12.Bean References
+
+@名称：
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+StandardEvaluationContext context = new StandardEvaluationContext();
+context.setBeanResolver(new MyBeanResolver());
+
+// This will end up calling resolve(context,"something") on MyBeanResolver during evaluation
+Object bean = parser.parseExpression("@something").getValue(context);
+
+~~~
+
+&名称：
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+StandardEvaluationContext context = new StandardEvaluationContext();
+context.setBeanResolver(new MyBeanResolver());
+
+// This will end up calling resolve(context,"&foo") on MyBeanResolver during evaluation
+Object bean = parser.parseExpression("&foo").getValue(context);
+
+~~~
+
+
+
+### 13.Ternary Operator
+
+三目运算符：
+
+~~~java
+String falseString = parser.parseExpression(
+        "false ? 'trueExp' : 'falseExp'").getValue(String.class);
+
+
+parser.parseExpression("Name").setValue(societyContext, "IEEE");
+societyContext.setVariable("queryName", "Nikola Tesla");
+
+String expression = "isMember(#queryName)? #queryName + ' is a member of the ' " +
+        "+ Name + ' Society' : #queryName + ' is not a member of the ' + Name + ' Society'";
+
+String queryResultString = parser.parseExpression(expression)
+        .getValue(societyContext, String.class);
+// queryResultString = "Nikola Tesla is a member of the IEEE Society"
+
+~~~
+
+
+
+### 14.The Elvis Operator
+
+三目运算符的简单写法
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+
+// 等价于 name != null ? : name : 'Unknown'
+String name = parser.parseExpression("name?:'Unknown'").getValue(String.class);
+System.out.println(name);  // 'Unknown'
+
+~~~
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+Inventor tesla = new Inventor("Nikola Tesla", "Serbian");
+String name = parser.parseExpression("Name?:'Elvis Presley'").getValue(context, tesla, String.class);
+System.out.println(name);  // Nikola Tesla
+
+tesla.setName(null);
+name = parser.parseExpression("Name?:'Elvis Presley'").getValue(context, tesla, String.class);
+System.out.println(name);  // Elvis Presley
+
+~~~
+
+
+~~~java
+// 系统变量不存在pop3.port则注入25
+@Value("#{systemProperties['pop3.port'] ?: 25}")
+
+~~~
+
+
+
+
+
+### 15.Safe Navigation Operator
+
+判空校验。
+
+~~~java
+ExpressionParser parser = new SpelExpressionParser();
+EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+Inventor tesla = new Inventor("Nikola Tesla", "Serbian");
+tesla.setPlaceOfBirth(new PlaceOfBirth("Smiljan"));
+
+String city = parser.parseExpression("PlaceOfBirth?.City").getValue(context, tesla, String.class);
+System.out.println(city);  // Smiljan
+
+// PlaceOfBirth属性现在是null
+tesla.setPlaceOfBirth(null);
+city = parser.parseExpression("PlaceOfBirth?.City").getValue(context, tesla, String.class);
+System.out.println(city); 
+
+~~~
+
+
+
+### 16.Collection Selection
+
+确认是否返回一个新的结合？
+
+集合过滤语法：.?[selectionExpression]
+
+~~~java
+List<Inventor> list = (List<Inventor>) parser.parseExpression(
+        "Members.?[Nationality == 'Serbian']").getValue(societyContext);
+
+~~~
+
+
+
+~~~java
+// Map过滤返回匹配的key value
+Map newMap = parser.parseExpression("map.?[value<27]").getValue();
+
+~~~
+
+
+
+返回第一个匹配的结果语法：.^[selectionExpression]
+
+返回最后一个匹配的结果语法：.$[selectionExpression]
+
+
+
+
+
+### 17.Collection Projection
+
+集合元素提取语法：.![projectionExpression]。
+
+相当于stream流的map返回新的对象。
+
+~~~java
+// returns ['Smiljan', 'Idvor' ]
+List placesOfBirth = (List)parser.parseExpression("Members.![placeOfBirth.city]");
+
+~~~
+
+
+
+### 18.Expression templating
+
+指定ParserContext对象的表达式模板。相当于确定SpEL表达式的开始和结束部分
+
+~~~java
+// 表达式中既有普通文本又有 SpEL表达式
+// new TemplateParserContext() 默认前缀就是#{ 后缀}
+String randomPhrase = parser.parseExpression(
+        "random number is #{T(java.lang.Math).random()}",
+        new TemplateParserContext()).getValue(String.class);
+
+// evaluates to "random number is 0.7038186818312008"
+
+~~~
+
+
+
