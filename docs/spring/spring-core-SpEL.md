@@ -607,14 +607,22 @@ boolean trueValue = parser.parseExpression(
 构造方法调用。使用new调用构造方法，需要使用类的全名称，除了基本类型和String。
 
 ~~~java
-Inventor einstein = p.parseExpression(
-        "new org.spring.samples.spel.inventor.Inventor('Albert Einstein', 'German')")
-        .getValue(Inventor.class);
+public class ConstructorExpression {
 
-// new 对象后调用add方法
-p.parseExpression(
-        "Members.add(new org.spring.samples.spel.inventor.Inventor(
-            'Albert Einstein', 'German'))").getValue(societyContext);
+    public static void main(String[] args) {
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+
+        ClassInfo xiaomi = parser.parseExpression("new com.example.spel.ClassInfo('xiaomi', 'beijing')").getValue(ClassInfo.class);
+
+        System.out.println(xiaomi.getName());
+
+        School school = new School();
+        // 结果是boolean值
+        parser.parseExpression("Members.add(new com.example.spel.ClassInfo('xiaomi', 'beijing'))").getValue(school);
+        System.out.println(school.getMembers().size());
+    }
+}
 
 ~~~
 
@@ -627,14 +635,33 @@ p.parseExpression(
 
 
 ~~~java
-Inventor tesla = new Inventor("Nikola Tesla", "Serbian");
+public class AccessVarExpression {
 
-EvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().build();
-context.setVariable("newName", "Mike Tesla");
+    public static void main(String[] args) {
+        SpelExpressionParser parser = new SpelExpressionParser();
 
-// 使用变量设置值
-parser.parseExpression("Name = #newName").getValue(context, tesla);
-System.out.println(tesla.getName())  // 
+        School school = new School();
+        school.setClassName("name");
+
+        SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().withRootObject(school).build();
+
+        // 设置变量
+        context.setVariable("name", "new Name");
+
+        System.out.println(school.getClassName());
+        parser.parseExpression("className = #name").getValue(context);
+        System.out.println(school.getClassName());
+
+        List<Integer> list = Arrays.asList(1, 2, 3, 10, 12);
+        context.setVariable("list", list);
+        // 使用.?[] 集合过滤器 [] 中接判断条件
+        // #this表示当前对象自己
+        // #root表示context中的对象
+        List<Integer> filterList = (List<Integer>) parser.parseExpression("#list.?[#this > 4 && #root.className == #name]").getValue(context);
+        // [10, 12]
+        System.out.println(filterList);
+    }
+}
 
 ~~~
 
@@ -696,29 +723,45 @@ String helloWorldReversed = parser.parseExpression(
 
 ### 12.Bean References
 
-@名称：
+@名称：访问BeanFactory中该名称的bean对象。在StandardEvaluationContext上下文设置BeanResolver对象BeanFactoryResolver默认是从给定的BeanFacotory中查找bean。
+
+&名称：&不会被省略。
 
 ~~~java
-ExpressionParser parser = new SpelExpressionParser();
-StandardEvaluationContext context = new StandardEvaluationContext();
-context.setBeanResolver(new MyBeanResolver());
+public class BeanFactoryExpression {
 
-// This will end up calling resolve(context,"something") on MyBeanResolver during evaluation
-Object bean = parser.parseExpression("@something").getValue(context);
+    public static void main(String[] args) {
+
+        final Map<String, Class<?>> map = new HashMap<>();
+        map.put("String", String.class);
+        map.put("&Integer", Integer.class);
+
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        // 自定义bean解析器
+        context.setBeanResolver(new BeanResolver() {
+            @Override
+            public Object resolve(EvaluationContext context, String beanName) throws AccessException {
+                // 这里的名称是 去掉@的字符串
+                if (map.containsKey(beanName)) {
+                    return map.get(beanName);
+                }
+                throw new AccessException("map not contain object, name = " + beanName);
+            }
+        });
+
+        SpelExpressionParser parser = new SpelExpressionParser();
+        // class java.lang.String 访问的beanName = String
+        System.out.println(parser.parseExpression("@String").getValue(context, Class.class));
+        // class java.lang.String 访问的beanName = &Integer
+        System.out.println(parser.parseExpression("&Integer").getValue(context, Class.class));
+
+
+    }
+}
 
 ~~~
 
-&名称：
 
-~~~java
-ExpressionParser parser = new SpelExpressionParser();
-StandardEvaluationContext context = new StandardEvaluationContext();
-context.setBeanResolver(new MyBeanResolver());
-
-// This will end up calling resolve(context,"&foo") on MyBeanResolver during evaluation
-Object bean = parser.parseExpression("&foo").getValue(context);
-
-~~~
 
 
 
@@ -727,20 +770,25 @@ Object bean = parser.parseExpression("&foo").getValue(context);
 三目运算符：
 
 ~~~java
-String falseString = parser.parseExpression(
-        "false ? 'trueExp' : 'falseExp'").getValue(String.class);
+public class TernaryOperatorExpression {
 
+    public static void main(String[] args) {
 
-parser.parseExpression("Name").setValue(societyContext, "IEEE");
-societyContext.setVariable("queryName", "Nikola Tesla");
+        SpelExpressionParser parser = new SpelExpressionParser();
 
-String expression = "isMember(#queryName)? #queryName + ' is a member of the ' " +
-        "+ Name + ' Society' : #queryName + ' is not a member of the ' + Name + ' Society'";
+        System.out.println(parser.parseExpression("true ? 'true' : 'false'").getValue(String.class));
 
-String queryResultString = parser.parseExpression(expression)
-        .getValue(societyContext, String.class);
-// queryResultString = "Nikola Tesla is a member of the IEEE Society"
+        SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding().build();
 
+        // null
+        System.out.println(parser.parseExpression("#name != null ? #name : 'null'").getValue(context, String.class));
+        context.setVariable("name", "name");
+        // 三目运算符
+        System.out.println(parser.parseExpression("#name != null ? #name : 'null'").getValue(context, String.class));
+        // 简单的三目运算符
+        System.out.println(parser.parseExpression("#name?:'null'").getValue(context, String.class));
+    }
+}
 ~~~
 
 
@@ -785,7 +833,7 @@ System.out.println(name);  // Elvis Presley
 
 ### 15.Safe Navigation Operator
 
-判空校验。
+判空校验，在访问对象的属性时在.前面加?。
 
 ~~~java
 ExpressionParser parser = new SpelExpressionParser();
