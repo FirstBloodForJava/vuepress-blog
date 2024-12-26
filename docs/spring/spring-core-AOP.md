@@ -47,9 +47,68 @@ Spring框架切面使用建议：使用切面的功能，按需选择功能最�
 
 ## 2.Spring AOP
 
+Spring AOP介绍：
+
+1. Spring AOP完全基于Java代码实现，不需要其它特殊的编译。
+2. Spring AOP仅支持方法作为连接点(作用在bean的方法上)，而不支持属性拦截(对属性的操作进行增强)。
+3. Spring将Spring AOP和IOC与AspectJ无缝衔接。
+4. Spring AOP只能advice(增强) Bean的方法。
+5. Spring AOP集成AspectJ的切面功能，没有使用其编译时或加载时织入功能。
+
+
+
+
+
 AOP在Spring框架中的作用：
 
 1. 对声明式事务的控制。
 2. 对OOP编程的增强。
 
 Spring的AOP完全基于Java代码实现。
+
+
+
+### 2.1.@AspectJ
+
+引入依赖：
+
+~~~xml
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.9.5</version>
+    <scope>compile</scope>
+</dependency>
+
+~~~
+
+
+
+java启用@AspectJ配置：
+
+~~~java
+@Configuration
+@EnableAspectJAutoProxy
+public class AppConfig {
+
+}
+
+~~~
+
+xml启用@AspectJ配置：
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<aop:aspectj-autoproxy/>
+
+</beans>
+
+~~~
+
