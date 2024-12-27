@@ -68,7 +68,9 @@ Spring的AOP完全基于Java代码实现。
 
 
 
-### 2.1.@AspectJ
+### 2.1.启用@AspectJ
+
+开启aop切面功能。
 
 引入依赖：
 
@@ -111,4 +113,32 @@ xml启用@AspectJ配置：
 </beans>
 
 ~~~
+
+
+
+### 2.2.切面声明
+
+使用注解@Aspect声明一个类是切面，将其注入到Spring容器中。
+
+~~~java
+@Aspect
+public class LogAspect {
+	  
+}
+
+~~~
+
+xml配置声明为Bean。使用@Component注解声明为一个Bean。
+
+**使用注解还需要使用@Component注解或其它类似注解。**
+
+**切面自己不能被其它切面拦截增强。**
+
+
+
+### 2.3.声明连接点
+
+
+
+
 
