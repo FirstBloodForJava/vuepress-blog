@@ -138,7 +138,7 @@ xml配置声明为Bean。使用@Component注解声明为一个Bean。
 
 ### 2.3.声明连接点
 
+  [redirec](http://127.0.0.1:8090/redirect1) 
 
-
-
+[redirec]: http://127.0.0.1:8090/redirect1
 
