@@ -633,5 +633,201 @@ MyInterfaceType proxy = factory.getProxy();
 
 ### 6.1.@Configurable
 
+@Configurable注解可以将非Spring容器管理的对象(非Bena对象)使用依赖注入。比如代码直接new创建的对象。这一功能是通过Spring AOP来实现。
 
+xml使用配置：需要添加命名空间。
+
+~~~xml
+<context:spring-configured/>
+
+<!-- 配置作用? -->
+<bean id="myService"
+        class="com.xzy.myapp.service.MyService"
+        depends-on="org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect">
+
+    <!-- ... -->
+
+</bean>
+
+~~~
+
+
+
+
+
+org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect在spring-aspects模块中(jpa中有导入)。
+
+~~~xml
+<!-- 什么作用不清楚-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-aspects</artifactId>
+    <version>5.2.6.RELEASE</version>
+    <scope>compile</scope>
+</dependency>
+
+~~~
+
+
+
+### 6.2.spring-aspects其它功能
+
+ @Transactional和AnnotationTransactionAspect
+
+
+
+~~~java
+// 作用
+public aspect DomainObjectConfiguration extends AbstractBeanConfigurerAspect {
+
+    public DomainObjectConfiguration() {
+        setBeanWiringInfoResolver(new ClassNameBeanWiringInfoResolver());
+    }
+
+    // the creation of a new bean (any object in the domain model)
+    protected pointcut beanCreation(Object beanInstance) :
+        initialization(new(..)) &&
+        SystemArchitecture.inDomainModel() &&
+        this(beanInstance);
+}
+
+~~~
+
+
+
+### 6.3.LTW
+
+Load-time weaing(LTW)是指通过特定的类加载器，在类加载到JVM时，动态的将切面织入目标类的字节码文件。
+
+
+
+某些情况下需要使用启动参数：-javaagent:path/to/aspectjweaver.jar或-javaagent:path/to/spring-instrument.jar。
+
+
+
+注解：@EnableLoadTimeWeaving
+
+
+
+例子：
+
+1. 切面声明
+2. META-INF/aop.xml文件
+3. spring的xml配置
+4. main方法
+5. 启动命令：java -javaagent:C:/projects/foo/lib/global/spring-instrument.jar foo.Main
+
+~~~java
+package foo;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.util.StopWatch;
+import org.springframework.core.annotation.Order;
+
+@Aspect
+public class ProfilingAspect {
+
+    @Around("methodsToBeProfiled()")
+    public Object profile(ProceedingJoinPoint pjp) throws Throwable {
+        StopWatch sw = new StopWatch(getClass().getSimpleName());
+        try {
+            sw.start(pjp.getSignature().getName());
+            return pjp.proceed();
+        } finally {
+            sw.stop();
+            System.out.println(sw.prettyPrint());
+        }
+    }
+
+    @Pointcut("execution(public * foo..*.*(..))")
+    public void methodsToBeProfiled(){}
+}
+
+~~~
+
+~~~xml
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "https://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+
+    <weaver>
+        <!-- only weave classes in our application-specific packages -->
+        <include within="foo.*"/>
+    </weaver>
+
+    <aspects>
+        <!-- weave in just this aspect -->
+        <aspect name="foo.ProfilingAspect"/>
+    </aspects>
+
+</aspectj>
+
+~~~
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- a service object; we will be profiling its methods -->
+    <bean id="entitlementCalculationService"
+            class="foo.StubEntitlementCalculationService"/>
+
+    <!-- this switches on the load-time weaving -->
+    <context:load-time-weaver/>
+</beans>
+
+~~~
+
+~~~java
+package foo;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public final class Main {
+
+    public static void main(String[] args) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml", Main.class);
+
+        EntitlementCalculationService entitlementCalculationService =
+                (EntitlementCalculationService) ctx.getBean("entitlementCalculationService");
+
+        // the profiling aspect is 'woven' around this method execution
+        entitlementCalculationService.calculateEntitlement();
+    }
+}
+
+~~~
+
+
+
+这个结果改变了class类文件，下面的结果也将一致：
+
+~~~java
+package foo;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public final class Main {
+
+    public static void main(String[] args) {
+        new ClassPathXmlApplicationContext("beans.xml", Main.class);
+
+        EntitlementCalculationService entitlementCalculationService =
+                new StubEntitlementCalculationService();
+
+        // the profiling aspect will be 'woven' around this method execution
+        entitlementCalculationService.calculateEntitlement();
+    }
+}
+
+~~~
 
