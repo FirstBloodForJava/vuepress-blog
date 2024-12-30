@@ -837,7 +837,253 @@ public final class Main {
 
 
 
-### 7.1.连接点
+### 7.1.切入点
+
+Spring的切入点模型支持切入点重复使用，这种重复使用和advice(通知)类型无关。可以在不同的类型通知上使用相同的切入点。
+
+org.springframework.aop.Pointcut接口是核心，用于通知目标连接点(目标类的方法)。
+
+~~~java
+public interface Pointcut {
+
+    ClassFilter getClassFilter();
+
+    MethodMatcher getMethodMatcher();
+
+}
+
+~~~
 
 
 
+~~~java
+public interface ClassFilter {
+
+    boolean matches(Class clazz);
+}
+
+~~~
+
+
+
+~~~java
+public interface MethodMatcher {
+
+    // 第一层判断,不匹配,运行时则不会再进行后续的判断
+    boolean matches(Method m, Class targetClass);
+	
+    // 为true,则判断参数是否匹配
+    // 大多数情况的实现默认返回false,意味着三个参数的matchs方法调用
+    boolean isRuntime();
+
+    // isRuntime()为true才调用
+    boolean matches(Method m, Class targetClass, Object[] args);
+}
+
+~~~
+
+
+
+
+
+org.springframework.aop.support.Pointcuts类的静态方法使用ComposablePointcut类来处理交集(&&)和并集(||)。
+
+org.springframework.aop.aspectj.AspectJExpressionPointcut来解析切入点表达式。
+
+
+
+#### 静态切入点
+
+特点是Spring只需要在方法调用时计算一次切入点。
+
+正则表达式切入点：org.springframework.aop.support.JdkRegexpMethodPointcut
+
+
+
+
+
+#### 动态切入点
+
+每次调用都需要计算切入点的结果，不能缓存。
+
+Control Flow Pointcuts：org.springframework.aop.support.ControlFlowPointcut
+
+
+
+#### 切入点超类
+
+StaticMethodMatcherPointcut 
+
+
+
+
+
+### 7.2.Advice(通知)
+
+每个通知就是一个Spring bean。所有的通知实例都可以被通知的对象共享，换句话说，被通知的对象总是拥有唯一的通知实例。
+
+每个类通知？
+
+每个实例通知？
+
+
+
+#### 拦截Around通知
+
+需要实现接口MethodInterceptor
+
+~~~java
+public interface MethodInterceptor extends Interceptor {
+
+    Object invoke(MethodInvocation invocation) throws Throwable;
+}
+
+~~~
+
+
+
+#### Before通知
+
+不需要实现MethodInterceptor接口，这个只需要在进入方法前调用。因此不会出现导致拦截链无法执行的情况。
+
+before通知引发异常，它将中止拦截链的执行。
+
+~~~java
+public interface MethodBeforeAdvice extends BeforeAdvice {
+
+    // return void
+    void before(Method m, Object[] args, Object target) throws Throwable;
+}
+
+~~~
+
+
+
+#### Throw通知
+
+如同连接点执行抛出异常，则Throw通知被执行。
+
+org.springframework.aop.ThrowsAdvice为什么不需要有方法？
+
+
+
+~~~java
+public static class CombinedThrowsAdvice implements ThrowsAdvice {
+
+    public void afterThrowing(RemoteException ex) throws Throwable {
+        // Do something with remote exception
+    }
+
+    public void afterThrowing(Method m, Object[] args, Object target, ServletException ex) {
+        // Do something with all arguments
+    }
+}
+
+~~~
+
+
+
+#### After Returning通知
+
+
+
+必须实现org.springframework.aop.AfterReturningAdvice接口。After Returning通知类型能够访问返回值(不能修改)、被调用的方法、方法参数、目标对象。
+
+该类型不会改变拦截链。
+
+~~~java
+public interface AfterReturningAdvice extends Advice {
+
+    void afterReturning(Object returnValue, Method m, Object[] args, Object target)
+            throws Throwable;
+}
+
+~~~
+
+
+
+#### Introduction通知
+
+
+
+~~~java
+public interface IntroductionInterceptor extends MethodInterceptor {
+
+    boolean implementsInterface(Class intf);
+}
+
+~~~
+
+~~~java
+public interface IntroductionAdvisor extends Advisor, IntroductionInfo {
+
+    ClassFilter getClassFilter();
+
+    void validateInterfaces() throws IllegalArgumentException;
+}
+
+public interface IntroductionInfo {
+
+    Class<?>[] getInterfaces();
+}
+
+~~~
+
+
+
+#### Advisor API
+
+在Spring中，Advisor是一个切面，它只包含一个切入点表达式相关联的通知对象。
+
+org.springframework.aop.support.DefaultPointcutAdvisor是常用的Advisor类，可以和MethodInterceptor, BeforeAdvice,  ThrowsAdvice一起使用。
+
+在一个Spring AOP中，可以混合使用Advisor和Advice。Spring会自动创建拦截链。
+
+
+
+### 7.3.ProxyFactoryBean
+
+org.springframework.aop.framework.ProxyFactoryBean
+
+Spring创建代理对象的工厂。在创建对象的过程中，使用到切入点和通知，决定了代理对象的方法调用。
+
+
+
+#### 属性
+
+和Spring提供FactoryBean大部分实现一样，ProxyFactoryBean本身也是一个JavaBean。这些属性的作用：
+
+1. 指定代理的目标。
+2. 创建代理对象的方式(CGLIB/JDK代理)。
+
+
+
+继承org.springframework.aop.framework.ProxyConfig(AOP代理工厂的超类)类的属性：
+
+1. proxyTargetClass：默认false。如果代理目标是类，则为true。如果设为true，则使用CGLIB代理。
+2. optimize：默认false。控制是否将主动优化用于通过CGLIB创建的代理。仅用于CGLIB代理，对JDK代理没有任何影响。除非理解AOP代理如何处理优化，否则不要轻率的设置这个。
+3. frozen：默认false。代理对象被创建后，使用不再允许对配置进行修改。
+4. exposeProxy：是否在ThreadLocal中公开代理，以便目标可以访问它。设为true，则通过AopContext.currentProxy()能够访问。这里的目标是什么？
+5. opaque：
+
+
+
+ProxyFactoryBean的属性：
+
+1. proxyInterfaces：一组接口，决定是否启用CGLIB代理。
+2. interceptorNames：一组Advisor、interceptor或advice的名称。和拦截链有关
+3. singleton：默认true。单例相关。
+
+
+
+#### 创建代理的方式
+
+CGLIB/JDK代理。
+
+默认情况下，被代理的目标对象的类(简称目标类)没有实现任何接口，将以CGLIB的方式创建代理。因为JDK的代理是基于接口实现的。
+
+如果目标类实现了一个或多个接口，创建目标对象的代理类型取决于ProxyFactoryBean的配置。
+
+1. proxyTargetClass设为true，则使用CGLIB创建代理。优先级比proxyInterfaces高。
+2. proxyInterfaces 有一个或多个接口名，jdk代理方式创建代理对象。代理对象会实现配置的所有接口。但是目标类实现的接口比配置多，返回的对象并没有全部实现。
+3. proxyInterfaces没有设置，目标类实现了一个或多个接口，ProxyFacotryBean会自动检测目标类实际上实现了至少一个接口，然后创建一个基于JDK的代理。代理对象将实现目标类所有实现的接口。
