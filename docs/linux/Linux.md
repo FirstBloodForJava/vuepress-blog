@@ -1233,6 +1233,12 @@ netstat [option]... [| grep ...]
 -n 禁止将端口号转换成别名显示
 -r 显示路由表
 
+# 查看pid进程端口绑定情况
+netstat -tnlp | grep <PID>
+
+# Windows查看pid进程端口绑定情况
+netstat -ano | findstr <pid>
+
 ~~~
 
 
@@ -1295,6 +1301,14 @@ ss -ant
 ~~~
 
 ![ss -ant](http://47.101.155.205/image-20241024171621727.png)
+
+
+
+~~~bash
+# 查询进程pid绑定的端口信息
+ss -tnlp | grep <pid>
+
+~~~
 
 
 
