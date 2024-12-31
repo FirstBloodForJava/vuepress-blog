@@ -1071,7 +1071,7 @@ Spring创建代理对象的工厂。在创建对象的过程中，使用到切�
 ProxyFactoryBean的属性：
 
 1. proxyInterfaces：一组接口，决定是否启用CGLIB代理。
-2. interceptorNames：一组Advisor、interceptor或advice的名称。和拦截链有关
+2. interceptorNames：一组Advisor、interceptor或advice bean的名称。和拦截链有关。
 3. singleton：默认true。单例相关。
 
 
@@ -1087,3 +1087,356 @@ CGLIB/JDK代理。
 1. proxyTargetClass设为true，则使用CGLIB创建代理。优先级比proxyInterfaces高。
 2. proxyInterfaces 有一个或多个接口名，jdk代理方式创建代理对象。代理对象会实现配置的所有接口。但是目标类实现的接口比配置多，返回的对象并没有全部实现。
 3. proxyInterfaces没有设置，目标类实现了一个或多个接口，ProxyFacotryBean会自动检测目标类实际上实现了至少一个接口，然后创建一个基于JDK的代理。代理对象将实现目标类所有实现的接口。
+
+
+
+#### xml配置代理接口
+
+
+
+~~~xml
+<bean id="personTarget" class="com.mycompany.PersonImpl">
+    <property name="name" value="Tony"/>
+    <property name="age" value="51"/>
+</bean>
+
+<bean id="myAdvisor" class="com.mycompany.MyAdvisor">
+    <property name="someProperty" value="Custom string property value"/>
+</bean>
+
+<bean id="debugInterceptor" class="org.springframework.aop.interceptor.DebugInterceptor">
+</bean>
+
+<bean id="person"
+    class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="proxyInterfaces" value="com.mycompany.Person"/>
+
+    <property name="target" ref="personTarget"/>
+    <property name="interceptorNames">
+        <list>
+            <value>myAdvisor</value>
+            <value>debugInterceptor</value>
+        </list>
+    </property>
+</bean>
+
+~~~
+
+内联bean：
+
+~~~xml
+<bean id="myAdvisor" class="com.mycompany.MyAdvisor">
+    <property name="someProperty" value="Custom string property value"/>
+</bean>
+
+<bean id="debugInterceptor" class="org.springframework.aop.interceptor.DebugInterceptor"/>
+
+<bean id="person" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="proxyInterfaces" value="com.mycompany.Person"/>
+    <!-- Use inner bean, not local reference to target -->
+    <property name="target">
+        <bean class="com.mycompany.PersonImpl">
+            <property name="name" value="Tony"/>
+            <property name="age" value="51"/>
+        </bean>
+    </property>
+    <property name="interceptorNames">
+        <list>
+            <value>myAdvisor</value>
+            <value>debugInterceptor</value>
+        </list>
+    </property>
+</bean>
+
+~~~
+
+
+
+~~~java
+Person person = (Person) factory.getBean("person");
+
+~~~
+
+
+
+#### 配置代理类
+
+CGLIB代理的工作原理是在运行时生成目标类的子类。
+
+**final的方法不能被通知，因为不能被重写。**
+
+Spring在3.2版本开始，将cglib的依赖打包到了spring-core的模块中。
+
+
+
+CGLIB代理和JDK代理的性能差异很小。
+
+
+
+
+
+#### interceptorNames使用通配符
+
+~~~java
+<bean id="proxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target" ref="service"/>
+    <property name="interceptorNames">
+        <list>
+            <value>global*</value>
+        </list>
+    </property>
+</bean>
+
+<bean id="global_debug" class="org.springframework.aop.interceptor.DebugInterceptor"/>
+<bean id="global_performance" class="org.springframework.aop.interceptor.PerformanceMonitorInterceptor"/>
+
+~~~
+
+
+
+### 7.4.简化xml代理配置
+
+使用bean标签中的parent属性，能继承父类的属性，覆盖父类的属性。
+
+org.springframework.transaction.interceptor.TransactionProxyFactoryBean是spring-tx模块的。
+
+~~~xml
+<!-- parent声明，abstract属性为true，所以不会实例化 -->
+<bean id="txProxyTemplate" abstract="true"
+        class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+    <property name="transactionManager" ref="transactionManager"/>
+    <property name="transactionAttributes">
+        <props>
+            <prop key="*">PROPAGATION_REQUIRED</prop>
+        </props>
+    </property>
+</bean>
+
+<!-- 使用parent -->
+<bean id="myService" parent="txProxyTemplate">
+    <property name="target">
+        <bean class="org.springframework.samples.MyServiceImpl">
+        </bean>
+    </property>
+</bean>
+
+
+<bean id="mySpecialService" parent="txProxyTemplate">
+    <property name="target">
+        <bean class="org.springframework.samples.MySpecialServiceImpl">
+        </bean>
+    </property>
+    <!-- 覆盖配置 -->
+    <property name="transactionAttributes">
+        <props>
+            <prop key="get*">PROPAGATION_REQUIRED,readOnly</prop>
+            <prop key="find*">PROPAGATION_REQUIRED,readOnly</prop>
+            <prop key="load*">PROPAGATION_REQUIRED,readOnly</prop>
+            <prop key="store*">PROPAGATION_REQUIRED</prop>
+        </props>
+    </property>
+</bean>
+
+~~~
+
+
+
+
+
+### 7.5.coding
+
+不使用Spring IOC的情况下，代码创建代理对象。
+
+
+
+~~~java
+ProxyFactory factory = new ProxyFactory(myBusinessInterfaceImpl);
+// 添加通知
+factory.addAdvice(myMethodInterceptor);
+// 添加通知者
+factory.addAdvisor(myAdvisor);
+// 创建代理
+MyBusinessInterface tb = (MyBusinessInterface) factory.getProxy();
+
+~~~
+
+
+
+### 7.6.Advised
+
+通过Spring AOP创建的代理对象(不管CGLIB/JDK代理)，都能转换成org.springframework.aop.framework.Advised接口类型。
+
+
+
+~~~java
+// 返回添加到构建代理对象工厂的advisor、interceptor、advice
+Advisor[] getAdvisors();
+
+// 添加
+// 代理对象已经创建，不能添加或删除introduction advisor
+void addAdvice(Advice advice) throws AopConfigException;
+
+void addAdvice(int pos, Advice advice) throws AopConfigException;
+
+void addAdvisor(Advisor advisor) throws AopConfigException;
+
+void addAdvisor(int pos, Advisor advisor) throws AopConfigException;
+
+int indexOf(Advisor advisor);
+
+boolean removeAdvisor(Advisor advisor) throws AopConfigException;
+
+void removeAdvisor(int index) throws AopConfigException;
+
+boolean replaceAdvisor(Advisor a, Advisor b) throws AopConfigException;
+
+boolean isFrozen();
+
+~~~
+
+
+
+~~~java
+// 默认情况下，代理工厂配置frozen为false。设为true执行则抛出AopConfigException异常
+// 将代理对象强制转换成Advised类型
+Advised advised = (Advised) myObject;
+Advisor[] advisors = advised.getAdvisors();
+int oldAdvisorCount = advisors.length;
+System.out.println(oldAdvisorCount + " advisors");
+
+// 添加一个没有切入点的advice
+// 将会代理所有方法
+// Can use for interceptors, before, after returning or throws advice
+advised.addAdvice(new DebugInterceptor());
+
+// Add selective advice using a pointcut
+advised.addAdvisor(new DefaultPointcutAdvisor(mySpecialPointcut, myAdvice));
+
+assertEquals("Added two advisors", oldAdvisorCount + 2, advised.getAdvisors().length);
+
+~~~
+
+
+
+### 7.7.auto-proxy
+
+自动代理配置
+
+使用org.springframework.aop.framework.autoproxy包中的功能。
+
+BeanNameAutoProxyCreator：
+
+~~~xml
+<!--通过使用bean的名称创建代理-->
+<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+    <property name="beanNames" value="jdk*,onlyJdk"/>
+    <property name="interceptorNames">
+        <list>
+            <value>myInterceptor</value>
+        </list>
+    </property>
+</bean>
+
+~~~
+
+
+
+DefaultAdvisorAutoProxyCreator：
+
+这样一个例子看不出如何生效？
+
+~~~xml
+<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+<bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor">
+    <property name="transactionInterceptor" ref="transactionInterceptor"/>
+</bean>
+
+<bean id="customAdvisor" class="com.mycompany.MyAdvisor"/>
+
+<bean id="businessObject1" class="com.mycompany.BusinessObject1">
+    <!-- Properties omitted -->
+</bean>
+
+<bean id="businessObject2" class="com.mycompany.BusinessObject2"/>
+
+~~~
+
+
+
+### 7.8.TargetSource
+
+org.springframework.aop.TargetSource
+
+目标对象和连接点的关系？
+
+
+
+#### HotSwappableTargetSource
+
+org.springframework.aop.target.HotSwappableTargetSource
+
+切换目标对象，但是不影响调用？有什么作用？
+
+~~~xml
+<bean id="initialTarget" class="mycompany.OldTarget"/>
+
+<bean id="swapper" class="org.springframework.aop.target.HotSwappableTargetSource">
+    <constructor-arg ref="initialTarget"/>
+</bean>
+
+<bean id="swappable" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="targetSource" ref="swapper"/>
+</bean>
+
+~~~
+
+
+
+~~~java
+HotSwappableTargetSource swapper = (HotSwappableTargetSource) beanFactory.getBean("swapper");
+// 交换
+Object oldTarget = swapper.swap(newTarget);
+
+~~~
+
+
+
+#### AbstractPoolingTargetSource 
+
+
+
+
+
+#### PrototypeTargetSource
+
+
+
+~~~xml
+<bean id="prototypeTargetSource" class="org.springframework.aop.target.PrototypeTargetSource">
+    <property name="targetBeanName" ref="businessObjectTarget"/>
+</bean>
+
+~~~
+
+
+
+#### ThreadLocalTargetSource
+
+
+
+
+~~~xml
+<bean id="threadlocalTargetSource" class="org.springframework.aop.target.ThreadLocalTargetSource">
+    <property name="targetBeanName" value="businessObjectTarget"/>
+</bean>
+
+~~~
+
+
+
+### 8.自定义advice类型
+
+自定义类型需要实现标记接口org.aopalliance.aop.Advice。
+
+https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/aop/framework/adapter/package-frame.html
