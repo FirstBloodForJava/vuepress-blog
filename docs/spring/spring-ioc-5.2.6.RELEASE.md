@@ -1410,7 +1410,7 @@ ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanN
 
 ## 7.Bean的定义继承
 
-
+abstract="true"(标记为抽象)表示定义的bean不会被实例化，仅仅是一段配置。
 
 ~~~xml
 <bean id="inheritedTestBean" abstract="true"
