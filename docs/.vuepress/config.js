@@ -203,8 +203,9 @@ export default defineUserConfig({
             text: 'Spring注解介绍',
             link: 'Spring注解介绍'
           },
+          // spring core模型
           {
-            text: 'core-5.2.6.RELEASE',
+            text: 'spring核心-5.2.6.RELEASE',
             prefix: 'core',
             children: [
               {
@@ -219,6 +220,16 @@ export default defineUserConfig({
                 text: 'Spring AOP代理',
                 link: 'spring-core-AOP'
               }
+            ]
+          },
+          {
+            text: '数据访问',
+            prefix: 'dataAccess',
+            children: [
+              {
+                text: '事物管理',
+                link: 'transactionManagement'
+              },
             ]
           }
         ]
