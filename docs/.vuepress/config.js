@@ -222,6 +222,7 @@ export default defineUserConfig({
               }
             ]
           },
+          // 数据层
           {
             text: '数据访问',
             prefix: 'dataAccess',
@@ -230,6 +231,17 @@ export default defineUserConfig({
                 text: '事物管理',
                 link: 'transactionManagement'
               },
+            ]
+          },
+          // 接口层
+          {
+            text: 'Servlet请求',
+            prefix: 'webServlet',
+            children: [
+                {
+                  text: 'SpringMVC',
+                  link: 'SpringMVC',
+                }
             ]
           }
         ]
