@@ -202,6 +202,24 @@ export default defineUserConfig({
           {
             text: 'Spring注解介绍',
             link: 'Spring注解介绍'
+          },
+          {
+            text: 'core-5.2.6.RELEASE',
+            prefix: 'core',
+            children: [
+              {
+                text: 'IOC容器相关',
+                link: 'spring-core-ioc'
+              },
+              {
+                text: 'SpEL表达式',
+                link: 'spring-core-SpEL'
+              },
+              {
+                text: 'Spring AOP代理',
+                link: 'spring-core-AOP'
+              }
+            ]
           }
         ]
       },
