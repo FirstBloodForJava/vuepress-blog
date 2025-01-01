@@ -243,6 +243,17 @@ export default defineUserConfig({
                   link: 'SpringMVC',
                 }
             ]
+          },
+          // 响应式接口
+          {
+            text: '响应式处理',
+            prefix: 'webReactive',
+            children: [
+                {
+                  text: 'SpringWebFlux',
+                  link: 'SpringWebFlux',
+                }
+            ]
           }
         ]
       },
