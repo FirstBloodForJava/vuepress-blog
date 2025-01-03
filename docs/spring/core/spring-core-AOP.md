@@ -601,6 +601,12 @@ Spring AOP使用JDK动态代理或CGLIB来为给定的目标对象创建代理�
 
 
 
+代理对象是通过BeanPostProcessor的实例AnnotationAwareAspectJAutoProxyCreator的postProcessAfterInitialization方法创建：
+
+
+
+
+
 
 
 ## 5.编程声明切面代理
@@ -1435,8 +1441,27 @@ Object oldTarget = swapper.swap(newTarget);
 
 
 
-### 8.自定义advice类型
+## 8.自定义advice类型
 
 自定义类型需要实现标记接口org.aopalliance.aop.Advice。
 
 https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/aop/framework/adapter/package-frame.html
+
+
+
+## 9.bean代理对象创建的过程
+
+![image-20250103205311866](http://47.101.155.205/image-20250103205311866.png)
+
+BeanPostProcessor实例AnnotationAwareAspectJAutoProxyCreator
+
+AbstractAutoProxyCreator：
+
+1. postProcessBeforeInstantiation：返回null，不为空的TargetSource对象。
+2. postProcessAfterInitialization：根据bean对象是否创建代理对象
+
+![image-20250103211030557](http://47.101.155.205/image-20250103211030557.png)
+
+![image-20250103212911356](http://47.101.155.205/image-20250103212911356.png)
+
+![image-20250103213344751](http://47.101.155.205/image-20250103213344751.png)
