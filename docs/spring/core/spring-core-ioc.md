@@ -1459,10 +1459,12 @@ abstract="true"(标记为抽象)表示定义的bean不会被实例化，仅仅�
 
 ### 8.1.BeanPostProcessor接口
 
-实现BeanPostProcessor接口的Bean，会在Bean的实例化后，触发回调。当有多个该接口时，可以实现Ordered接口来指定回调的执行顺序。
+![image-20250103195910396](http://47.101.155.205/image-20250103195910396.png)
 
-1. postProcessAfterInitialization(Object bean, String beanName)：在Bean的初始化之后，如@Bean指定的初始化方法执行之后。
-2. postProcessBeforeInitialization(Object bean, String beanName)：在Bean的初始化之后，但是在如@Bean指定的方法回调之前。
+实现BeanPostProcessor接口的Bean，会在Bean的实例化后(类的构造方法执行完成)，触发回调。当有多个该接口时，可以实现Ordered接口来指定回调的执行顺序。
+
+1. postProcessBeforeInitialization(Object bean, String beanName)：在Bean的初始化之后(bean的构造方法调用)，但是在如@Bean指定的方法(init)回调之前。
+2. postProcessAfterInitialization(Object bean, String beanName)：在Bean的初始化之后，如@Bean指定的初始化方法执行之后。
 
 使用@Bean创建BeanPostProcessor接口的对象时，不要使用Object类型，否则容器ApplicationContext无法在创建Bean之前通过类型自动检测它。
 
@@ -4040,6 +4042,12 @@ BeanFactory和ApplicationContext
 
 以单例bean对象被创建后的处理(bean的构造方法已经执行)，在AbstractAutowireCapableBeanFactory类的处理过程：
 
+![image-20250103194459421](http://47.101.155.205/image-20250103194459421.png)
+
+**如果访问了单例被代理的bean，会更早的创建代理对象，因为SmartInstantiationAwareBeanPostProcessor(AnnotationAwareAspectJAutoProxyCreator)的getEarlyBeanReference方法，该方法也会创建代理对象。**
+
+![image-20250103195514617](http://47.101.155.205/image-20250103195514617.png)
+
 ~~~txt
 // 使用AnnotationConfigApplicationContext启动类，有以下注解@Configuration(proxyBeanMethods = false)、@EnableAspectJAutoProxy、@ComponentScan("com.example.aop")的BeanPostProcessor(7)
 org.springframework.context.support.ApplicationContextAwareProcessor
@@ -4047,20 +4055,38 @@ org.springframework.context.annotation.ConfigurationClassPostProcessor$ImportAwa
 org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker
 org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
 org.springframework.context.annotation.CommonAnnotationBeanPostProcessor
-org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor
+org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor 在其它方法实现属性注入
 org.springframework.context.support.ApplicationListenerDetector
 
 ~~~
 
-
+AbstractAutowireCapableBeanFactory：
 
 1. applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName)：BeanPostProcessor中MergedBeanDefinitionPostProcessor类型调用postProcessMergedBeanDefinition方法。有CommonAnnotationBeanPostProcessor、AutowiredAnnotationBeanPostProcessor、ApplicationListenerDetector(监听事件注册)类型。
 2. populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw)：BeanPostProcessor中InstantiationAwareBeanPostProcessor类型调用postProcessAfterInstantiation方法。有AutowiredAnnotationBeanPostProcessor。
-   1. Bean的定义中返回的注入类型是通过类型或名称注入，则注入类型。
-   2. InstantiationAwareBeanPostProcessor类型的BeanPostProcessor调用postProcessProperties方法，为了设置属性？
+   1. 尝试是否能成功创建代理对象bean。
+   2. Bean的定义中返回的注入类型是通过类型或名称注入，则注入类型。
+   3. InstantiationAwareBeanPostProcessor类型的BeanPostProcessor调用postProcessProperties方法，为了设置注解属性等
 3. initializeBean(final String beanName, final Object bean, @Nullable RootBeanDefinition mbd)：
    1. 调用织入接口BeanNameAware、BeanClassLoaderAware、BeanFactoryAware；
    2. BeanPostProcessor处理调用其postProcessBeforeInitialization(Object bean, String beanName)方法，按添加的顺序执行；
    3. 调用初始化方法，initInitializingBean接口调用afterPropertiesSet方法，bean指定的初始化方法；
    4. BeanPostProcessor处理调用其postProcessAfterInitialization方法。在这里AnnotationAwareAspectJAutoProxyCreator进行了代理处理。
 
+
+
+| BeanPostProcessor                      | postProcessBeforeInitialization                              | postProcessAfterInitialization                     |
+| -------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| ApplicationContextAwareProcessor       | EnvironmentAware、<br />EmbeddedValueResolverAware、<br />ResourceLoaderAware、<br />ApplicationEventPublisherAware、<br />MessageSourceAware、<br />ApplicationContextAware | 默认                                               |
+| ImportAwareBeanPostProcessor           | ImportAware                                                  | 默认                                               |
+| BeanPostProcessorChecker               | 默认                                                         | 记录作用                                           |
+| AnnotationAwareAspectJAutoProxyCreator | 默认                                                         | AbstractAutoProxyCreator判断是否创建代理对象       |
+| CommonAnnotationBeanPostProcessor      | bean声明周期方法回调<br />InitDestroyAnnotationBeanPostProcessor | 默认                                               |
+| AutowiredAnnotationBeanPostProcessor   | 默认                                                         | 默认                                               |
+| ApplicationListenerDetector            | 默认                                                         | 监听事件的bean添加到AbstractApplicationContext对象 |
+
+
+
+![image-20250103215551792](http://47.101.155.205/image-20250103215551792.png)
+
+这样的过程刚好和BeanFactory上面说的内容对上。
