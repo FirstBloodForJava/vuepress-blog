@@ -33,3 +33,13 @@ InputStream inputStream = urlConnection.getInputStream();
 org.springframework.core.io.FileSystemResource创建InputStream。
 
 通过file指定绝对路径格式file:路径或file:///路径。
+
+
+
+
+
+## 反射
+
+### ClassUtils
+
+1. getInterfaceMethodIfPossible(Method method)：
