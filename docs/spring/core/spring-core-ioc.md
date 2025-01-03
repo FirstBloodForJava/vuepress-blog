@@ -124,17 +124,17 @@ services.xml配置
 
 这些元数据会转换为一组构成每个Bean定义的属性。如下表：
 
-| 属性                     | 描述       |
-| ------------------------ | ---------- |
-| Class                    | Bean的类型 |
-| Name                     | Bean的名称 |
-| Scope                    |            |
-| Constructor arguments    |            |
-| Properties               |            |
-| Autowiring mode          |            |
-| Lazy initialization mode |            |
-| initalization method     |            |
-| Destruction method       |            |
+| 属性                     | 描述             |
+| ------------------------ | ---------------- |
+| Class                    | Bean的类型       |
+| Name                     | Bean的名称       |
+| Scope                    | bean的作用域     |
+| Constructor arguments    | 构造方法参数     |
+| Properties               | 属性             |
+| Autowiring mode          | 自动注入模式     |
+| Lazy initialization mode | 是否懒加载       |
+| initalization method     | 初始化调用的方法 |
+| Destruction method       | 销毁调用的方法   |
 
 ApplicationContext的实现允许new创建的对象注册到容器中，通过ApplicationContext的BeanFactory(getBeanFactory()方法)，返回DefaultListableBeanFactory通过registerSingleton(..)或registerBeanDefinition(..)方法注册。
 
@@ -1230,11 +1230,12 @@ Spring框架提供了许多接口，你可以使用它们来定制Bean的行为�
 
 **BeanPostProcessor作用？**
 
-不推荐使用接口的方式实现这种回调，因为这个会让类和Spring耦合在一起。其它方式有@PostConstruct注解Bean的方法、@Bean(initMethod = "init")、xml指定方法。
+不推荐使用接口(InitializingBean)的方式实现这种回调，因为这个会让类和Spring耦合在一起。其它方式有@PostConstruct注解Bean的方法、@Bean(initMethod = "init")、xml指定方法。
 
 ~~~java
 public class ExampleBean {
 
+    // 方法是任意访问修饰符
     public void init() {
         // do some initialization work
     }
@@ -1247,7 +1248,7 @@ public class ExampleBean {
 
 ~~~
 
-
+![image-20250103164344317](http://47.101.155.205/image-20250103164344317.png)
 
 实现org.springframework.beans.factory.DisposableBean接口，能在包含这个Bean的容器销毁时，执行回调方法。
 
@@ -1294,6 +1295,12 @@ public class ExampleBean {
 1. @PostConstruct注解的方法。
 2. InitializingBean接口的方法afterPropertiesSet()。
 3. 自定义的init()方法。
+
+
+
+![image-20250103163603997](http://47.101.155.205/image-20250103163603997.png)
+
+
 
 销毁方法是同样的顺序：
 
@@ -1399,7 +1406,7 @@ ApplicationContextAware和BeanNameAware分别注入了ApplicationContext和BeanN
 | BeanFactoryAware               | 注入BeanFactory                     | 6.2  |
 | BeanNameAware                  | 注入声明Bean的名称                  | 6.2  |
 | BootstrapContextAware          | JCA的ApplicationContext             |      |
-| LoadTimeWeaverAware            |                                     |      |
+| LoadTimeWeaverAware            | 让bean更早实例化,class文件有关      |      |
 | MessageSourceAware             | 消息解析策略(国际化)                |      |
 | NotificationPublisherAware     | JMX通知发布者                       |      |
 | ResourceLoaderAware            | 为了访问低级资源                    |      |
@@ -1641,7 +1648,7 @@ Spring 4.3开始，如果bean仅定义个一个构造方法，则可以省略@Au
 7. ConfigurableApplicationContext 
 8. ResourcePatternResolver
 
-@Autowired, @Inject, @Value, @Resource这些注解通过Spring的BeanPostProcessor实现来处理的，BeanPostProcessor或BeanFactoryPostProcessor类型的类中不能使用这些注解?
+@Autowired, @Inject, @Value, @Resource这些注解通过Spring的BeanPostProcessor实现的来注入，BeanPostProcessor或BeanFactoryPostProcessor类型不能注入在bean中。
 
 
 
@@ -4030,4 +4037,30 @@ BeanFactory和ApplicationContext
 |                                                       |             |                    |
 
 
+
+以单例bean对象被创建后的处理(bean的构造方法已经执行)，在AbstractAutowireCapableBeanFactory类的处理过程：
+
+~~~txt
+// 使用AnnotationConfigApplicationContext启动类，有以下注解@Configuration(proxyBeanMethods = false)、@EnableAspectJAutoProxy、@ComponentScan("com.example.aop")的BeanPostProcessor(7)
+org.springframework.context.support.ApplicationContextAwareProcessor
+org.springframework.context.annotation.ConfigurationClassPostProcessor$ImportAwareBeanPostProcessor
+org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker
+org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
+org.springframework.context.annotation.CommonAnnotationBeanPostProcessor
+org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor
+org.springframework.context.support.ApplicationListenerDetector
+
+~~~
+
+
+
+1. applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName)：BeanPostProcessor中MergedBeanDefinitionPostProcessor类型调用postProcessMergedBeanDefinition方法。有CommonAnnotationBeanPostProcessor、AutowiredAnnotationBeanPostProcessor、ApplicationListenerDetector(监听事件注册)类型。
+2. populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw)：BeanPostProcessor中InstantiationAwareBeanPostProcessor类型调用postProcessAfterInstantiation方法。有AutowiredAnnotationBeanPostProcessor。
+   1. Bean的定义中返回的注入类型是通过类型或名称注入，则注入类型。
+   2. InstantiationAwareBeanPostProcessor类型的BeanPostProcessor调用postProcessProperties方法，为了设置属性？
+3. initializeBean(final String beanName, final Object bean, @Nullable RootBeanDefinition mbd)：
+   1. 调用织入接口BeanNameAware、BeanClassLoaderAware、BeanFactoryAware；
+   2. BeanPostProcessor处理调用其postProcessBeforeInitialization(Object bean, String beanName)方法，按添加的顺序执行；
+   3. 调用初始化方法，initInitializingBean接口调用afterPropertiesSet方法，bean指定的初始化方法；
+   4. BeanPostProcessor处理调用其postProcessAfterInitialization方法。在这里AnnotationAwareAspectJAutoProxyCreator进行了代理处理。
 
