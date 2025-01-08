@@ -110,7 +110,7 @@ Spring的JDBC做了什么
 
 
 
-### 2.2.API
+### 2.2.执行API
 
 三种JdbcTemplate访问风格：
 
@@ -262,6 +262,108 @@ this.jdbcTemplate.update(
 
 
 
+**批量操作**
+
+~~~java
+// 实现接口BatchPreparedStatementSetter的两个方法
+public class JdbcActorDao implements ActorDao {
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    // int[]记录的是每次操作影响的函数,由JDBC驱动记录(如果记录不可选,则返回-2)
+    public int[] batchUpdate(final List<Actor> actors) {
+        return this.jdbcTemplate.batchUpdate(
+                "update t_actor set first_name = ?, last_name = ? where id = ?",
+                new BatchPreparedStatementSetter() {
+                    // i是每次操作,从0开始
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        Actor actor = actors.get(i);
+                        ps.setString(1, actor.getFirstName());
+                        ps.setString(2, actor.getLastName());
+                        ps.setLong(3, actor.getId().longValue());
+                    }
+                    // 指定批量操作的次数
+                    public int getBatchSize() {
+                        return actors.size();
+                    }
+                });
+    }
+
+
+}
+
+// 使用InterruptibleBatchPreparedStatementSetter接口的isBatchExhausted方法可以提前中断批次操作
+// isBatchExhausted结果为true这次操作被放弃
+
+~~~
+
+~~~java
+public class JdbcActorDao implements ActorDao {
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    // 使用数组的方式
+    public int[] batchUpdate(final List<Actor> actors) {
+        List<Object[]> batch = new ArrayList<Object[]>();
+        for (Actor actor : actors) {
+            Object[] values = new Object[] {
+                    actor.getFirstName(), actor.getLastName(), actor.getId()};
+            batch.add(values);
+        }
+        return this.jdbcTemplate.batchUpdate(
+                "update t_actor set first_name = ?, last_name = ? where id = ?",
+                batch);
+    }
+
+    // ... additional methods
+}
+
+~~~
+
+
+
+~~~java
+// batchArgs表示要处理的数量,batchSize表示批次处理的shul
+// 如果batchArgs的数量大于批次处理数量,则分多批次处理
+<T> int[][] batchUpdate(String sql, Collection<T> batchArgs, int batchSize,
+			ParameterizedPreparedStatementSetter<T> pss) throws DataAccessException;
+public class JdbcActorDao implements ActorDao {
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    public int[][] batchUpdate(final Collection<Actor> actors) {
+        int[][] updateCounts = jdbcTemplate.batchUpdate(
+                "update t_actor set first_name = ?, last_name = ? where id = ?",
+                actors,
+                100,
+                (PreparedStatement ps, Actor actor) -> {
+                    ps.setString(1, actor.getFirstName());
+                    ps.setString(2, actor.getLastName());
+                    ps.setLong(3, actor.getId().longValue());
+                });
+        return updateCounts;
+    }
+
+}
+
+~~~
+
+
+
+
+
 > 其它操作
 
 ~~~java
@@ -305,7 +407,7 @@ public int countOfActorsByFirstName(String firstName) {
 
 ~~~
 
-SqlParameterSource实现BeanPropertySqlParameterSource，其用法：
+SqlParameterSource的实现BeanPropertySqlParameterSource，其用法：
 
 ~~~java
 private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -325,6 +427,33 @@ public int countOfActors(Actor exampleActor) {
 }
 
 ~~~
+
+
+
+**批量操作：**
+
+~~~java
+// 提供SqlParameterSource数组
+public class JdbcActorDao implements ActorDao {
+
+    private NamedParameterTemplate namedParameterJdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    public int[] batchUpdate(List<Actor> actors) {
+        return this.namedParameterJdbcTemplate.batchUpdate(
+                "update t_actor set first_name = :firstName, last_name = :lastName where id = :id",
+                SqlParameterSourceUtils.createBatch(actors));
+    }
+
+    
+}
+
+~~~
+
+
 
 
 
@@ -387,5 +516,137 @@ public void updateShippingCharge(long orderId, long pct) {
 
 
 
+#### SimpleJdbcInsert
+
+
+
+
+
+### 2.3.连接API
+
 #### DataSource
+
+DataSource是获取数据库连接的关键。Spring提供的DriverManagerDataSource和SimpleDriverDataSource类不支持池优化。支持第三方的连接池DataSource，如Apache的DBCP和C3P0，HikariCP。
+
+
+
+> DriverManagerDataSource配置方式
+
+
+
+~~~java
+DriverManagerDataSource dataSource = new DriverManagerDataSource();
+dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+dataSource.setUrl("jdbc:hsqldb:hsql://localhost:");
+dataSource.setUsername("sa");
+dataSource.setPassword("");
+
+~~~
+
+~~~xml
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+
+<context:property-placeholder location="jdbc.properties"/>
+
+~~~
+
+
+
+> DBCP配置方式
+
+
+
+~~~xml
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+
+<context:property-placeholder location="jdbc.properties"/>
+
+~~~
+
+
+
+> C3P0配置方式
+
+
+~~~java
+<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    <property name="driverClass" value="${jdbc.driverClassName}"/>
+    <property name="jdbcUrl" value="${jdbc.url}"/>
+    <property name="user" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+
+<context:property-placeholder location="jdbc.properties"/>
+
+~~~
+
+
+
+#### DataSourceUtils
+
+提供了静态方法，可以根据DataSource获取连接和手动关闭连接。支持线程绑定连接。
+
+
+
+
+
+#### SmartDataSource
+
+继承DataSource的接口，提供了一个shouldClose，接收一个连接，判断是否关闭连接。
+
+
+
+
+
+#### AbstractDataSource
+
+自定义DataSource继承该接口，可以减少一些实现的方法。
+
+
+
+#### SingleConnectionDataSource
+
+配置项suppressClose设为true，创建一个不支持关闭的数据库连接。使用对象的是通过JDK创建的代理对象。
+
+![image-20250107140513631](http://47.101.155.205/image-20250107140513631.png)
+
+
+
+#### DriverManagerDataSource
+
+底层使用DriverManager.getConnection(url, props)获取连接，每次都会获取一次连接。
+
+![image-20250107150803348](http://47.101.155.205/image-20250107150803348.png)
+
+
+
+#### TransactionAwareDataSourceProxy
+
+TransactionAwareDataSourceProxy通过使用DataSource对象，获取的Connection对象是代理对象，代理接口ConnectionProxy所有的方法。使用DataSourceUtils类的静态方法创建目标对象。
+
+如果使用connection对象创建了Statement对象，则根据DataSource是否配置事务超时时间。
+
+![image-20250107165349716](http://47.101.155.205/image-20250107165349716.png)
+
+![image-20250108102735949](http://47.101.155.205/image-20250108102735949.png)
+
+
+
+
+
+#### DataSourceTransactionManager
+
+DataSourceTransactionManager是PlatformTransactionManager的实现，用来给单个数据源做事务管理。允许获取指定数据源的事务。
+
+![image-20250108125215702](http://47.101.155.205/image-20250108125215702.png)
 
