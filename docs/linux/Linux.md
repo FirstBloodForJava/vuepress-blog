@@ -1312,6 +1312,17 @@ ss -tnlp | grep <pid>
 
 
 
+##### ifconfig
+
+
+
+~~~bash
+# 查询本机ip命令
+ifconfig | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
+
+
+~~~
+
 
 
 
