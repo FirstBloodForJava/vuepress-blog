@@ -146,7 +146,16 @@ export default defineUserConfig({
         prefix: '/build',
         children: [
           'maven.md',
-          'Docker.md'
+          'Docker.md',
+          'gradle.md',
+          {
+            text: 'gradle管理Java项目',
+            link: 'gradle管理Java项目'
+          },
+          {
+            text: 'maven项目切换gradle步骤',
+            link: 'maven项目切换gradle步骤'
+          }
         ]
       },
       // JVM
