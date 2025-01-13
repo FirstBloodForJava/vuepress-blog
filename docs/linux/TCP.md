@@ -10,7 +10,7 @@
 
 MSL(Maximum Segment Lifetime，最大报文段生存时间)
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/direct/0cdeae65a1c940c8bf90cdb25905a60b.png)
+![在这里插入图片描述](http://47.101.155.205/0cdeae65a1c940c8bf90cdb25905a60b.png)
 
 ![image-20240220220747429](http://47.101.155.205/image-20240220220747429.png)
 
