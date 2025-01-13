@@ -322,7 +322,7 @@ build.gradle
 ~~~gradle
 plugins {
 	java
-	// 引入插件不使用,改模块不会被打包成可执行的jar
+	// 引入插件不使用,该模块不会被打包成可执行的jar
 	id("org.springframework.boot") version "2.2.7.RELEASE" apply false
 	id("io.spring.dependency-management") version "1.0.9.RELEASE"
 }
