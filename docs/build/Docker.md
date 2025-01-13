@@ -8,7 +8,7 @@ Docker 是一个开源的应用容器引擎，让开发者可以打包他们的�
 
 
 
-###Docker组成部分
+### Docker组成部分
 
 1. DockerClient客户端
 2. DockerDaemon守护进程
@@ -166,32 +166,41 @@ sudo rm -rf /var/lib/containerd
 ### 1、Docker命令
 
 ~~~bash
-#####启动关闭########
-systemctl start docker #启动docker服务
-systemctl stop docker #关闭docker服务
+#启动docker服务
+systemctl start docker
+#关闭docker服务
+systemctl stop docker
 
-docker run centos #以镜像centos创建容器启动
+# 搜索镜像名的镜像
+docker search <iamge-name>
 
+
+# 以镜像centos创建容器启动
+docker run centos 
+# 查看运行容器的资源使用情况
 docker stats
+#查看正在运行的容器
+docker ps
+# 查看所有容器(包括刚刚运行的容器),-n num最后几条，-l最后一条，-q只显示容器id
+docker ps -a
+# 查看容器日志
+docker logs <contain-id>/<contain-name>
 
-####查询#####
-docker search 镜像名 #搜索镜像名的镜像
-docker ps #查看正在运行的容器
-docker ps -a #查看所有容器(包括刚刚运行的容器),-n num最后几条，-l最后一条，-q只显示容器id
-docker logs 容器id/容器name #查看容器日志
 ~~~
 
 ![image-20220613231214371](http://47.101.155.205/image-20220613231214371.png)
 
-> CONTAINER ID -容器的id
+| 属性名       | 描述                                    |
+| ------------ | --------------------------------------- |
+| CONTAINER ID | 容器的id                                |
+| IMAGE        | 使用的镜像                              |
+| COMMAND      | 启动容器时运行的命令                    |
+| CREATED      | 容器创建的时间                          |
+| STATUS       | 容器的状态                              |
+| PORTS        | 容器的端口信息和使用的连接类型(tcp\udp) |
+| NAMES        | 自动分配的容器名称(可以指定)            |
 
-> IMAGE - 使用的镜像
-
-> COMMAND - 启动容器时运行的命令
-
-> CREATED - 容器创建的时间
-
-> STATUS-容器的7种状态
+STATUS-容器的7种状态：
 
 1. created（已创建）
 2. restarting（重启中）
@@ -199,37 +208,36 @@ docker logs 容器id/容器name #查看容器日志
 4. removing（迁移中）
 5. paused（暂停）
 6. exited（停止）
-7. dead（死亡
-
-> PORTS-容器的端口信息和使用的连接类型（tcp\udp）
-
-> NAMES-自动分配的容器名称
+7. dead（死亡）
 
 
 
 ### 2、镜像命令
 
 ~~~bash
-docker image #查看当前docker的镜像
+#查看当前docker的镜像
+docker images
+
 ~~~
 
 ![image-20220614003744012](http://47.101.155.205/image-20220614003744012.png)
 
-> REPOSITORY - 镜像的仓库源
-
-> TAG - 镜像的标签
-
-> IMAGE ID - 镜像的id
-
-> CARATED - 镜像创建的时间
-
-> SIZE - 镜像的大小
+| 属性名     | 属性描述       |
+| ---------- | -------------- |
+| REPOSITORY | 镜像的仓库源   |
+| TAG        | 镜像的标签     |
+| IMAGE ID   | 镜像的id       |
+| CARATED    | 镜像创建的时间 |
+| SIZE       | 镜像的大小     |
 
 
 
 ~~~bash
-docker pull 镜像名 #从远程拉取镜像，没有tag默认时latest标签的镜像
-docket pull mysql:5.7 #
+#从远程拉取镜像，没有tag默认时latest标签的镜像
+docker pull <image-name>
+# 拉去指定版本的远程镜像
+docket pull mysql:5.7 
+
 ~~~
 
 ![image-20220613233508598](http://47.101.155.205/image-20220613233508598.png)
@@ -239,54 +247,87 @@ docket pull mysql:5.7 #
 
 
 ~~~bash
-#镜像查询
-docker search 镜像名
+# 镜像查询
+docker search <image-name>
 docker search httpd
+
 ~~~
 
 ![image-20220614004551416](http://47.101.155.205/image-20220614004551416.png)
 
-> NAME - 镜像仓库源的名称
-
-> DESCRIPTION - 镜像的描述
-
-> STARS - 点赞收藏的数量
-
-> OFFICIAL - 是否Docker官方发布
-
-> AUTOMATED - 自动构建
+| 属性名      | 属性描述           |
+| ----------- | ------------------ |
+| NAME        | 镜像仓库源的名称   |
+| DESCRIPTION | 镜像的描述         |
+| STARS       | 点赞收藏的数量     |
+| OFFICIAL    | 是否Docker官方发布 |
+| AUTOMATED   | 自动构建           |
 
 
 
 ~~~bash
-docker rmi 镜像名 #删除镜像
+# 删除镜像
+docker rmi <image-name>
+
 ~~~
 
 
 
+#### 创建镜像方式一
+
+从容器中创建镜像，需要容器的id。也可以在之前的容器中执行apt-get update一些更新命令后创建容器。
+
 ~~~bash
-#创建镜像方式一:从已经创建的容器中更新镜像，并且提交这个镜像
-apt-get update #在容器中执行这个命令进行更新，退出容器
+docker commit [-m -a ...] <container-id> <image-name>:<tag>
+# -m 提交的描述
+# -a 镜像的作者 id 创建的目标镜像名
+
 docker commit -m="has update" -a="runoob" e218edb10161 runoob/ubuntu:v2
--m #提交的描述
--a #镜像的作者 id 创建的目标镜像名
+
+docker commit -m="描述" -a="作者" container的id image的名字
+
+~~~
+
+
+
+#### 创建镜像方式二
+
+通过Dockerfile文件创建镜像。Dockerfile文件内容语法：
+
+~~~dockerfile
+FROM 		#镜像从哪里来
+MAINTAINER 	#镜像是谁创建的
+RUN 		#构建镜像执行的命令，每一次RUN都会构建一层，在docker build执行
+VOLUME		#定义数据卷，没有定义使用默认的
+USER 		#指定后续执行的用户组和用户
+WORKDIR 	#切换当前工作的执行目录
+EXPOSE		#暴露端口
+ADD			#添加文件，如果是URL或压缩包便会自动下载或自动解压
+COPY		#添加文件以复制的形式，跟ADD类似，但不具备自动下载或解压的功能
+CMD			#容器启动的命令，有多个以最后一个为准。启动容器时传递参数替换原来的命令。docker run执行
+ENTRYPOINT	#容器启动时执行的命令,启动容器时传递参数追加
+ENV			#设置容器环境变量，键值对
+LABEL		#给镜像添加一些元数据(metadata)，以键值对的形式
+
 ~~~
 
 
 
 ~~~bash
-#创建镜像方式二:使用Dockerfile指令来创建一个新的镜像
-#1.需要创建一个Dockerfile文件，其中包含一组指令来告诉Docker如何构建我们的镜像。
-#第一条FROM，指定使用哪个镜像源
-#RUN指令告诉docker在镜像内执行命令，安装了什么。
-docker build -t runoob/centos:6.7 . #-t:指定要创建的目标镜像名,. :Dockerfile所在目录，可以指定Dockerfile的绝对路径
+docker build -t <image-name>:<tag> .
+# -t 指定要创建的目标镜像名,不指定版本,默认是最新的镜像
+# . 表示从当前目录寻找Dockerfile文件,可以指定Dockerfile的绝对路径
+
+docker build -t runoob/centos:6.7 .
+
 ~~~
 
 
 
 ~~~bash
-#设置镜像标签
-docker tag 镜像id 镜像名:新的ta'g
+# 设置镜像标签(版本)
+docker tag <image-id> <image-name>:<tag>
+
 ~~~
 
 
@@ -302,36 +343,54 @@ docker tag 镜像id 镜像名:新的ta'g
 ### 3、容器命令
 
 ~~~bash
-#启动
-docker run 参数 镜像名  #以某镜像创建容器启动
-docker run -it centos /bin/bash #以交互式启动centos镜像的容器，exit之后，容器也退出。-i交互式操作，-t终端
-docker run -d centos /bin/bash #以后台模式运行容器，如果容器中没有可执行的命令，容器就会自动关闭
+# 以镜像创建容器启动
+docker run [option] <image-name> [command] [args]
+# -d(--detach) 后台持续运行
+# -it -i交互式操作，-t终端
+# -p <主机端口>:<容器端口> 将容器的端口映射到主机端口
+# -P 随机映射端口
+# --name <name> 容器的名称
+# -v 将主机的目录挂载到容器内部的文件或目录
+# --restart no(不重启) always(总是)
+# -e 环境变量设置
+docker run [option] <image-name>
+# 以交互式启动centos镜像的容器，exit之后，容器也退出
+docker run -it centos /bin/bash
+# 以后台模式运行容器，如果容器中没有可执行的命令，容器就会自动关闭
+docker run -d centos /bin/bash
 docker run -d centos /bin/sh -c "while true; do echo hello world;sleep 1;done"
-docker run -itd centos /bin/bash #-d后台运行容器
-docker run -d -p 5000:5000 training/webapp python app.py #容器内部的 5000 端口映射到我们本地主机的 5000 端口上
-docker run -d -P training/webapp python app.py #随机映射端口号
+docker run -itd centos /bin/bash
+# 容器内部的5000端口映射到我们本地主机的 5000 端口上
+docker run -d -p 5000:5000 training/webapp python app.py
+# 随机映射端口号
+docker run -d -P training/webapp python app.py 
 
---name string #给容器命名
--p num:num #宿主机端口绑定容器端口
--P #自动绑定
+# 重启容器
+docker restart <contain-id> 
 
+#关闭容器，会暂时卡顿一下
+docker stop <contain-id>/<contain-name>
+# 启动已经创建的容器
+docker start <contain-id>
 
-docker restart 容器id #重启容器
-
-#关闭
-docker stop 容器id/容器name #关闭容器，会暂时卡顿一下
-docker start 容器id #启动已经创建过的容器
 ~~~
 
 
 
 ~~~bash
 #进入容器
-docker attach 容器id #
-docker exec 参数 容器id 执行的命令 #
+docker attach <contain-id> 
+
+# exec进入容器，退出不会关闭容器
+docker exec [option] <contain-id> <bash>
+# 交互式进入容器
+docker exec -it <contain-id>  /bin/bash
+# 非交互式进入容器,只执行一个命令
+docker exec <contain-id> cat txt.log
+
 ~~~
 
-> 从exec进入容器，退出不会关闭容器。
+
 
 
 
@@ -339,37 +398,41 @@ docker exec 参数 容器id 执行的命令 #
 
 ~~~bash
 #导入导出容器
-docker export 容器id > tar文件 #导出容器快照到本地tar文件
+#导出容器快照到本地tar文件
+docker export <contain-id> > <tar.file>
+# 在当前路径下生成了一个my-hello-world.tar的文件
 docker export 19310fb32b6b > my-hello-world.tar
-#在当前路径下生成了一个my-hello-world.tar的文件
 
-#将快照文件ubuntu.tar导入到镜像test/ubuntu:v1
+
+# 将快照文件ubuntu.tar导入到镜像test/ubuntu:v1
 cat docker/ubuntu.tar | docker import - test/ubuntu:v1
+# 将my-hello-world.tar快照文件导入成my-hello-world名的镜像
 cat my-hello-world.tar | docker import - my-hello-world
-#将my-hello-world.tar快照文件导入成my-hello-world名的镜像
+
 ~~~
 
 
 
 ~~~bash
 #删除容器
-docker rm 容器 #不能删除正在运行的容器
-docker rm -f 容器id #强制删除容器(包括正在运行的容器)
+docker rm <contain-id> #不能删除正在运行的容器
+docker rm -f <contain-id> #强制删除容器(包括正在运行的容器)
 docker rm -f (docker ps -aq) #删除所有的容器
+
 ~~~
 
 
 
 ~~~bash
 #查看端口映射情况
-docker port 容器id/容器name
+docker port <contain-id>/<contain-name>
 ~~~
 
 
 
 ~~~bash
-#查看容器端口应用程序进程
-docker top 容器id/容器name
+#查看容器启动的进程信息
+docker top <contain-id>/<contain-name>
 
 ~~~
 
@@ -377,7 +440,7 @@ docker top 容器id/容器name
 
 ~~~bash
 #查看容器配置信息
-docker inspect 容器id/容器name
+docker inspect <contain-id>/<contain-name>
 
 ~~~
 
@@ -429,69 +492,21 @@ docker exec -it mysql mysql -uroot -p1024 #可以直接连接容器内的mysql�
 
 
 
-### 4、镜像创建方式一
-
-~~~bash
-#通过已经允许的容器来创建镜像
-docker commit -m="描述" -a="作者" container的id image的名字
-~~~
 
 
 
-### 5、镜像创建方式二Dockerfile
-
-~~~bash
-FROM 		#镜像从哪里来
-MAINTAINER 	#镜像是谁创建的
-RUN 		#构建镜像执行的命令，每一次RUN都会构建一层，在docker build执行
-VOLUME		#定义数据卷，没有定义使用默认的
-USER 		#指定后续执行的用户组和用户
-WORKDIR 	#切换当前工作的执行目录
-EXPOSE		#暴露端口
-ADD			#添加文件，如果是URL或压缩包便会自动下载或自动解压
-COPY		#添加文件以复制的形式，跟ADD类似，但不具备自动下载或解压的功能
-CMD			#容器启动的命令，有多个以最后一个为准。启动容器时传递参数替换原来的命令。docker run执行
-ENTRYPOINT	#容器进入时执行的命令,启动容器时传递参数追加
-ENV			#设置容器环境变量，键值对
-LABEL		#给镜像添加一些元数据(metadata)，以键值对的形式
-~~~
-
-~~~dockerfile
-FROM centos:7
-MAINTAINER oycm 1164864987@qq.com
-
-RUN yum -y install vim
-RUN yum -y install net-tools
-
-WORKDIR /root
-CMD echo /root
-CMD echo "linux started"
-~~~
 
 
 
-~~~bash
-docker build -t imageName:tag .
-. #上下文路径，会将当前路劲下的文件打包
-imageName #镜像名
-tag #镜像的tag版本
-docker bulid -t my-centos:1.0 .
-~~~
 
 
 
-~~~bash
-#执行成功返回
-Successfully built 63f50b0e59c0
-Successfully tagged my-centos:1.0
-#出现了构建的镜像，也pull了centos:7的镜像
-my-centos             1.0       63f50b0e59c0   58 seconds ago   455MB
-centos                7         eeb6ee3f44bd   9 months ago     204MB
-~~~
 
 
 
-### 6、镜像安装jdk
+
+
+### 4、镜像安装jdk
 
 将jdk安装包放在/usr/目录下
 
@@ -524,7 +539,222 @@ CMD ["java -version"]
 
 
 
-### 7、容器发布springboot项目
+### 5、镜像启动Java项目步骤
+
+1. 通过Dockerfile创建镜像。
+2. 启动jar包的shell脚本。
+3. 创建操作镜像/容器的shell脚本。
+
+创建Dockerfile文件：
+
+~~~dockerfile
+# 从哪里拉去一个镜像
+FROM java:8
+
+# 镜像创建者
+MAINTAINER oycm mingorg@163.com
+
+# 将Dockerfile处的jar-name.jar文件复制到镜像中的server目录下
+ADD jar-name.jar /server/jar-name.jar
+ADD start.sh /server/start.sh
+
+# 在构建镜像过程中执行的命令
+RUN [ "chmod", "777", "/server/start.sh" ]
+RUN echo "Asia/Shanghai" > /etc/timezone
+
+# 容器启动时默认执行的脚本
+ENTRYPOINT ["/server/start.sh"]
+
+~~~
+
+~~~bash
+docker build -t <iamge-name>[:tag] .
+
+~~~
+
+
+
+启动jar包的start.sh shell脚本准备：
+
+~~~bash
+#!/bin/sh
+
+# 内存相关参数
+if [ "$MEM_OPTS" = "" ]; then
+    SYS_PARAMS="$SYS_PARAMS -Xms1024m -Xmx1024m -XX:NewRatio=1 -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:+AlwaysPreTouch -Xss256k"
+else
+    SYS_PARAMS="$SYS_PARAMS $MEM_OPTS"
+fi
+
+# GC相关参数
+if [ "$GC_OPTS" = "" ]; then
+    SYS_PARAMS="$SYS_PARAMS -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -XX:+UseCMSInitiatingOccupancyOnly"
+else
+    SYS_PARAMS="$SYS_PARAMS $GC_OPTS"
+fi
+
+if [ "$OPTIMIZE_OPTS" = "" ]; then
+    SYS_PARAMS="$SYS_PARAMS -XX:AutoBoxCacheMax=20000"
+else
+    SYS_PARAMS="$SYS_PARAMS $OPTIMIZE_OPTS"
+fi
+
+# GC错日志配置
+if [ "$SHOOTING_OPTS" = "" ]; then
+    SYS_PARAMS="$SYS_PARAMS -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=errorGcLogs/hs_err_%p.log"
+else
+    SYS_PARAMS="$SYS_PARAMS $SHOOTING_OPTS"
+fi
+
+# Spring激活配置文件
+if [ "$SPRING_PROFILES_ACTIVE" = "" ]; then
+    JAR_PARAMS="$JAR_PARAMS --spring.profiles.active=own"
+else
+    JAR_PARAMS="$JAR_PARAMS --spring.profiles.active=$SPRING_PROFILES_ACTIVE"
+fi
+
+JAR_PARAMS="$JAR_PARAMS"
+
+cd /server
+java -jar -server $SYS_PARAMS ./jar-name.jar \
+    $JAR_PARAMS
+
+~~~
+
+
+
+启动容器的shell脚本：
+
+~~~bash
+#!/bin/sh
+APP_NAME='contain-name'
+SPRING_PROFILES_ACTIVE='test'
+APP_PATH='/u01/oycm'
+IMAGE_NAME='iamge的远程地址'
+# 远程debug使用
+SYS_PARAMS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+
+check_if_process_is_running(){
+  CONTAINER_ID=`docker ps|grep ${APP_NAME}|awk -F ' '  '{print \$1}'`
+  if [ "$CONTAINER_ID" = "" ]; then
+    // 1 表示false 没有查到容器id
+    return 1
+  fi
+    return 0
+}
+
+check_if_images_exist(){
+  # 查询本地是有当前容器名称的镜像
+  IMAGE_ID=`docker images|grep ${APP_NAME}|awk -F ' '  '{print \$1}'`
+  if [ "$IMAGE_ID" = "" ]; then
+    return 1
+  fi
+    return 0
+}
+
+restart_app () {
+    # 停止容器
+    # 获取当前容器名称的容器id
+    DOCKER_PROCESS_ID=`docker ps -a --filter name=^/${APP_NAME}$|grep ${APP_NAME}|awk -F ' '  '{print $1}'|xargs -n1`
+    if [ "$DOCKER_PROCESS_ID" != "" ]; then
+      docker stop ${DOCKER_PROCESS_ID}
+      docker rm -f ${DOCKER_PROCESS_ID}
+    fi
+    # 删除容器name
+    docker rm `docker ps -aq --filter name=^/${APP_NAME}$`
+    # 启动容器
+    # -e 配置环境变量SYS_PARAMS SPRING_PROFILES_ACTIVE JAR_PARAMS
+    # -v 挂载目录
+    # --network host
+    docker run --name ${APP_NAME} -p 9099:9099 -e SYS_PARAMS=${SYS_PARAMS} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -e JAR_PARAMS="--spring.config.additional-location=./config/application.yml" -v ${APP_PATH}/test:/server/test:rw -v /u01/html/wgq/portalCptStore:/server/wgqCpt:rw  -v ${APP_PATH}/config:/server/config:rw -v ${APP_PATH}/logs:/server/logs:rw -v ${APP_PATH}/runtime:/server/runtime:rw --network host -d ${IMAGE_NAME}:lastest
+    if check_if_process_is_running
+    then
+    echo -e "${APP_NAME} start success"
+    else
+    echo -e "${APP_NAME} start fail"
+    fi
+}
+
+case "$1" in
+  status)
+    if check_if_process_is_running
+    then
+      echo -e "${APP_NAME} is running"
+    else
+      echo -e "${APP_NAME} not running"
+    fi
+    ;;
+  stop)
+    # 停止容器
+    if ! check_if_process_is_running
+    then
+      echo -e "${APP_NAME} has stopped"
+    else
+      docker ps|grep ${APP_NAME}|awk -F ' '  '{print $1}'|xargs -n1 docker stop
+      sleep 2s
+      if ! check_if_process_is_running
+      then
+        echo -e "${APP_NAME} stop success"
+      else
+        echo -e "${APP_NAME} stop fail"
+      fi
+    fi
+    ;;
+  start)
+    # 启动容器
+    if check_if_process_is_running
+    then
+      echo -e "${APP_NAME} has start"
+    else
+      docker start ${APP_NAME}
+      sleep 2s
+      if check_if_process_is_running
+      then
+        echo -e "${APP_NAME} start success"
+      else
+        echo -e "${APP_NAME} start fail"
+      fi
+    fi
+    ;;
+  rollback)
+    # 回滚容器 rollback 旧的镜像版本
+    ROLLBACK_TAG="$2"
+    docker tag ${IMAGE_NAME}:${ROLLBACK_TAG} ${IMAGE_NAME}:lastest
+    restart_app
+    ;;
+  reload)
+    # 将一个tar文件镜像加载为最新的镜像
+    docker load -i ./${APP_NAME}.tar
+    TAG=`docker image ls ${IMAGE_NAME}|awk -F ' '  '{print $2}'|sed -n 2p`
+    echo "Your Reload TAG is ${TAG}"
+    docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:lastest
+    restart_app
+    ;;
+  remove)
+    # 停止容器
+    docker ps|grep ${APP_NAME}|awk -F ' '  '{print $1}'|xargs -n1 docker rm -f
+    if ! check_if_images_exist
+    then
+      echo -e "image remove success"
+    else
+      echo -e "image remove fail"
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|rollback|restart|rebuild|remove}"
+    exit 1
+esac
+exit 0
+
+~~~
+
+
+
+
+
+
+
+
 
 ~~~dockerfile
 FROM centos:7
@@ -548,6 +778,7 @@ docker build -t site:1.0 .#构建项目镜像
 docker run -d --name site -v /www/:/www/ -p 80:80 site:1.0 java -jar site-0.0.1-SNAPSHOT.jar
 docker run -d --name site -v /www/:/www/ -p 80:80 site:1.0 /bin/bash
 docker run -d --name site -v /www/:/www/ -p 80:80 site:2.0 -c java -jar site-0.0.1-SNAPSHOT.jar
+
 ~~~
 
 
@@ -558,6 +789,7 @@ FROM java:8
 ADD site-0.0.1-SNAPSHOT.jar /www/site-0.0.1-SNAPSHOT.jar
 WORKDIR /www/
 EXPOSE 80
+
 ~~~
 
 
@@ -604,6 +836,10 @@ docker run -d --name site -p 80:80 site:1.0
 ~~~
 
 直接能运行成功。
+
+
+
+
 
 
 
