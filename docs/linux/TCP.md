@@ -1,4 +1,7 @@
+# TCP
+
 ## TCP正常四次挥手
+
 四次挥手是指TCP连接的断开过程，它是建立再三次握手的基础之上。四次挥手过程用于正常关闭一个已经建立的TCP连接。
 1. 主动关闭方(通常是客户端)发送FIN(Finish)：主动关闭方首先发送一个FIN报文段，表示它已经完成了数据的发送任务，并且希望关闭连接；发送FIN后，主动关闭方进入==FIN-WAIT-1==状态，等待被动关闭方的确认。
 2. 被动关闭方(通常是服务器)发送ACK：被动关闭方接收到主动关闭方的FIN后，会发送一个ACK(Acknowledgment)报文段，表示已经收到了关闭请求，并且进入==CLOSE-WAIT==状态(此时被动关闭方仍然可以发送未发生完毕的数据)。主动关闭方接收到报文进入==FIN-WAIT-2==状态。
@@ -175,3 +178,39 @@ public class HttpUtils {
 ### 时间足够长
 
 ![image-20240220222545920](http://47.101.155.205/image-20240220222545920.png)
+
+
+
+
+
+## tcp连接需要
+
+### tcp相关参数
+
+~~~bash
+# 查询相关tcp参数
+sysctl -a | grep tcp
+
+~~~
+
+
+
+
+
+### tcp连接端口
+
+~~~bash
+# 查看tcp连接端口信息
+netstat -an | grep ESTABLISHED
+
+# 查看tcp连接端口数量
+netstat -an | grep ESTABLISHED | wc -l
+
+# 查询支持tcp连接的端口范围
+cat /proc/sys/net/ipv4/ip_local_port_range
+
+# 增大tcp连接端口范围
+echo "1024 65535" > /proc/sys/net/ipv4/ip_local_port_range
+
+~~~
+
