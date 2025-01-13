@@ -191,6 +191,10 @@ export default defineUserConfig({
           {
             text: 'shell语法',
             link: 'shell语法'
+          },
+          {
+            text: 'tcp',
+            link: 'TCP'
           }
         ]
       },
