@@ -2187,12 +2187,51 @@ jstack -l <pid> | grep 'nid对于的16进制' -A 20
 
 
 
+## 时间同步
+
+
+
+### chronyd
+
+~~~bash
+# 显示系统当前可用的时间源信息 ^*表示同步有效
+chronyc sources
+
+# 查看系统时间同步的状态和详细信息
+chronyc tracking
+
+~~~
+
+
+
+![image-20250113140526294](http://47.101.155.205/image-20250113140526294.png)
+
+![image-20250113140152204](http://47.101.155.205/image-20250113140152204.png)
+
+
+
+~~~bash
+# 无效解决方案
+# 修改配置文件指向有效的服务器
+/etc/chrony.conf
+
+# 重启chronyd
+sudo systemctl restart chronyd
+
+
+~~~
 
 
 
 
 
+## 抓包工具
 
 
 
+~~~bash
+# 捕获eth0接口传输的数据包
+tcpdump -i eth0 port <port>
+
+~~~
 
