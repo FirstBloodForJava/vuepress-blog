@@ -518,6 +518,85 @@ public void updateShippingCharge(long orderId, long pct) {
 
 #### SimpleJdbcInsert
 
+在未执行JDBC操作之前，可以修改该对象的数据库相关信息，执行后就不能修改。
+
+1. 配置表名，execute(map)，通过map对象，key指定为表的列名，value为要插入的值。
+2. 配置表名+自动生成的key名，executeAndReturnKey(map)，插入数据，并且能获取自动生成key的名称。
+3. 配置表名+表中的列名，插入的列名要和配置的列名相同。
+4. 使用SqlParameterSource提供参数值。
+
+~~~java
+public class JdbcActorDao {
+
+    private SimpleJdbcInsert insertActor;
+
+    public void setDataSource(DataSource dataSource) {
+        this.insertActor = new SimpleJdbcInsert(dataSource).withTableName("t_actor");
+    }
+
+    public void add1(Actor actor) {
+
+        //this.insertActor = new SimpleJdbcInsert(dataSource).withTableName("t_actor");
+
+        Map<String, Object> parameters = new HashMap<String, Object>(3);
+        parameters.put("id", actor.getId());
+        parameters.put("first_name", actor.getFirstName());
+        parameters.put("last_name", actor.getLastName());
+        insertActor.execute(parameters);
+    }
+
+    public void add2(Actor actor) {
+
+        /*this.insertActor = new SimpleJdbcInsert(dataSource)
+                .withTableName("t_actor")
+                .usingGeneratedKeyColumns("id");*/
+
+        Map<String, Object> parameters = new HashMap<String, Object>(2);
+        parameters.put("first_name", actor.getFirstName());
+        parameters.put("last_name", actor.getLastName());
+        Number newId = insertActor.executeAndReturnKey(parameters);
+        actor.setId(newId.longValue());
+        // 如果需要获取多个自动生成的key或key的类型不是Number, 可以使用executeAndReturnKeyHolder方法
+    }
+
+    public void add3(Actor actor) {
+
+        /*this.insertActor = new SimpleJdbcInsert(dataSource)
+                .withTableName("t_actor")
+                .usingColumns("first_name", "last_name")
+                .usingGeneratedKeyColumns("id");*/
+
+        Map<String, Object> parameters = new HashMap<String, Object>(2);
+        parameters.put("first_name", actor.getFirstName());
+        parameters.put("last_name", actor.getLastName());
+        Number newId = insertActor.executeAndReturnKey(parameters);
+        actor.setId(newId.longValue());
+    }
+
+    public void add4(Actor actor) {
+
+        /*this.insertActor = new SimpleJdbcInsert(dataSource)
+                .withTableName("t_actor")
+                .usingGeneratedKeyColumns("id");*/
+        // BeanPropertySqlParameterSource
+        SqlParameterSource beanParam = new BeanPropertySqlParameterSource(actor);
+        Number newId = insertActor.executeAndReturnKey(beanParam);
+        actor.setId(newId.longValue());
+
+        // MapSqlParameterSource
+        SqlParameterSource sqlparam = new MapSqlParameterSource()
+                .addValue("first_name", actor.getFirstName())
+                .addValue("last_name", actor.getLastName());
+        Number newId = insertActor.executeAndReturnKey(sqlparam);
+        actor.setId(newId.longValue());
+    }
+
+}
+
+~~~
+
+
+
 
 
 
