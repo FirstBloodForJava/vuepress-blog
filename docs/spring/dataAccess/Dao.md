@@ -103,7 +103,7 @@ Spring的JDBC做了什么
 
 1. core：
 2. datasource：
-3. object：
+3. object：支持面向对象的方式访问数据库。
 4. support：
 
 
@@ -601,11 +601,15 @@ public class JdbcActorDao {
 
 1. 调用存储过程。
 2. 声明存储过程用到的参数，Spring支持从数据库中查找的存储过程的元数据，例如MySQL、Oracle等。
+3. 调用MySQL的存储函数。
+4. 调用存储过程返回一个ResultSet或REF游标。
+
+
 
 
 
 ~~~sql
--- 创建存储过程
+-- 1创建存储过程
 CREATE PROCEDURE read_actor (
     IN in_id INTEGER,
     OUT out_first_name VARCHAR(100),
@@ -617,12 +621,293 @@ BEGIN
     FROM t_actor where id = in_id;
 END;
 
+-- 3创建存储函数
+CREATE FUNCTION get_actor_name (in_id INTEGER)
+RETURNS VARCHAR(200) READS SQL DATA
+BEGIN
+    DECLARE out_name VARCHAR(200);
+    SELECT concat(first_name, ' ', last_name)
+        INTO out_name
+        FROM t_actor where id = in_id;
+    RETURN out_name;
+END;
+
+-- 4返回结果集的存储过程
+CREATE PROCEDURE read_all_actors()
+BEGIN
+ SELECT a.id, a.first_name, a.last_name, a.birth_date FROM t_actor a;
+END;
+
 ~~~
 
 ~~~java
+public class JdbcDao {
 
+    private SimpleJdbcCall procReadActor;
+
+    public void setDataSource1(DataSource dataSource) {
+        this.procReadActor = new SimpleJdbcCall(dataSource)
+                .withProcedureName("read_actor");
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        // 设置JdbcTemplate执行返回的Map对象的key不区分大小写(LinkedCaseInsensitiveMap)
+        jdbcTemplate.setResultsMapCaseInsensitive(true);
+        this.procReadActor = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("read_actor");
+    }
+
+    public void setDataSource2(DataSource dataSource) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.setResultsMapCaseInsensitive(true);
+        this.procReadActor = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("read_actor")
+                // 声明使用声明参数做存储过程调用
+                .withoutProcedureColumnMetaDataAccess()
+                // 设置一个或多个入参
+                .useInParameterNames("in_id")
+                .declareParameters(
+                        // 声明入参SqlParameter/SqlInOutParameter
+                        new SqlParameter("in_id", Types.NUMERIC),
+                        // 声明出参
+                        new SqlOutParameter("out_first_name", Types.VARCHAR),
+                        new SqlOutParameter("out_last_name", Types.VARCHAR),
+                        new SqlOutParameter("out_birth_date", Types.DATE)
+                );
+    }
+
+    private SimpleJdbcCall funcGetActorName;
+    public void setDataSource3(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.setResultsMapCaseInsensitive(true);
+        this.funcGetActorName = new SimpleJdbcCall(jdbcTemplate)
+                .withFunctionName("get_actor_name");
+    }
+
+    private SimpleJdbcCall procReadAllActors;
+    public void setDataSource4(DataSource dataSource) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.setResultsMapCaseInsensitive(true);
+        this.procReadAllActors = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("read_all_actors")
+                // 注册返回的结果集映射的RowMapper
+                .returningResultSet("actors",
+                        BeanPropertyRowMapper.newInstance(Actor.class));
+    }
+
+    public Actor readActor(Long id) {
+        SqlParameterSource in = new MapSqlParameterSource()
+                .addValue("in_id", id);
+        // 执行接收存储过程IN参数(不要大小写匹配),返回的Map是OUT参数对应的keyValue
+        Map out = procReadActor.execute(in);
+        Actor actor = new Actor();
+        actor.setId(id);
+        actor.setFirstName((String) out.get("out_first_name"));
+        actor.setLastName((String) out.get("out_last_name"));
+        actor.setBirthDate((Date) out.get("out_birth_date"));
+        return actor;
+    }
+
+    public String getActorName(Long id) {
+        SqlParameterSource in = new MapSqlParameterSource()
+                .addValue("in_id", id);
+        String name = funcGetActorName.executeFunction(String.class, in);
+        return name;
+    }
+
+    public List getActorsList() {
+        // 存储过程返回结果集
+        Map m = procReadAllActors.execute(new HashMap<String, Object>(0));
+        return (List) m.get("actors");
+    }
+}
 
 ~~~
+
+
+
+
+
+#### MappingSqlQuery
+
+SqlQuery的子抽象类。
+
+使用MappingSqlQuery需要实现mapRow方法，可以将结果集ResultSet的每一行转换成知道的对象
+
+~~~java
+public class ActorMappingQuery extends MappingSqlQuery<Actor> {
+
+    public ActorMappingQuery(DataSource ds) {
+        super(ds, "select id, first_name, last_name from t_actor where id = ?");
+        declareParameter(new SqlParameter("id", Types.INTEGER));
+        compile();
+    }
+
+    @Override
+    protected Actor mapRow(ResultSet rs, int rowNumber) throws SQLException {
+        Actor actor = new Actor();
+        actor.setId(rs.getLong("id"));
+        actor.setFirstName(rs.getString("first_name"));
+        actor.setLastName(rs.getString("last_name"));
+        return actor;
+    }
+}
+
+~~~
+
+~~~java
+private ActorMappingQuery actorMappingQuery;
+
+@Autowired
+public void setDataSource(DataSource dataSource) {
+    this.actorMappingQuery = new ActorMappingQuery(dataSource);
+}
+
+public Customer getCustomer(Long id) {
+    return actorMappingQuery.findObject(id);
+}
+
+~~~
+
+
+
+#### SqlUpdate
+
+对象支持重复使用。
+
+~~~java
+public class UpdateCreditRating extends SqlUpdate {
+
+    public UpdateCreditRating(DataSource ds) {
+        setDataSource(ds);
+        setSql("update customer set credit_rating = ? where id = ?");
+        declareParameter(new SqlParameter("creditRating", Types.NUMERIC));
+        declareParameter(new SqlParameter("id", Types.NUMERIC));
+        compile();
+    }
+
+    // 执行update语句
+    public int execute(int id, int rating) {
+        return update(rating, id);
+    }
+}
+
+~~~
+
+
+
+#### StoredProcedure
+
+存储过程抽象类。
+
+调用oracle的函数sysdate获取时间。
+
+~~~java
+public class StoredProcedureDao {
+
+    private GetSysdateProcedure getSysdate;
+
+    @Autowired
+    public void init(DataSource dataSource) {
+        this.getSysdate = new GetSysdateProcedure(dataSource);
+    }
+
+    public Date getSysdate() {
+        return getSysdate.execute();
+    }
+
+    private class GetSysdateProcedure extends StoredProcedure {
+
+        private static final String SQL = "sysdate";
+
+        public GetSysdateProcedure(DataSource dataSource) {
+            setDataSource(dataSource);
+            setFunction(true);
+            setSql(SQL);
+            declareParameter(new SqlOutParameter("date", Types.DATE));
+            compile();
+        }
+
+        public Date execute() {
+            // 调用函数不需要参数 使用空的may对象
+            Map<String, Object> results = execute(new HashMap<String, Object>());
+            // java.util.Date 类型
+            Date sysdate = (Date) results.get("date");
+            return sysdate;
+        }
+    }
+
+}
+
+~~~
+
+
+
+~~~java
+public class TitlesAndGenresStoredProcedure extends StoredProcedure {
+
+    private static final String SPROC_NAME = "AllTitlesAndGenres";
+
+    public TitlesAndGenresStoredProcedure(DataSource dataSource) {
+        super(dataSource, SPROC_NAME);
+        // 设置两个出参
+        declareParameter(new SqlOutParameter("titles", OracleTypes.CURSOR, new TitleMapper()));
+        declareParameter(new SqlOutParameter("genres", OracleTypes.CURSOR, new GenreMapper()));
+        compile();
+    }
+
+    public Map<String, Object> execute() {
+        // 没有入参 出参的map中的有两个key
+        return super.execute(new HashMap<String, Object>());
+    }
+}
+
+public final class TitleMapper implements RowMapper<Title> {
+
+    public Title mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Title title = new Title();
+        title.setId(rs.getLong("id"));
+        title.setName(rs.getString("name"));
+        return title;
+    }
+}
+
+public final class GenreMapper implements RowMapper<Genre> {
+
+    public Genre mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new Genre(rs.getString("name"));
+    }
+}
+
+~~~
+
+
+
+~~~java
+public class TitlesAfterDateStoredProcedure extends StoredProcedure {
+
+    private static final String SPROC_NAME = "TitlesAfterDate";
+    private static final String CUTOFF_DATE_PARAM = "cutoffDate";
+
+    public TitlesAfterDateStoredProcedure(DataSource dataSource) {
+        super(dataSource, SPROC_NAME);
+        // 入参
+        declareParameter(new SqlParameter(CUTOFF_DATE_PARAM, Types.DATE);
+        // 出参
+        declareParameter(new SqlOutParameter("titles", OracleTypes.CURSOR, new TitleMapper()));
+        compile();
+    }
+
+    public Map<String, Object> execute(Date cutoffDate) {
+        Map<String, Object> inputs = new HashMap<String, Object>();
+        inputs.put(CUTOFF_DATE_PARAM, cutoffDate);
+        return super.execute(inputs);
+    }
+}
+
+~~~
+
+
 
 
 
@@ -756,3 +1041,102 @@ DataSourceTransactionManager是PlatformTransactionManager的实现，用来给�
 
 ![image-20250108125215702](http://47.101.155.205/image-20250108125215702.png)
 
+
+
+
+
+### 2.4.数据转换问题
+
+参数值和数据值的类型转换问题存在Spring的JDBC框架中。解决问题的方法：
+
+
+
+#### 为参数提供SQL类型
+
+声明SQL类型的方式：
+
+1. JdbcTemplate的许多update和query方法都有int数组的额外参数，此数组可以使用java.sql.Types类中的常量声明相应参数的类型。
+2. 使用SqlParameterValue包装参数的类型。
+3. 命名参数类型，使用SqlParameterSource、BeanPropertySqlParameterSource、MapSqlParameterSource。
+
+
+
+#### BLOB和CLOB处理
+
+BLOB：二进制大型对象，二进制数据
+
+CLOB：大型字符对象，字符型数据
+
+LobCreator和LobHandler分别提供了LOB的input和output
+
+BLOB：
+
+1. byte[]：LobHandler.getBlobAsBytes；LobCreator.setBlobAsBytes
+2. InputStream：LobHandler.getBlobAsBinaryStream；LobCreator.setBlobAsBinaryStream
+
+
+
+CLOB：
+
+1. String：LobHandler.getClobAsString；LobCreator.setClobAsString
+2. InputStream：LobHandler.getClobAsAsciiStream；LobCreator.setClobAsAsciiStream
+3. Reader：LobHandler.getClobAsCharacterStream；LobCreator.setClobAsCharacterStream
+
+
+
+创建和插入一个BLOB、CLOB对象：
+
+使用AbstractLobCreatingPreparedStatementCallback的实现设置CLOB和BLOB对象
+
+~~~java
+final File blobIn = new File("spring2004.jpg");
+final InputStream blobIs = new FileInputStream(blobIn);
+final File clobIn = new File("large.txt");
+final InputStream clobIs = new FileInputStream(clobIn);
+final InputStreamReader clobReader = new InputStreamReader(clobIs);
+
+// lobHandler可以是 DefaultLobHandler的实例
+jdbcTemplate.execute(
+    "INSERT INTO lob_table (id, a_clob, a_blob) VALUES (?, ?, ?)",
+    new AbstractLobCreatingPreparedStatementCallback(lobHandler) {  
+        protected void setValues(PreparedStatement ps, LobCreator lobCreator) throws SQLException {
+            ps.setLong(1, 1L);
+            lobCreator.setClobAsCharacterStream(ps, 2, clobReader, (int)clobIn.length());  
+            lobCreator.setBlobAsBinaryStream(ps, 3, blobIs, (int)blobIn.length());  
+        }
+    }
+);
+
+blobIs.close();
+clobReader.close();
+
+~~~
+
+
+
+读取BLOB、CLOG对象：
+
+~~~java
+List<Map<String, Object>> l = jdbcTemplate.query("select id, a_clob, a_blob from lob_table",
+    new RowMapper<Map<String, Object>>() {
+        public Map<String, Object> mapRow(ResultSet rs, int i) throws SQLException {
+            Map<String, Object> results = new HashMap<String, Object>();
+            String clobText = lobHandler.getClobAsString(rs, "a_clob");  
+            results.put("CLOB", clobText);
+            byte[] blobBytes = lobHandler.getBlobAsBytes(rs, "a_blob");  
+            results.put("BLOB", blobBytes);
+            return results;
+        }
+    });
+
+~~~
+
+
+
+
+
+#### List对象的in查询处理
+
+
+
+#### 处理存储过程的复杂类型
