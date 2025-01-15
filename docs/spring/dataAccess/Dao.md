@@ -597,6 +597,33 @@ public class JdbcActorDao {
 
 
 
+#### SimpleJdbcCall
+
+1. 调用存储过程。
+2. 声明存储过程用到的参数，Spring支持从数据库中查找的存储过程的元数据，例如MySQL、Oracle等。
+
+
+
+~~~sql
+-- 创建存储过程
+CREATE PROCEDURE read_actor (
+    IN in_id INTEGER,
+    OUT out_first_name VARCHAR(100),
+    OUT out_last_name VARCHAR(100),
+    OUT out_birth_date DATE)
+BEGIN
+    SELECT first_name, last_name, birth_date
+    INTO out_first_name, out_last_name, out_birth_date
+    FROM t_actor where id = in_id;
+END;
+
+~~~
+
+~~~java
+
+
+~~~
+
 
 
 
