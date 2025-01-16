@@ -103,6 +103,7 @@ Spring的JDBC做了什么
 
 1. core：
 2. datasource：
+   1. embedded ：嵌入式的数据库支持。
 3. object：支持面向对象的方式访问数据库。
 4. support：
 
@@ -1137,6 +1138,150 @@ List<Map<String, Object>> l = jdbcTemplate.query("select id, a_clob, a_blob from
 
 #### List对象的in查询处理
 
+~~~sql
+select * from User where id in (1, 2, 3);
+
+~~~
+
+JDBC标准不支持准备好的sql语句使用变量列表，不能预先声明可变数量的占位符。一种方式是可以更具参数的数量准备动态的占位符SQL字符串。或使用NamedParameterJdbcTemplate命名参数查询，对应需要使用List的名称对应的数据类型位List的基本数据类型对象。
+
+
+
+~~~sql
+--多列的in查询
+select * from T_ACTOR where (id, last_name) in ((1, 'Johnson'), (2, 'Harrop'))
+
+~~~
+
+可以通过是指定list对象数组。
+
+
+
+
+
+
+
 
 
 #### 处理存储过程的复杂类型
+
+
+
+使用SqlReturnType处理存储过程返回的结果：
+
+~~~java
+public class TestItemStoredProcedure extends StoredProcedure {
+
+    public TestItemStoredProcedure(DataSource dataSource) {
+        
+        declareParameter(new SqlOutParameter("item", OracleTypes.STRUCT, "ITEM_TYPE",
+            (CallableStatement cs, int colIndx, int sqlType, String typeName) -> {
+                STRUCT struct = (STRUCT) cs.getObject(colIndx);
+                Object[] attr = struct.getAttributes();
+                TestItem item = new TestItem();
+                item.setId(((Number) attr[0]).longValue());
+                item.setDescription((String) attr[1]);
+                item.setExpirationDate((java.util.Date) attr[2]);
+                return item;
+            }));
+        
+    }
+}
+
+~~~
+
+
+
+使用SqlReturnType设置入参：
+
+~~~java
+final TestItem testItem = new TestItem(123L, "A test item",
+        new SimpleDateFormat("yyyy-M-d").parse("2010-12-31"));
+
+SqlTypeValue value = new AbstractSqlTypeValue() {
+    protected Object createTypeValue(Connection conn, int sqlType, String typeName) throws SQLException {
+        StructDescriptor itemDescriptor = new StructDescriptor(typeName, conn);
+        Struct item = new STRUCT(itemDescriptor, conn,
+        new Object[] {
+            testItem.getId(),
+            testItem.getDescription(),
+            new java.sql.Date(testItem.getExpirationDate().getTime())
+        });
+        return item;
+    }
+};
+
+~~~
+
+
+
+~~~java
+final Long[] ids = new Long[] {1L, 2L};
+
+// 设置一个数组参数
+SqlTypeValue value = new AbstractSqlTypeValue() {
+    protected Object createTypeValue(Connection conn, int sqlType, String typeName) throws SQLException {
+        ArrayDescriptor arrayDescriptor = new ArrayDescriptor(typeName, conn);
+        ARRAY idArray = new ARRAY(arrayDescriptor, conn, ids);
+        return idArray;
+    }
+};
+
+~~~
+
+
+
+### 2.5.嵌入式数据库支持
+
+支持的嵌入式数据库：
+
+1. HSQL：嵌入式数据库默认类型，xml可以通过type属性设置类型。
+2. H2
+3. Derby
+
+
+
+xml使用嵌入式数据库的方式：
+
+~~~xml
+<jdbc:embedded-database id="dataSource" generate-name="true">
+    <jdbc:script location="classpath:schema.sql"/>
+    <jdbc:script location="classpath:test-data.sql"/>
+</jdbc:embedded-database>
+
+~~~
+
+
+
+编程式使用嵌入式数据库的方式：
+
+~~~java
+@Configuration
+public class DataSourceConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+                .generateUniqueName(true)
+            	// 指定嵌入式数据库的类型
+                .setType(EmbeddedDatabaseType.H2)
+                .setScriptEncoding("UTF-8")
+                .ignoreFailedDrops(true)
+                .addScript("schema.sql")
+                .addScripts("user_data.sql", "country_data.sql")
+                .build();
+    }
+    // db.shutdown(); 关闭数据库
+}
+
+~~~
+
+
+
+
+
+扩展嵌入式数据库的2种方式：
+
+1. 实现接口EmbeddedDatabaseConfigurer并提供一种新的嵌入式数据库类型。
+2. 实现DataSourceFactory并提供一个新的DataSource实现。
+
