@@ -104,6 +104,7 @@ Spring的JDBC做了什么
 1. core：
 2. datasource：
    1. embedded ：嵌入式的数据库支持。
+   2. init：初始化数据库。
 3. object：支持面向对象的方式访问数据库。
 4. support：
 
@@ -1284,4 +1285,49 @@ public class DataSourceConfig {
 
 1. 实现接口EmbeddedDatabaseConfigurer并提供一种新的嵌入式数据库类型。
 2. 实现DataSourceFactory并提供一个新的DataSource实现。
+
+
+
+### 2.6.初始化数据库
+
+
+
+xml配置：
+
+1. 指定数据定义语言(建表语句)
+2. 插入数据
+
+~~~xml
+<jdbc:initialize-database data-source="dataSource" enabled="#{systemProperties.INITIALIZE_DATABASE}">
+    <!--通过#{systemProperties.INITIALIZE_DATABASE}环境变量配置开关-->
+    <jdbc:script location="classpath:com/foo/sql/db-schema.sql"/>
+    <jdbc:script location="classpath:com/foo/sql/db-test-data.sql"/>
+    
+    <!--classpath*:/com/foo/**/sql/*-data.sql 通配符指定数据脚本-->
+</jdbc:initialize-database>
+
+~~~
+
+配置项：
+
+1. enabled：开关
+2. ignore-failures：DROPS-忽略执行的错误删除，ALL-忽略所有错误，none-默认
+3. separator：设置分隔符，默认是';'，可以作用域script。
+
+
+
+遇到需要初始化依赖数据库的组件的解决方案：
+
+1. 改变初始化的策略，使用延迟初始化；
+2. 确保数据库被首先初始化。
+
+可以使用Lifecycle或SmartLifecycle生命周期控制初始化。
+
+也可以通过ApplicationEvent或类似的观察者机制来触发初始化。
+
+
+
+## 3.ORM数据访问
+
+ORM(Object Relational Mapping)对象关系映射。
 
