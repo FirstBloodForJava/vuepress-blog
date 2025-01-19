@@ -101,6 +101,10 @@ export default defineUserConfig({
             text: 'VSCode',
             link: 'VSCode'
           },
+          {
+            text: 'vue',
+            link: 'vue'
+          }
         
         ],
       },
