@@ -114,6 +114,10 @@ export default defineUserConfig({
             text: 'Logstash',
             link: 'logstash-8.5',
           },
+          {
+            text: 'prometheus',
+            link: 'prometheus'
+          }
         ]
       },
       // JavaEE
