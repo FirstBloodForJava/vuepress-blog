@@ -93,6 +93,14 @@ export default defineUserConfig({
             text: 'css',
             link: 'css'
           },
+          {
+            text: 'JavaScript',
+            link: 'JavaScript'
+          },
+          {
+            text: 'VSCode',
+            link: 'VSCode'
+          },
         
         ],
       },
