@@ -97,10 +97,10 @@ export default defineUserConfig({
           'nginx配置代理400.md'
         ],
       },
-      // ELK
+      // monitoring 监控
       {
-        text: 'ELK',
-        prefix: '/ELK',
+        text: '监控',
+        prefix: '/monitoring',
         children: [
           {
             text: 'Elasticsearch',
