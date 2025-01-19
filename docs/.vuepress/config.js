@@ -322,6 +322,14 @@ export default defineUserConfig({
           {
             text: 'MySQL',
             link: 'Mysql'
+          },
+          {
+            text: 'Oracle',
+            link: 'Oracle'
+          },
+          {
+            text: 'Oracle执行错误代码',
+            link: 'Oracle-SQLErr'
           }
         ]
       }
