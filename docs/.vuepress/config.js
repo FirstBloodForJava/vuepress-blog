@@ -72,10 +72,10 @@ export default defineUserConfig({
 
         ]
       },
-      // vue
+      // frontEnd 前端
       {
         text: 'vue',
-        prefix: '/vue/',
+        prefix: '/frontEnd/',
         children: [
           {
             text: 'vuepress',
@@ -84,6 +84,14 @@ export default defineUserConfig({
               'vuepress使用介绍.md', // 解析为 `/guide/group/sub1/bar.md`
               //'bar.md', // 解析为 `/vue/vuepress/bar.md`
             ],
+          },
+          {
+            text: 'html',
+            link: 'html'
+          },
+          {
+            text: 'css',
+            link: 'css'
           },
         
         ],
