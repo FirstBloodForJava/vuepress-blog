@@ -334,6 +334,10 @@ export default defineUserConfig({
           {
             text: 'ShardingSphere',
             link: 'ShardingSphere'
+          },
+          {
+            text: 'Spring事物控制',
+            link: 'Transactional'
           }
         ]
       }
