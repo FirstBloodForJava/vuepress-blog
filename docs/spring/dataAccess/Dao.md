@@ -1331,3 +1331,207 @@ xml配置：
 
 ORM(Object Relational Mapping)对象关系映射。
 
+
+
+### Hibernate
+
+https://hibernate.org/
+
+#### SessionFactory
+
+xml配置SessionFactory：
+
+~~~xml
+<beans>
+
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
+        <property name="url" value="jdbc:hsqldb:hsql://localhost:9001"/>
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="mySessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="myDataSource"/>
+        <!--作用?-->
+        <property name="mappingResources">
+            <list>
+                <value>product.hbm.xml</value>
+            </list>
+        </property>
+        <!--指定sql方言-->
+        <property name="hibernateProperties">
+            <value>
+                hibernate.dialect=org.hibernate.dialect.HSQLDialect
+            </value>
+        </property>
+    </bean>
+
+</beans>
+
+~~~
+
+注解注入SessionFactory，可以使用LocalSessionFactoryBuilder类。
+
+
+
+#### Hibernate API实现的DAO
+
+~~~java
+public class ProductDaoImpl implements ProductDao {
+
+    private SessionFactory sessionFactory;
+
+    // 配置的SessionFactory Bean
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        return this.sessionFactory.getCurrentSession()
+                .createQuery("from test.Product product where product.category=?")
+                .setParameter(0, category)
+                .list();
+    }
+}
+
+~~~
+
+
+
+
+
+#### 声明式事务
+
+支持直接使用Spring框架的声明式事务。
+
+~~~java
+public class ProductServiceImpl implements ProductService {
+
+    private ProductDao productDao;
+
+    public void setProductDao(ProductDao productDao) {
+        this.productDao = productDao;
+    }
+
+    @Transactional
+    public void increasePriceOfAllProductsInCategory(final String category) {
+        List productsToChange = productDao.loadProductsByCategory(category);
+        
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> findAllProducts() {
+        return productDao.findAllProducts();
+    }
+}
+
+~~~
+
+xml配置激活AOP事务管理功能和配置事务管理器：
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- SessionFactory, DataSource, 等其它配置 -->
+
+    <!--配置事务管理器Bean-->
+    <bean id="transactionManager"
+            class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!--开启事务注解AOP增强-->
+    <tx:annotation-driven/>
+
+    <bean id="myProductService" class="product.SimpleProductService">
+        <property name="productDao" ref="myProductDao"/>
+    </bean>
+
+</beans>
+
+~~~
+
+
+
+#### 编程式事务
+
+~~~java
+public class ProductServiceImpl implements ProductService {
+
+    private TransactionTemplate transactionTemplate;
+    private ProductDao productDao;
+
+    // 包装PlatformTransactionManager对象进行编程式事务管理
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    public void setProductDao(ProductDao productDao) {
+        this.productDao = productDao;
+    }
+
+    public void increasePriceOfAllProductsInCategory(final String category) {
+        // 没有返回的TransactionCallback
+        this.transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            public void doInTransactionWithoutResult(TransactionStatus status) {
+                List productsToChange = this.productDao.loadProductsByCategory(category);
+                // todo
+            }
+        });
+    }
+}
+
+~~~
+
+xml注入属性：
+
+~~~xml
+<beans>
+
+    <bean id="myTxManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="mySessionFactory"/>
+    </bean>
+
+    <bean id="myProductService" class="product.ProductServiceImpl">
+        <property name="transactionManager" ref="myTxManager"/>
+        <property name="productDao" ref="myProductDao"/>
+    </bean>
+
+</beans>
+
+~~~
+
+
+
+#### 事务管理策略
+
+TransactionTemplate和TransactionInterceptor通过PlatformTransactionManager的实例来处理真正的事务，有提供两种PlatformTransactionManager实现：HibernateTransactionManager、JtaTransactionManager。
+
+
+
+#### 容器管理和本地资源
+
+容器管理JNDI获取的SessionFactory和本地定义的SessionFactory可以随意切换。
+
+支持通过JNDI做分布式事务管理，现在应用的场景应该很少。
+
+
+
+
+
+
+
+### JPA
+
