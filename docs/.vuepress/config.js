@@ -330,6 +330,10 @@ export default defineUserConfig({
           {
             text: 'Oracle执行错误代码',
             link: 'Oracle-SQLErr'
+          },
+          {
+            text: 'ShardingSphere',
+            link: 'ShardingSphere'
           }
         ]
       }
