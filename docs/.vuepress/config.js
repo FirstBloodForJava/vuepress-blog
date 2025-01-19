@@ -314,6 +314,17 @@ export default defineUserConfig({
           
         ]
       },
+      // database 数据库
+      {
+        text: 'database',
+        prefix: '/database',
+        children: [
+          {
+            text: 'MySQL',
+            link: 'Mysql'
+          }
+        ]
+      }
     ],
     // 修改主题的footer
     locales: {
