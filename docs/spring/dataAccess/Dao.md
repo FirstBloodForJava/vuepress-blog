@@ -1535,3 +1535,155 @@ TransactionTemplate和TransactionInterceptor通过PlatformTransactionManager的�
 
 ### JPA
 
+由Spring框架中spring-orm模块的org.springframework.orm.jpa包提供类似于Hibernate功能的为Java Persistence API提供支持。
+
+~~~xml
+<dependency>
+	<groupId>org.springframework</groupId>
+    <artifactId>spring-orm</artifactId>
+    <version>5.2.6.RELEASE</version>
+</dependency>
+
+~~~
+
+~~~xml
+<dependency>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-jpa</artifactId>
+	<version>2.2.7.RELEASE</version>
+</dependency>
+
+
+~~~
+
+
+
+#### Spring使用JPA的三种方式
+
+1. LocalEntityManagerFactoryBean
+2. JNDI获取EntityManagerFactory
+3. LocalContainerEntityManagerFactoryBean
+
+
+
+> LocalEntityManagerFactoryBean
+
+~~~xml
+<beans>
+    <bean id="myEmf" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+        <property name="persistenceUnitName" value="myPersistenceUnit"/>
+    </bean>
+</beans>
+
+~~~
+
+
+
+> JNDI获取EntityManagerFactory
+
+~~~xml
+<beans>
+    <jee:jndi-lookup id="myEmf" jndi-name="persistence/myPersistenceUnit"/>
+</beans>
+
+~~~
+
+
+
+
+
+> LocalContainerEntityManagerFactoryBean
+
+~~~xml
+<beans>
+    <bean id="myEmf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="someDataSource"/>
+        <property name="loadTimeWeaver">
+            <bean class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver"/>
+        </property>
+    </bean>
+</beans>
+
+~~~
+
+persistence.xml：
+
+~~~xml
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="1.0">
+    <persistence-unit name="myUnit" transaction-type="RESOURCE_LOCAL">
+        <mapping-file>META-INF/orm.xml</mapping-file>
+        <exclude-unlisted-classes/>
+    </persistence-unit>
+</persistence>
+
+~~~
+
+
+
+#### 基于JPA实现DAO
+
+> EntityManagerFactory 
+
+PersistenceAnnotationBeanPostProcessor 激活，使用注解注入EntityManagerFactory 
+
+~~~java
+public class ProductDaoImpl implements ProductDao {
+
+    private EntityManagerFactory emf;
+
+    @PersistenceUnit
+    public void setEntityManagerFactory(EntityManagerFactory emf) {
+        this.emf = emf;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        try (EntityManager em = this.emf.createEntityManager()) {
+            Query query = em.createQuery("from Product as p where p.category = ?1");
+            query.setParameter(1, category);
+            return query.getResultList();
+        }
+    }
+}
+
+~~~
+
+~~~xml
+<beans>
+
+    <!-- bean post-processor for JPA annotations -->
+    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+    
+    <!--替换上面的功能-->
+    <context:annotation-config/>
+
+    <bean id="myProductDao" class="product.ProductDaoImpl"/>
+
+</beans>
+
+~~~
+
+每次都需要通过工厂创建EntityManager。
+
+
+
+> EntityManager
+
+~~~java
+public class ProductDaoImpl implements ProductDao {
+
+    @PersistenceContext
+    private EntityManager em;
+
+    public Collection loadProductsByCategory(String category) {
+        Query query = em.createQuery("from Product as p where p.category = :category");
+        query.setParameter("category", category);
+        return query.getResultList();
+    }
+}
+
+~~~
+
+
+
+#### JpaDialect和JpaVendorAdapter
+
