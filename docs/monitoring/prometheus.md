@@ -3168,6 +3168,12 @@ JVM模板：https://grafana.com/grafana/dashboards/4701-jvm-micrometer/
 
 
 
+### 4701-显示调整
+
+如果Spring应用没有配置management.metrics.tags.application名称，prometheus配置后，可能会出现查询不到配置的监控情况。可以通过将配置中application都替换陈job。
+
+
+
 ### 16107(gateway)
 
 ~~~json
