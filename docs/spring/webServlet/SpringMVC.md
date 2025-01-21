@@ -55,3 +55,84 @@ spring mvc的web.xml配置：
 
 
 
+![](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/images/mvc-context-hierarchy.png)
+
+
+
+配置层级WebApplicationContext：
+
+~~~java
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class<?>[] { RootConfig.class };
+    }
+
+    // 不配置层级关系getRootConfigClasses返回所有配置,getServletConfigClasses返回null
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class<?>[] { App1Config.class };
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/app1/*" };
+    }
+}
+
+~~~
+
+xml等效配置：
+
+~~~xml
+<web-app>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!--不配置层级关系,移除这个配置-->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/root-context.xml</param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>app1</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/app1-context.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>app1</servlet-name>
+        <url-pattern>/app1/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+~~~
+
+
+
+### 特殊的Bean类型
+
+DispatcherServlet委托其特殊的Bean类型处理请求并合适的响应response。这类型的Bean由Spring框架提供的，可以自定义一些操作来扩展或替换它们。
+
+
+
+| 类型                                        | 作用                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| HandlerMapping                              | 将请求映射到前处理或后处理的拦截器列表<br />主要实现RequestMappingHandlerMapping()、<br />SimpleUrlHandlerMapping() |
+| HandlerAdapter                              | 帮助DispatcherServlet调用映射到请求的应用程序                |
+| HandlerExceptionResolver                    | 异常处理策略                                                 |
+| ViewResolver                                | 视图                                                         |
+| LocaleResolver, <br />LocaleContextResolver | 时区                                                         |
+| ThemeResolver                               | 模板引擎解析                                                 |
+| MultipartResolver                           | 处理文件上传                                                 |
+| FlashMapManager                             | 可用于重定向                                                 |
+
