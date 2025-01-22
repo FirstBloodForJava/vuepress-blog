@@ -136,3 +136,134 @@ DispatcherServlet委托其特殊的Bean类型处理请求并合适的响应respo
 | MultipartResolver                           | 处理文件上传                                                 |
 | FlashMapManager                             | 可用于重定向                                                 |
 
+
+
+### MVC配置
+
+DispatcherServlet会在WebApplicationContext中检查这些特有的Bean，如果不存在这些类型，则默认使用spring-webmvc模块中org\springframework\web\servlet目录下的DispatcherServlet.properties文件的配置。
+
+**没有看到MultipartResolver**
+
+![image-20250122201857854](http://47.101.155.205/image-20250122201857854.png)
+
+可以通过Java代码或xml的形式配置所需的bean。
+
+**SpringBoot通过Java配置Spring MVC并提供了许多额外的扩展功能。**
+
+
+
+### Servlet配置
+
+在Servlet 3.0+环境中，可以通过编程方式配置Servlet容器作为一种替代方案。例子：
+
+~~~java
+import org.springframework.web.WebApplicationInitializer;
+
+public class MyWebApplicationInitializer implements WebApplicationInitializer {
+
+    @Override
+    public void onStartup(ServletContext container) {
+        XmlWebApplicationContext appContext = new XmlWebApplicationContext();
+        appContext.setConfigLocation("/WEB-INF/spring/dispatcher-config.xml");
+
+        ServletRegistration.Dynamic registration = container.addServlet("dispatcher", new DispatcherServlet(appContext));
+        registration.setLoadOnStartup(1);
+        registration.addMapping("/");
+    }
+}
+
+~~~
+
+使用Java配置的方式，继承AbstractAnnotationConfigDispatcherServletInitializer抽象类的例子：
+
+~~~java
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return null;
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class<?>[] { MyWebConfig.class };
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/" };
+    }
+}
+
+~~~
+
+基于xml的配置，继承AbstractDispatcherServletInitializer抽象类的例子：
+
+~~~java
+public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
+
+    @Override
+    protected WebApplicationContext createRootApplicationContext() {
+        return null;
+    }
+
+    @Override
+    protected WebApplicationContext createServletApplicationContext() {
+        XmlWebApplicationContext cxt = new XmlWebApplicationContext();
+        cxt.setConfigLocation("/WEB-INF/spring/dispatcher-config.xml");
+        return cxt;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/" };
+    }
+    
+    // 添加过滤器的方式
+    @Override
+    protected Filter[] getServletFilters() {
+        return new Filter[] {
+            new HiddenHttpMethodFilter(), new CharacterEncodingFilter() };
+    }
+    
+    // 重写方法自定义DispatcherServlet
+    @Override
+    protected FrameworkServlet createDispatcherServlet(WebApplicationContext servletAppContext) {
+		return new DispatcherServlet(servletAppContext);
+	}
+}
+
+~~~
+
+
+
+**isAsyncSupported()默认true的作用？**
+
+
+
+### 处理
+
+DispatcherServlet处理请求的方式：
+
+1. 会搜索WebApplicationContext并将其作为属性绑定在请求中，以便controller和流程中的其它元素能够使用它。默认绑定到DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE key。
+2. LocaleResolver绑定到请求。
+3. ThemeResolver绑定到请求。不使用主题可以忽略。
+4. 如果添加了MultipartResolver解析，请求将包装在MultipartHttpServletRequest中。
+5. 寻找合适的处理程序HandlerAdapter。
+6. 如果返回模型，则渲染视图。
+
+**返回last-modification-date作用？**
+
+**实现接口LastModified作用？**
+
+
+
+DispatcherServlet支持的初始化参数：
+
+| 参数名                         | 作用                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| contextClass                   | 实现ConfigurableWebApplicationContext<br />的类。默认使用XmlWebApplicationContext |
+| contextConfigLocation          | 传递给ConfigurableWebApplicationContext<br />的参数，支持指定多个，','分割 |
+| namespace                      | WebApplicationContext的名称，<br />默认[servlet-name]-servlet |
+| throwExceptionIfNoHandlerFound | 当找不到请求时，是否抛出异常。默认false。<br />如果找不到请求则返回404 |
+
