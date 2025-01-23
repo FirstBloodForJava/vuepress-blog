@@ -183,7 +183,19 @@ public class HttpUtils {
 
 
 
-## tcp连接需要
+## tcp连接
+
+建立一个tcp连接需要消耗一个文件描述符。
+
+~~~bash
+# 查询linux系统支持的文件描述符的上限
+ulimit -n
+
+~~~
+
+
+
+
 
 ### tcp相关参数
 
