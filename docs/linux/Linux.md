@@ -1179,12 +1179,45 @@ lsof [option] <key>
 # 查询所有文件的进程信息
 lsof
 
+# 查询进程所有相关的文件(文件描述符),数量会多余ls统计的
+lsof -p <pid> 
+
+# 进程pid占用的文件描述符
+ls -l /proc/<pid>/fd | wc -l
 
 ~~~
 
 
 
+~~~bash
+# 查询Druid应用数据库连接池占用的tcp连接信息(配置最小连接数为2)
 
+# 获取本地端口和远程端口及进程信息 (58844,49162) pid=65502
+netstat -antp | grep 1521
+
+# 查询tcp进程信息
+lsof -p 65502 | grep 58844 结果79432244
+lsof -p 65502 | grep 49162 结果78539829
+
+# 查询对应的文件描述符
+ls -l /proc/65502/fd | grep 79432244
+ls -l /proc/65502/fd | grep 78539829
+
+# 进入进程的调试
+gdb -p 65502
+
+# 关闭文件 关闭了连接池的tcp连接
+# 关闭所有的连接池连接后，程序会自动停止
+call close(140)
+call close(142)
+
+~~~
+
+![image-20250123132632881](http://47.101.155.205/image-20250123132632881.png)
+
+
+
+![image-20250123132828966](http://47.101.155.205/image-20250123132828966.png)
 
 
 
@@ -1260,6 +1293,9 @@ netstat -ano | findstr <pid>
 # 可以用来看有哪些http连接
 netstat -ant
 netstat -anu
+
+# 查询建立的tcp连接信息并显示对应的程序信息
+netstat -antp
 
 ~~~
 
