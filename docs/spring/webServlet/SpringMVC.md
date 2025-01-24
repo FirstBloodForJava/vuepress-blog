@@ -267,3 +267,68 @@ DispatcherServlet支持的初始化参数：
 | namespace                      | WebApplicationContext的名称，<br />默认[servlet-name]-servlet |
 | throwExceptionIfNoHandlerFound | 当找不到请求时，是否抛出异常。默认false。<br />如果找不到请求则返回404 |
 
+
+
+### 拦截器
+
+HandlerMapping能处理拦截器，拦截器org.springframework.web.servlet.HandlerInterceptor提供了三种方法支持灵活的拦截。
+
+- preHandle(...)：在HandlerMapping之后，在HandlerAdapter调用handler之前。有返回值，返回true则拦截器链路继续执行；返回false，则中断这个拦截器链的执行。
+- postHandle(...)：在HandlerAdapter调用handler之后，在DispatcherServlet渲染视图之前。
+- afterCompletion(...)：在请求过程完成之后。
+
+
+
+**在使用@ResponseBody和ResponseEntity的方法，postHandle方法作用很小，response已经在postHandle调用之前提交了。**
+
+
+
+**拦截器链是怎么设计的？**
+
+
+
+### 异常处理
+
+如果在映射请求或请求处理(Controller)发生异常，DispatcherServlet会委托HandlerExceptionResolver bean链处理异常并提供合适的返回。
+
+
+
+可用的HandlerExceptionResolver实现：
+
+| HandlerExceptionResolver          | 描述                                      |
+| --------------------------------- | ----------------------------------------- |
+| SimpleMappingExceptionResolver    | 如果是浏览器请求则渲染渲染页面返回        |
+| DefaultHandlerExceptionResolver   | 解决异常映射对应的http状态码              |
+| ResponseStatusExceptionResolver   | 使用@ResponseStatus注解响应状态码         |
+| ExceptionHandlerExceptionResolver | 根据@ExceptionHandler注解配置进行异常处理 |
+
+
+
+**拦截器链：**可以通过实现HandlerExceptionResolver接口来自定义拦截器，order属性可以定义顺序。
+
+
+
+**配置错误页面：**
+
+~~~xml
+<error-page>
+    <location>/error</location>
+</error-page>
+
+~~~
+
+~~~java
+@RestController
+public class ErrorController {
+
+    @RequestMapping(path = "/error")
+    public Map<String, Object> handle(HttpServletRequest request) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("status", request.getAttribute("javax.servlet.error.status_code"));
+        map.put("reason", request.getAttribute("javax.servlet.error.message"));
+        return map;
+    }
+}
+
+~~~
+
