@@ -32,7 +32,7 @@ export default defineUserConfig({
   // 设置网站的主题
   theme: defaultTheme({
     search: true,
-    sidebarDepth: 5,
+    sidebarDepth: 6,
     
     editLink: true,
     // 文档源文件的仓库 URL 
