@@ -383,6 +383,11 @@ DispatcherServlet处理请求时，会自动查找Locale解析器。
 
 
 
+### 模板
+
+org.springframework.ui.context.ThemeSource 接口
+org.springframework.web.servlet.ThemeResolver DispatcherServlet寻找themeResolver的bean来解析主题
+
 
 
 ### 多部分处理
@@ -401,5 +406,70 @@ commons-fileupload依赖。
 
 
 
-**Servlet 3.0**
+**Servlet 3.0：**
 
+1. Servlet注册MultipartConfigElement。
+2. 在web.xml配置中，向servlet声明添加multipart-config声明。
+
+~~~java
+// ervlet注册MultipartConfigElement 例子
+public class AppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+
+        // Optionally also set maxFileSize, maxRequestSize, fileSizeThreshold
+        registration.setMultipartConfig(new MultipartConfigElement("/tmp"));
+    }
+
+}
+
+~~~
+
+
+
+
+
+是否还需要配置StandardServletMultipartResolver bean？
+
+
+
+### 日志
+
+trace日志输出处理映射请求的方法信息：
+
+![image-20250205170007689](http://47.101.155.205/image-20250205170007689.png)
+
+
+
+默认情况下，会屏蔽请求参数和请求头参数，显示启用该记录的方法：
+
+~~~java
+public class MyInitializer
+        extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return ... ;
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return ... ;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return ... ;
+    }
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("enableLoggingRequestDetails", "true");
+    }
+
+}
+
+~~~
+
+**SpringBoot应用可通过spring.http.logRequestDetails配置此功能。**
