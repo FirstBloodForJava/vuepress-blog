@@ -332,3 +332,74 @@ public class ErrorController {
 
 ~~~
 
+
+
+### 视图解析
+
+ViewResolver接口提供视图名称和实际视图的映射。
+
+View接口对视图进行数据处理(动态渲染)。
+
+| ViewResolver                   | 描述        |
+| ------------------------------ | ----------- |
+| AbstractCachingViewResolver    | 缓存作用    |
+| XmlViewResolver                | xmp配置作用 |
+| ResourceBundleViewResolver     | 视图绑定    |
+| UrlBasedViewResolver           |             |
+| InternalResourceViewResolver   |             |
+| FreeMarkerViewResolver         |             |
+| ContentNegotiatingViewResolver |             |
+
+支持配置多个视图解析器，可以通过order指定解析链的执行过程。
+
+**重定向：**
+
+1. redirect:/myapp/some/resource：根据当前上下文重定向。
+2. redirect:https://myhost.com/some/arbitrary/path：重定向到绝对路径。
+
+
+
+请求转发：
+
+1. forward:
+
+
+
+**请求头内容匹配：**
+
+可以通过请求头Accept决定这个请求被哪个视图处理。
+
+
+
+
+
+### 区域
+
+DispatcherServlet处理请求时，会自动查找Locale解析器。
+
+
+
+**作用是什么？**
+
+
+
+
+
+### 多部分处理
+
+文件上传处理。
+
+需要使用此功能，需要在Spring中声明一个MultipartResolver bean(名称multipartResolver)。
+
+
+
+**Apache文件上传依赖：**
+
+commons-fileupload依赖。
+
+声明一个CommonsMultipartResolver bean(名称multipartResolver)。
+
+
+
+**Servlet 3.0**
+
