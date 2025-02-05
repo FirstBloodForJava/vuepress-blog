@@ -588,6 +588,10 @@ export default defineUserConfig({
 
 ### GitHub部署
 
+官网介绍：https://vuepress.vuejs.org/zh/guide/deployment.html#github-pages
+
+
+
 #### 工作流文件
 
 项目中的触发分支建立配置工作流文件.github/workflows/docs.yml。
