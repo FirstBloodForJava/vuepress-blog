@@ -21,14 +21,14 @@
   },
   "homepage": "https://github.com/FirstBloodForJava/vuepress-blog#readme",
   "devDependencies": {
-    "@vuepress/bundler-vite": "^2.0.0-rc.7",
+    "@vuepress/bundler-vite": "2.0.0-rc.7",
     "@vuepress/plugin-docsearch": "next",
     "@vuepress/plugin-markdown-image": "next",
     "@vuepress/plugin-prismjs": "next",
-    "@vuepress/theme-default": "^2.0.0-rc.11",
-    "sass": "^1.79.5",
-    "sass-embedded": "^1.79.5",
-    "vue": "^3.4.0",
-    "vuepress": "^2.0.0-rc.7"
+    "@vuepress/theme-default": "2.0.0-rc.11",
+    "sass": "1.79.5",
+    "sass-embedded": "1.79.5",
+    "vue": "3.4.0",
+    "vuepress": "2.0.0-rc.7"
   }
 }
