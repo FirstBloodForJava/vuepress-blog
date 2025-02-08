@@ -1290,7 +1290,7 @@ mysql> explain select * from app_user where name="用户999520";
 
 
 
-###插入100万条数据
+### 插入100万条数据
 
 delimiter $$
 
@@ -1639,7 +1639,7 @@ drop user ou;
 
 
 
-###MySQL数据备份
+### MySQL数据备份
 
 **导出数据**
 
@@ -1735,7 +1735,7 @@ mysqldump -hlocalhost -uroot -p1024 school student>D:\1.sql
 
 
 
-##9.JDBC
+## 9.JDBC
 
 ### 什么是JDBC？
 
@@ -1983,7 +1983,7 @@ public class Test03 {
 
 
 
-###PreparedStatement
+### PreparedStatement
 
 能避免sql注入的问题
 
@@ -2061,7 +2061,7 @@ public class Test04PreparedStatement {
 
 
 
-###数据库连接池
+### 数据库连接池
 
 最小连接数
 
@@ -2119,7 +2119,7 @@ optimize table app_user;
 
 
 
-###一条sql的执行顺序？
+### 一条sql的执行顺序？
 
 
 
