@@ -1801,6 +1801,21 @@ mysqldump -hlocalhost -uroot -p1024 school student>D:\1.sql
 
 
 
+### 强制关闭客户端连接
+
+~~~bash
+# 显示当前所有活跃的客户端连接信息
+SHOW PROCESSLIST;
+
+# thread_id上面结果的id
+KILL <id>;
+
+~~~
+
+
+
+
+
 ## 8.数据库的规范设计
 
 **数据库的设计好处：**
