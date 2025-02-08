@@ -60,23 +60,33 @@ sudo yum remove docker \
 
 ### 1、Docker存储库方式安装
 
-1. 设置存储库
+1. ~~~bash
+   # 安装所需的依赖
+   sudo yum install -y yum-utils
+   ~~~
 
-~~~bash
-sudo yum install -y yum-utils
-sudo yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-    
-#阿里云
-sudo yum-config-manager \
-    --add-repo \
-    http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-#清华大学
-sudo yum-config-manager \
-    --add-repo \
-    https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/centos/docker-ce.repo
-~~~
+2. ~~~bash
+   # 设置存储库
+   sudo yum-config-manager \
+       --add-repo \
+       https://download.docker.com/linux/centos/docker-ce.repo
+       
+   #阿里云
+   sudo yum-config-manager \
+       --add-repo \
+       http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+   #清华大学
+   sudo yum-config-manager \
+       --add-repo \
+       https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/centos/docker-ce.repo
+       
+   ~~~
+
+3. ~~~bash
+   # 安装最新docker引擎
+   sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+   
+   ~~~
 
 ![image-20220613171055088](http://47.101.155.205/image-20220613171055088.png)
 
@@ -84,12 +94,22 @@ sudo yum-config-manager \
 
 
 
-2. 安装Docker引擎
+
 
 ~~~bash
-#安装最新docker引擎
+sudo yum install -y yum-utils
+
+# 阿里云存储库
+sudo yum-config-manager \
+    --add-repo \
+    http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+# 安装最新docker引擎
 sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
 ~~~
+
+![image-20250207135730736](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250207135730736.png)
 
 
 
@@ -118,17 +138,45 @@ DRY_RUN=1 sh ./get-docker.sh
 
 
 
+### 阿里云文档
+
+https://help.aliyun.com/zh/ecs/use-cases/install-and-use-docker?spm=5176.21213303.J_qCOwPWspKEuWcmp8qiZNQ.1.4c662f3dxQyFF5&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@51853._.ID_help@@%E6%96%87%E6%A1%A3@@51853-RL_docker%E5%AE%89%E8%A3%85-LOC_new~UND~search-OR_ser-PAR1_213e362217389107648674175e1c73-V_4-RE_new3-P0_0-P1_0-title#940c78642dmq9
+
+
+
+#### centos7.x
+
+~~~bash
+# 添加Docker软件包源
+sudo wget -O /etc/yum.repos.d/docker-ce.repo http://mirrors.cloud.aliyuncs.com/docker-ce/linux/centos/docker-ce.repo
+sudo sed -i 's|https://mirrors.aliyun.com|http://mirrors.cloud.aliyuncs.com|g' /etc/yum.repos.d/docker-ce.repo
+
+# 安装Docker社区版本，容器运行时containerd.io，以及Docker构建和Compose插件
+sudo yum -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# 启动Docker
+sudo systemctl start docker
+#设置Docker守护进程在系统启动时自动启动
+sudo systemctl enable docker
+
+~~~
+
+
+
+
+
 
 
 ### 启动测试
 
 ~~~bash
-#启动docker引擎
+# 启动docker引擎
 systemctl start docker
-#运行hello-world镜像
+# 运行hello-world镜像
 docker run hello-world
-#关闭docker引擎
+# 关闭docker引擎
 systemctl stop docker
+
 ~~~
 
 ![image-20220613173157559](http://47.101.155.205/image-20220613173157559.png)
@@ -155,13 +203,31 @@ sudo rm -rf /var/lib/containerd
 
 
 
+#### centos7.x
+
+~~~bash
+# 删除Docker相关源
+sudo rm -f /etc/yum.repos.d/docker*.repo
+# 卸载旧版本的Docker和相关的软件包
+sudo yum -y remove \
+docker-ce \
+containerd.io \
+docker-ce-rootless-extras \
+docker-buildx-plugin \
+docker-ce-cli \
+docker-compose-plugin
+
+~~~
+
+
+
+
+
 
 
 ## Docker-Client命令
 
 官网地址：https://docs.docker.com/engine/reference/commandline/dockerd/
-
-查找镜像官网：https://hub.docker.com/
 
 ### 1、Docker命令
 
@@ -450,7 +516,98 @@ docker inspect <contain-id>/<contain-name>
 
 ## 镜像
 
-### 1、training/webapp
+查找镜像官网：https://hub.docker.com/
+
+### 阿里云镜像加速器(不维护)
+
+https://developer.aliyun.com/article/1025496?spm=5176.21213303.J_qCOwPWspKEuWcmp8qiZNQ.60.6b092f3dCsrhjp&scm=20140722.S_community
+
+
+
+进入到阿里云的控制台 > 搜索镜像> 选择容器镜像服务
+
+![image-20250207143005007](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250207143005007.png)
+
+
+
+~~~bash
+# 目录不存在则创建目录
+mkdir -p /etc/docker
+
+# 填写对应的镜像地址https://mtkxslk5.mirror.aliyuncs.com
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://mtkxslk5.mirror.aliyuncs.com"]
+}
+EOF
+
+# 重新加载配置
+sudo systemctl daemon-reload
+# 重启
+sudo systemctl restart docker
+
+~~~
+
+
+
+### 配置镜像源
+
+~~~bash
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+    "registry-mirrors": [
+        "https://docker.hpcloud.cloud",
+        "https://docker.m.daocloud.io",
+        "https://docker.unsee.tech",
+        "https://docker.1panel.live",
+        "http://mirrors.ustc.edu.cn",
+        "https://docker.chenby.cn",
+        "http://mirror.azure.cn",
+        "https://dockerpull.org",
+        "https://dockerhub.icu",
+        "https://hub.rat.dev"
+    ]
+}
+EOF
+
+# 重新加载配置
+sudo systemctl daemon-reload
+# 重启
+sudo systemctl restart docker
+
+~~~
+
+
+
+
+
+### centos7
+
+~~~bash
+sudo cp -n /lib/systemd/system/docker.service /etc/systemd/system/docker.service
+
+# 替换命令
+sudo sed -i "s|ExecStart=/usr/bin/docker daemon|ExecStart=/usr/bin/docker daemon --registry-mirror=https://mtkxslk5.mirror.aliyuncs.com|g" /etc/systemd/system/docker.service
+
+# 还原
+sudo sed -i "s|ExecStart=/usr/bin/docker daemon --registry-mirror=https://mtkxslk5.mirror.aliyuncs.com|ExecStart=/usr/bin/docker daemon|g" /etc/systemd/system/docker.service
+
+# 替换命令
+sudo sed -i "s|ExecStart=/usr/bin/dockerd|ExecStart=/usr/bin/dockerd --registry-mirror=https://mtkxslk5.mirror.aliyuncs.com|g" /etc/systemd/system/docker.service
+
+# 还原
+sudo sed -i "s|ExecStart=/usr/bin/dockerd --registry-mirror=https://mtkxslk5.mirror.aliyuncs.com|ExecStart=/usr/bin/dockerd|g" /etc/systemd/system/docker.service
+
+sudo systemctl daemon-reload
+sudo service docker restart
+
+~~~
+
+
+
+
+
+### training/webapp
 
 ~~~bash
 docker pull training/webapp
@@ -462,7 +619,7 @@ docker log container的id
 
 
 
-### 2、portainer/portainer
+### portainer/portainer
 
 ~~~bash
 docker pull portainer/portainer
@@ -475,38 +632,49 @@ docker run -p 80:9000 -d --restart=always -v /var/run/docker.sock:/var/run/docke
 
 
 
-### 3、mysql
+### mysql
 
 ~~~bash
 docker pull mysql:5.7
-docker run -d -p 3306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=1024 mysql:5.7
+docker run -d -p 3306:3306 --name mysql-8 -e MYSQL_ROOT_PASSWORD=1024 mysql:8.0
 docker exec -it mysql /bin/bash
 docker exec -it mysql mysql -uroot -p1024 #可以直接连接容器内的mysql数据库
 /etc/mysql/ #目录下存放的是mysql的配置文件，在给数据库建表之后，生效的配置文件时/etc/mysql/*.cnd来覆盖配置
 /var/lib/ #目录会出现三个带有mysql的目录，数据在/var/lib/mysql中
+
 ~~~
 
 
 
 
 
+~~~bash
+# 使用docker search mysql会提示连接超时
+docker pull mysql:8.0
+
+docker run -d \
+--name mysql-8 \
+-p 3306:3306 \
+-v /var/local/mysql:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=<password> \
+mysql:8.0
+
+# 进入容器 
+docker exec -it mysql-8 mysql -uroot -p<password>
+
+~~~
+
+**客户端连接提示：Public Key Retrieval is not allowed。解决方式：url后面添加参数?allowPublicKeyRetrieval=true**
+
+
+
+**连接配置useSSL=true也可能导致连接失败。**
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-### 4、镜像安装jdk
+### 镜像安装jdk
 
 将jdk安装包放在/usr/目录下
 
@@ -539,7 +707,7 @@ CMD ["java -version"]
 
 
 
-### 5、镜像启动Java项目步骤
+### 镜像启动Java项目步骤
 
 1. 通过Dockerfile创建镜像。
 2. 启动jar包的shell脚本。
