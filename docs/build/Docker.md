@@ -109,7 +109,7 @@ sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 ~~~
 
-![image-20250207135730736](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250207135730736.png)
+![image-20250207135730736](http://47.101.155.205/image-20250207135730736.png)
 
 
 
@@ -526,7 +526,7 @@ https://developer.aliyun.com/article/1025496?spm=5176.21213303.J_qCOwPWspKEuWcmp
 
 进入到阿里云的控制台 > 搜索镜像> 选择容器镜像服务
 
-![image-20250207143005007](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250207143005007.png)
+![image-20250207143005007](http://47.101.155.205/image-20250207143005007.png)
 
 
 
