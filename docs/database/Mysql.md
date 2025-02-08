@@ -62,6 +62,147 @@ DCL（数据控制语言Data Control Language）grant授权 revoke撤销权限
 
 
 
+社区版下载地址：https://dev.mysql.com/downloads/mysql/
+
+#### linux安装
+
+![image-20250208135511984](http://47.101.155.205/image-20250208135511984.png)
+
+![image-20250208161556426](http://47.101.155.205/image-20250208161556426.png)
+
+
+
+
+
+1. ~~~bash
+   # 安装依赖库(error while loading shared libraries: libaio.so.1: cannot open shared object file: No such file or directory 报错)
+   yum install -y libaio
+   
+   ~~~
+
+2. ~~~bash
+   # 创建mysql用户和组
+   groupadd mysql
+   # # 创建 mysql 用户并将其添加到 mysql 用户组中，同时不创建用户主目录
+   useradd -r -g mysql -s /bin/false mysql
+   
+   ~~~
+
+3. ~~~bash
+   # 解压到文件
+   tar -xvf mysql-8.0.3-rc-linux-glibc2.12-x86_64.tar.gz
+   # 将mysql-8.0.41-linux-glibc2.28-x86_64文件内容移到到/usr/local/mysql中
+   mv mysql-8.0.3-rc-linux-glibc2.12-x86_64 /usr/local/mysql
+   
+   cd /usr/local
+   # 创建软链接命令(移动后就不需要创建了)
+   ln -s mysql-8.0.41-linux-glibc2.28-x86_64 mysql
+   
+   ~~~
+
+4. ~~~bash
+   # 配置MySQL目录权限
+   chown -R mysql:mysql /usr/local/mysql
+   chmod -R 750 /usr/local/mysql
+   
+   ~~~
+
+5. ~~~bash
+   # 创建数据目录
+   mkdir -p /var/lib/mysql
+   chown mysql:mysql /var/lib/mysql
+   
+   # 初始化数据库（生成临时密码）
+   /usr/local/mysql/bin/mysqld --initialize --user=mysql --basedir=/usr/local/mysql --datadir=/var/lib/mysql
+   # 记录输出的临时root密码 ,j<6gerCy),+
+   
+   ~~~
+
+6. ~~~bash
+   # 创建配置文件/etc/my.cnf
+   
+   [mysqld]
+   basedir=/usr/local/mysql
+   datadir=/var/lib/mysql
+   socket=/var/lib/mysql/mysql.sock
+   
+   [client]
+   socket=/var/lib/mysql/mysql.sock
+   
+   ~~~
+
+7. ~~~bash
+   # 配置启动
+   # 1.创建/etc/systemd/system/mysqld.service文件,内容如下
+   
+   [Unit]
+   Description=MySQL Server
+   After=network.target
+   
+   [Service]
+   User=mysql
+   Group=mysql
+   ExecStart=/usr/local/mysql/bin/mysqld --defaults-file=/etc/my.cnf
+   ExecReload=/bin/kill -HUP $MAINPID
+   Restart=on-failure
+   
+   [Install]
+   WantedBy=multi-user.target
+   
+   # 重新加载
+   systemctl daemon-reload
+   # 启动自启动
+   systemctl enable mysqld
+   # 启动
+   systemctl start mysqld
+   
+   
+   ~~~
+
+8. ~~~bash
+   # 配置环境变量
+   echo 'export PATH=/usr/local/mysql/bin:$PATH' >> /etc/profile
+   source /etc/profile
+   
+   ~~~
+
+9. ~~~bash
+   # 登录后修改密码
+   mysql -u root -p
+   
+   ALTER USER 'root'@'localhost' IDENTIFIED BY '新密码';
+   
+   # 安全配置导向
+   mysql_secure_installation
+   
+   ~~~
+
+10. ~~~bash
+    # 解决root无法远程连接文件
+    
+    # 方式一: root权限如果为localhost,可以修改授权访问
+    SELECT user, host FROM mysql.user WHERE user = 'root';
+    
+    UPDATE mysql.user SET host='%' WHERE user='root';
+    FLUSH PRIVILEGES;
+    
+    # 方式一: 创建独立用户访问
+    CREATE USER '<user>'@'%' IDENTIFIED BY '<password>';
+    GRANT ALL PRIVILEGES ON *.* TO '<user>'@'%' WITH GRANT OPTION;
+    FLUSH PRIVILEGES;
+    
+    ~~~
+
+11. 
+
+
+
+![image-20250208161637850](http://47.101.155.205/image-20250208161637850.png)
+
+![image-20250208162152907](http://47.101.155.205/image-20250208162152907.png)
+
+
+
 ### MySQL的命令介绍
 
 建表语句(sql数据库都有的)：
