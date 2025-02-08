@@ -30,7 +30,7 @@ DCL（数据控制语言Data Control Language）grant授权 revoke撤销权限
 
 
 
-###解压安装方式
+### 解压安装方式
 
 1. 解压文件
 
@@ -782,7 +782,7 @@ select s.id,s.cid,s.name,c.name className from student s left join class c on s.
 
 ![image-20220926131823484](http://47.101.155.205/image-20220926131823484.png)
 
-####right join
+#### right join
 
 ~~~sql
 select s.id,s.cid,s.name,c.name className from class c right join student s on s.cid = c.id;
@@ -855,7 +855,7 @@ pagesize(n-1),pagesize表示一页展示pagesize条数据，查看第n页的数�
 
 ### 子查询和嵌套查询
 
-####where中使用子查询
+#### where中使用子查询
 
 ~~~sql
 -- 查询工资高于平均工资的员工所有信息
@@ -863,7 +863,7 @@ select * from emp where sal > (select avg(sal) from emp);
 
 ~~~
 
-####from后使用子查询
+#### from后使用子查询
 
 找出每个部门平均的薪水等级(每个员工的薪资等级)
 
@@ -875,7 +875,7 @@ on g.avg between losal and hisal;
 
 ~~~
 
-####select后使用子查询
+#### select后使用子查询
 
 找出每个员工所在的部门名称,要求显示员工名和部门表
 
@@ -907,7 +907,7 @@ sign()判断数的符号，负数-1，0就是0，正数1
 
 
 
-####字符串
+#### 字符串
 
 char_length()字符串长度
 
@@ -971,7 +971,7 @@ version()
 
 
 
-####聚合
+#### 聚合
 
 count(字段)统计字段中的数据，忽略null值，字段是主键速度最优
 
@@ -1797,7 +1797,7 @@ public class FirstJDBC
 }
 ~~~
 
-####1.驱动
+#### 1.驱动
 
 - 加载驱动	DirverManager 
 
@@ -1828,7 +1828,7 @@ jdbc:oracle:thin:@localhost:1512:
 
 
 
-####3.connection
+#### 3.connection
 
 获取连接
 
@@ -1839,7 +1839,7 @@ connection设置事务;
 
 
 
-####4.statement
+#### 4.statement
 
 Statement：执行sql
 
@@ -1918,7 +1918,7 @@ resultSet.previous();向前移动
 resultSet.absolute(row);移动到指定行
 ~~~
 
-####6.释放资源
+#### 6.释放资源
 
 
 
@@ -2204,7 +2204,7 @@ slave_skip_errors=1062
 
 配置文件不能出错，出错直接不能启动
 
-####从机配置
+#### 从机配置
 
 > 从机
 
@@ -2226,7 +2226,7 @@ read_only=1
 
 
 
-####docker运行容器
+#### docker运行容器
 
 > docker运行主服务器容器
 
