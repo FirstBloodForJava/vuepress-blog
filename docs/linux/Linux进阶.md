@@ -82,7 +82,7 @@ kill -3 <java-pid>
 | java -jar jar包                       | 终端(stdout)               |
 | nohup java -jar jar包 &               | nohup.out                  |
 | nohup java -jar jar包 > output 2>&1 & | output                     |
-| docker run                            | docker logs <container-id> |
-| systemd 启动                          | journalctl -u <service>    |
+| docker run                            | docker logs `container-id` |
+| systemd 启动                          | journalctl -u `service`    |
 
 ![image-20250210171734554](http://47.101.155.205/image-20250210171734554.png)
