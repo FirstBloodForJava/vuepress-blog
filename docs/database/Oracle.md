@@ -296,3 +296,14 @@ end;
 
 
 
+## 语法
+
+### 插入clob数据
+
+insert插入clob数据sql写法：
+
+~~~sql
+TO_CLOB('some large string')
+
+~~~
+
