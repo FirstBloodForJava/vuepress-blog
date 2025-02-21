@@ -132,7 +132,7 @@ export default defineUserConfig({
           },
           {
             text: 'Logstash',
-            link: 'logstash-8.5',
+            link: 'Logstash-8.5',
           },
           {
             text: 'prometheus',
