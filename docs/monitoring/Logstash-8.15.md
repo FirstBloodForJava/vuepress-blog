@@ -1,6 +1,6 @@
 ---
 title: Logstash使用介绍
-permalink: /ELK/logstash-8.5.html
+# permalink: /ELK/logstash-8.15.html
 ---
 
 官网地址：https://www.elastic.co/guide/en/logstash/8.15/introduction.html
