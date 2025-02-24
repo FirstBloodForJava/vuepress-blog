@@ -4,7 +4,7 @@ Spring Web MVC是基于Servlet API上构建的原始web框架，一开始就存�
 
 
 
-## DispatcherServlet
+## 1.DispatcherServlet
 
 和许多其它Web框架一样，Spring MVC是围绕前端控制器模式设计的。在这种模式下，一个中央Servlet，即DispatcherServlet，为待处理的请求提供共享算法，实际工作由可配置的组件执行。
 
@@ -473,3 +473,63 @@ public class MyInitializer
 ~~~
 
 **SpringBoot应用可通过spring.http.logRequestDetails配置此功能。**
+
+
+
+## 2.过滤器
+
+### spring-web提供的
+
+
+
+#### FormContentFilter
+
+Servlet的API的ServletRequest.getParameter()方法只支持访问POST请求的表单数据。
+
+该过滤器支持拦截Http PUT、PATCH、DELETE请求，从请求中读取表单数据，并将数据进行包装，能通过ServletRequest.getParameter()方法读取数据。
+
+
+
+![image-20250224200540071](http://47.101.155.205/image-20250224200540071.png)
+
+
+
+
+
+#### FowardedHeaderFilter
+
+[RFC7329](https://tools.ietf.org/html/rfc7239)定义了代理可以使用原始信息的Forwarded请求头，也有其它非标准头：X-Forwarded-Host、X-Forwarded-Port、X-Forwarded-Proto、X-Forwarded-Prefix、X-Forwarded-Ssl。
+
+
+
+~~~java
+// request HttpServletRequest
+// 解析请求中含有代理相关的信息
+HttpRequest httpRequest = new ServletServerHttpRequest(request);
+UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(httpRequest).build();
+
+uriComponents.getPort();// 默认端口是-1
+uriComponents.getScheme();
+uriComponents.getHost();
+
+~~~
+
+![image-20250224205026737](http://47.101.155.205/image-20250224205026737.png)
+
+![image-20250224205207490](http://47.101.155.205/image-20250224205207490.png)
+
+![image-20250224205404179](http://47.101.155.205/image-20250224205404179.png)
+
+
+
+#### ShallowEtagHeaderFilter
+
+响应的内容计算MD5 hash后相同，返回304状态码。
+
+可以节约网络带宽，但是不节约CPU。
+
+
+
+#### CorsFilter
+
+提供了粒度很细的跨域过滤器配置。
