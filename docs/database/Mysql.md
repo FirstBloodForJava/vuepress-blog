@@ -203,6 +203,16 @@ DCL（数据控制语言Data Control Language）grant授权 revoke撤销权限
 
 
 
+~~~bash
+# url配置解决提示不安全连接
+?allowPublicKeyRetrieval=true
+
+~~~
+
+
+
+
+
 ### MySQL的命令介绍
 
 建表语句(sql数据库都有的)：
