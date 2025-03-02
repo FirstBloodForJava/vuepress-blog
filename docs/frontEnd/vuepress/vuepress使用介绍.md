@@ -42,6 +42,10 @@ cnpm install -D @vuepress/bundler-vite@next @vuepress/theme-default@next
 cnpm install -D sass-embedded
 cnpm install -D sass
 
+# 下载依赖，强制忽略依赖冲突
+npm install --legacy-peer-deps
+npm install --force
+
 ~~~
 
 ![image-20241015161110834](http://47.101.155.205/image-20241015161110834.png)
