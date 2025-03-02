@@ -533,3 +533,440 @@ uriComponents.getHost();
 #### CorsFilter
 
 提供了粒度很细的跨域过滤器配置。
+
+
+
+## 3.注解控制
+
+SpringMVC提供了@Controller和@RestController组件来表示请求的映射，其它注解组件处理请求输入、处理异常等。
+
+~~~java
+// 方法接收请求入参到Model,并返回一个名为index的视图
+@Controller
+public class HelloController {
+
+    @GetMapping("/hello")
+    public String handle(Model model) {
+        model.addAttribute("message", "Hello World!");
+        return "index";
+    }
+}
+
+~~~
+
+
+
+### 注册
+
+在Servlet的WebApplicationContext，@Controller(@RestController)注解支持自动注册为Bean，和@Component一样的效果。同样的，被该注解修饰的类，支持@ComponentScan扫描到。
+
+@RestController注解是基于元注解@Controller、@ResponseBody声明的。由于继承了@ResponseBody的功能，声明该类的所有方法返回的内容都写入请求的响应体中，而不是渲染为视图或html文本。
+
+
+
+在@Controller的类上，也支持基于类的AOP代理，或实现接口的代理。
+
+
+
+### 请求映射
+
+@RequestMapping注解支持将请求映射到controller类的方法，如果没有指定请求方式，则默认匹配所有的请求方式。在@RequestMapping的基础上，定义了更方便的注解(只能在方法上使用)：
+
+1. @GetMapping
+2. @PostMapping
+3. @PutMapping
+4. @DeleteMapping
+5. @PatchMapping
+
+@RequestMapping在controller类上使用，表示该类的所有方法共用该路径。
+
+
+
+#### uri匹配
+
+uri匹配模式：
+
+SpringMVC使用spring-core的PathMatcher的实现AntPathMatcher来做匹配路径的判断。
+
+| Pattern       | 描述                             | 例子                                                         |
+| ------------- | -------------------------------- | ------------------------------------------------------------ |
+| ?             | 匹配一个字符                     | path/v?/test匹配path/v1/test                                 |
+| *             | 匹配一个路径下的一个或多个字符   | /spring/*/v1匹配/spring/boot/v1，不匹配/spring/boot/starter/v1 |
+| **            | 匹配一个或多个字符直到结束       | /**匹配所有                                                  |
+| {name}        | 匹配路径上的值并赋值到变量name上 | 使用@PathVariable在方法中取值                                |
+| {name:[a-z]+} | 同上，支持正则表达式匹配         |                                                              |
+
+**在uri上面，可以使用${}来读取其它变量(本地、系统、环境、配置)来设置值。**
+
+~~~java
+@Controller
+@RequestMapping("/owners/{ownerId}")
+public class OwnerController {
+
+    // 如果方法还有其它参数,@PathVariable需要指定{}中的名称?
+    @GetMapping("/pets/{petId}")
+    public Pet findPet(@PathVariable Long ownerId, @PathVariable Long petId) {
+        // ...
+    }
+}
+
+~~~
+
+~~~java
+// 正则表达式的匹配只有
+@GetMapping("/{name:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+}")
+public void handle(@PathVariable String version, @PathVariable String ext) {
+    // ...
+}
+
+~~~
+
+
+
+#### 匹配比较
+
+如果多个通配符模式匹配了一个uri，则会通过AntPathMatcher.getPatternComparator(String path)来找到哪个通配符合适。
+
+/** 模式会最后匹配，不在这个里面。
+
+/pre/**的不如没有双通配符的具体。
+
+
+
+#### 后缀匹配
+
+当浏览器发送一些难以解释的Accept的请求头到后台，通过/download/bill返回其需要的内容，显然使用/download/bill.*支持以uri的参数来决定下载文件的内容，使用uri前缀匹配的模式是不错的。
+
+**随着时间的推移，文件扩展名的使用被证明是存在问题的。当URI变量、路径参数和URI编码叠加时，可能导致歧义。**
+
+
+
+完全禁用文件扩展名匹配的方式：
+
+1. PathMatchConfigurer.useSuffixPatternMatching(false)；
+2. ContentNegotiationConfigurer.favorPathExtension(false)。
+
+
+
+#### 后缀匹配和RFD
+
+RFD(reflected file download)反射文件下载攻击和XSS类似，因为它依赖于响应中反映的请求输入（例如，查询参数和 URI 变量）。但是，RFD 攻击不是将 JavaScript 插入 HTML，而是依赖于浏览器切换来执行下载，并在稍后双击时将响应视为可执行脚本。
+
+RFD攻击利用的是反射型下载功能。攻击者诱导用户点击恶意链接，服务器将用户输入反射到响应中，并触发文件下载。如果文件扩展名和内容类型被用户信任，可能导致恶意代码执行。
+
+为了防止 RFD 攻击，在渲染响应正文之前， Spring MVC 会添加一个 **Content-Disposition:inline;filename=f.txt**标头以建议固定且安全的下载文件。仅当 URL 路径包含既未列入白名单也未明确注册内容协商的文件扩展名时，才会执行此作。但是，当 URL 直接输入到浏览器中时，它可能会产生副作用。
+
+
+
+#### 请求头Content-Type内容匹配
+
+~~~java
+// 要求请求的请求头Content-Type=application/json
+// 415 状态码 不支持的请求体类型
+// consumes 也支持否定表达式,consumes = "!application/json"除了这个都可以
+// consumes 也可以在类上使用,但是类中方法的该配置会覆盖类上的配置
+// MediaType 为常用的类型定义了常量
+@RequestMapping(value = "/bill.*" , consumes = "application/json")
+public String home() {
+	return "Hello World!";
+}
+
+~~~
+
+
+
+![image-20250302134216005](http://47.101.155.205/image-20250302134216005.png)
+
+![image-20250302134313433](http://47.101.155.205/image-20250302134313433.png)
+
+
+
+#### 请求头Accept内容匹配
+
+~~~java
+// 要求请求的请求头Accept=application/json
+// 406状态码 不接受的响应体内容
+// produces 也支持否定表达式,produces = "!application/json"除了这个都可以
+// produces 也可以在类上使用,但是类中方法的该配置会覆盖类上的配置
+@RequestMapping(value = "/bill.*" , produces = "application/json")
+public String home() {
+	return "Hello World!";
+}
+
+~~~
+
+![image-20250302140537644](http://47.101.155.205/image-20250302140537644.png)
+
+![image-20250302141152055](http://47.101.155.205/image-20250302141152055.png)
+
+
+
+#### 请求参数和请求头匹配
+
+~~~java
+// 请求参数匹配,未匹配提示400错误码
+// 在类上使用，方法基础类上的配置
+// 也支持否定表达式
+@RequestMapping(value = "/bill" , params = "key=value")
+public String home() {
+	return "Hello World!";
+}
+
+~~~
+
+![image-20250302141613528](http://47.101.155.205/image-20250302141613528.png)
+
+![image-20250302141722044](http://47.101.155.205/image-20250302141722044.png)
+
+
+
+~~~java
+// 请求头参数匹配，不匹配提示404
+// 在类上使用，方法基础类上的配置
+// 也支持否定表达式
+@RequestMapping(value = "/bill" , headers = "key=value")
+public String home() {
+	return "Hello World!";
+}
+
+
+~~~
+
+![image-20250302141914032](http://47.101.155.205/image-20250302141914032.png)
+
+![image-20250302142115547](http://47.101.155.205/image-20250302142115547.png)
+
+
+
+#### HEAD、OPTIONS请求方式
+
+HEAD 请求方式只请求资源的头部信息，而不返回资源的实体内容。
+
+SpringMVC的@GetMapping（@RequestMapping(method=HttpMethod.GET))）默认支持HEAD请求，可以之间不将响应体内容写入，只设置响应体内容的长度到响应头Content-Length。
+
+![image-20250302143146316](http://47.101.155.205/image-20250302143146316.png)
+
+
+
+OPTIONS请求获取该uri支持的请求方式，被放在响应头的Allow中。
+
+默认@GetMapping支持：GET,HEAD,OPTIONS。
+
+![image-20250302143502919](http://47.101.155.205/image-20250302143502919.png)
+
+@RequestMapping默认支持所有： GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS
+
+![image-20250302143605453](http://47.101.155.205/image-20250302143605453.png)
+
+
+
+#### 自定义注解
+
+~~~java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@RequestMapping(method = RequestMethod.GET, value = "/bill")
+@interface BillGEtMapping {}
+
+@BillGEtMapping()
+public String home() {
+	return "Hello World!";
+}
+
+~~~
+
+![image-20250302144321874](http://47.101.155.205/image-20250302144321874.png)
+
+
+
+**通过继承RequestMappingHandlerMapping重写getCustomMethodCondition方法可以自定义请求匹配处理逻辑。**
+
+
+
+#### 代码注册映射
+
+~~~java
+@Configuration
+public class MyConfig {
+
+    // 首先要准备UserHandler类，类有一个getUser(Long long)方法，并且注入到容器中
+    
+    // 在普通方法上注入RequestMappingHandlerMapping和UserHandler对象
+    @Autowired
+    public void setHandlerMapping(RequestMappingHandlerMapping mapping, UserHandler handler) throws NoSuchMethodException {
+        
+        RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+        config.setTrailingSlashMatch(mapping.useTrailingSlashMatch());// 设置当前的尾斜杠匹配，默认是支持尾斜杠匹配
+        config.setContentNegotiationManager(mapping.getContentNegotiationManager()); // 设置请求内容匹配管理器
+        // 取SpringMVC的路径相关的解析器设置
+        if (mapping.getPatternParser() != null) {
+            config.setPatternParser(mapping.getPatternParser());
+        }else {
+            config.setPathMatcher(mapping.getPathMatcher());
+        }
+        
+        // 准备映射请求的元数据，相当于在方法上准备好注释
+        // mapping映射支持添加一些配置
+		RequestMappingInfo info = RequestMappingInfo
+                .paths("/user/{id}").methods(RequestMethod.GET).options(config).build(); 
+		
+        // 反射获取方法，请求映射到对应的方法用到
+        Method method = UserHandler.class.getMethod("getUser", Long.class); 
+		
+        // RequestMappingHandlerMapping注册 请求映射信息和绑定的方法
+        mapping.registerMapping(info, handler, method); 
+    }
+}
+
+~~~
+
+
+
+### 处理请求的方法
+
+
+
+#### 方法参数
+
+JDK 8的java.util.Optional属性作为参数等价于@RequestParam的required=false。
+
+下表展示了controller中方法支持的参数：
+
+| 参数类型                                                     | 描述                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| WebRequest,NativeWebRequest                                  | 无需Servlet API，直接获取请求的信息                          |
+| javax.servlet.ServletRequest, javax.servlet.ServletResponse  | 支持特点的请求或响应类型，ServletRequest, HttpServletRequest、或文件上传(multipart数据)使用MultipartRequest, MultipartHttpServletRequest |
+| javax.servlet.http.HttpSession                               | Session会话，永远不会为null，是线程不安全的。                |
+| javax.servlet.http.PushBuilder                               | HTTP/2编程创建的API                                          |
+| java.security.Principal                                      | 已验证的用户，Principal的实现                                |
+| HttpMethod                                                   | 请求的方式                                                   |
+| java.util.Locale                                             | 当前请求的区域                                               |
+| java.util.TimeZone + java.time.ZoneId                        | 与当前请求关联的时区                                         |
+| java.io.InputStream, java.io.Reader                          | 用于访问Servlet API公开原始请求体                            |
+| java.io.OutputStream, java.io.Writer                         | 用于访问Servlet API公开原始响应体                            |
+| @PathVariable                                                | 访问URI上面的模板变量，{}                                    |
+| @MatrixVariable                                              | URI上的矩阵变量匹配                                          |
+| @RequestParam                                                | 访问Servlet的请求参数，包括multipart文件                     |
+| @RequestHeader                                               | 访问请求头，请求头值转换成声明的参数类型                     |
+| @CookieValue                                                 | 访问Cookie，请求头值转换成声明的参数类型                     |
+| @RequestBody                                                 | 访问http请求体，通过HttpMessageConverter实现将内容转换成参数类型 |
+| HttpEntity\<T\>                                              | 访问请求头和请求体，HttpMessageConverter将body转换成对应泛型 |
+| @RequestPart                                                 | 访问请求内容为multipart/form-data的部分，HttpMessageConverter转换内容 |
+| java.util.Map, org.springframework.ui.Model, org.springframework.ui.ModelMap | 用于访问在 HTML 控制器中使用并作为视图渲染的一部分向模板公开的模型 |
+| RedirectAttributes                                           | 设置重定向                                                   |
+| @ModelAttribute                                              | 用于访问模型中应用了数据绑定和验证的现有属性（如果不存在，则实例化） |
+| Errors, BindingResult                                        | 访问命令对象的验证和数据绑定错误（即 @ModelAttribute 参数）或@RequestBody验证中的错误，或者 @RequestPart 参数。 |
+| SessionStatus + class-level @SessionAttributes               | 用于将表单处理标记为完成                                     |
+| UriComponentsBuilder                                         | url请求相关信息                                              |
+| @SessionAttribute                                            | 用于访问任何 session 属性                                    |
+| @RequestAttribute                                            | 用于访问请求属性                                             |
+| Any other argument                                           | 方法参数不与表中前面任何值匹配，并且是简单类型（BeanUtils.isSimpleProperty()确认），则将其解析为@RequestParam，否则解析为@ModelAttribute |
+|                                                              |                                                              |
+
+
+
+#### 方法返回
+
+**Reactive types 反应式类型，所有方法都支持返回反应式类型。什么意思？Reactive types — Reactor, RxJava**
+
+| 方法返回值                                                   | 描述                                     |
+| ------------------------------------------------------------ | ---------------------------------------- |
+| @ResponseBody                                                | 方法返回值写入到响应体                   |
+| HttpEntity\<B\>, ResponseEntity\<B\>                         | 完整响应头和响应体                       |
+| HttpHeaders                                                  | 响应只带响应头，不带响应体               |
+| String                                                       | 可能会被解析为视图名称                   |
+| View                                                         | View实例                                 |
+| java.util.Map, org.springframework.ui.Model                  | 视图                                     |
+| @ModelAttribute                                              | 视图                                     |
+| ModelAndView                                                 | 视图                                     |
+| void                                                         | 两种情况：一种响应体是空，一种默认视图   |
+| DeferredResult\<V\>                                          | 异步相关                                 |
+| Callable\<V\>                                                | 异步请求相关                             |
+| ListenableFuture\<V\>, java.util.concurrent.CompletionStage\<V\>, java.util.concurrent.CompletableFuture\<V\> | DeferredResult替代方案                   |
+| ResponseBodyEmitter, SseEmitter                              | 异步发出对象流                           |
+| StreamingResponseBody                                        | 异步写入响应流                           |
+| ReactiveAdapterRegistry                                      | 流式处理                                 |
+| Any other return value                                       | 前面的不匹配，为String或void则相当于视图 |
+
+
+
+#### 矩阵变量(Matrix Variables)
+
+[RFC 3968](https://datatracker.ietf.org/doc/html/rfc3986#section-3.3)
+
+矩阵变量可以出现在任意路径段中，每个变量通过";"分割，多个值用","分割（也可以通过重复变量名称来指定）。
+
+例子：/cars;color=red,green;year=2012 <==>/cars;olor=red;color=green;color=blue
+
+
+
+![image-20250302202815819](http://47.101.155.205/image-20250302202815819.png)
+
+~~~java
+@RestController
+public class MvcController {
+
+    private static final Log log = LogFactory.getLog(MvcController.class);
+
+    // GET /pets/42;q=11;r=22
+    @GetMapping("/pets/{petId}")
+    public void findPet(@PathVariable String petId, @MatrixVariable int q) {
+
+        // petId == 42
+        // q == 11
+    }
+
+    // GET /owners/42;q=11/pets/21;q=22
+    @GetMapping("/owners/{ownerId}/pets/{petId}")
+    public void findPet(
+            @MatrixVariable(name="q", pathVar="ownerId") int q1,
+            @MatrixVariable(name="q", pathVar="petId") int q2) {
+
+        // q1 == 11
+        // q2 == 22
+    }
+
+    // GET /pets/42
+    @GetMapping("/pets2/{petId}")
+    public void findPet(@MatrixVariable(required=false, defaultValue="1") int q) {
+
+        // q == 1
+    }
+
+    // GET /owners/42;q=11;r=12/pets/21;q=22;s=23
+    @GetMapping("/owners2/{ownerId}/pets/{petId}")
+    public void findPet(
+            @MatrixVariable MultiValueMap<String, String> matrixVars,
+            @MatrixVariable(pathVar="petId") MultiValueMap<String, String> petMatrixVars) {
+
+        // matrixVars: ["q" : [11,22], "r" : 12, "s" : 23]
+        // petMatrixVars: ["q" : 22, "s" : 23]
+    }
+}
+
+~~~
+
+
+
+#### @RequestParam
+
+@RequestParam注解绑定Servlet请求参数（查询参数或form表单数据）。
+
+
+
+~~~java
+// 作用于普通类型，属性就是对应的参数名
+@RequestParam String k2;
+
+// 作用map没有使用名称，则所有参数都包装在map中
+@RequestParam Map<String,String> map;
+@RequestParam MultiValueMap<String, String> map;
+
+// required=false表示非必填，也可以通过java.util.Optional使用
+
+~~~
+
+
+
+#### @RequestHeader
