@@ -41,6 +41,8 @@ Java内存相关的点：
 
 负载均衡、异步发送。
 
+broker：Kafka集群包含一个或多个服务器，这种服务器就称为broker。
+
 负载均衡：生产可以直接将消息发送至broker，客户端控制将消息发送到哪个分区，可以随机完成，也可以通过分区定义的方式完成。
 
 异步发送：Kafka 生产者将尝试在内存中累积数据并在单个请求中发送更大的批次。
@@ -90,10 +92,11 @@ Kafka的副本机制通过主-从副本模型、ISR、故障检测与恢复策�
 
 
 1. 分区和副本：
-   1. 在Kafka中，每个主题都可以被划分成多个分区（Partition），每个分区包含一系列有序的消息。
-   2. 每个分区可以有多个副本，副本数可以在主题创建时指定。副本分布在Kafka集群的不同节点（Broker）上，以实现数据冗余和故障容忍。
-2. 主副本与追随者副本
-   1. 每个分区的副本由一个**主副本（Leader）和多个追随者副本（Follower）**组成。
+   1. 在Kafka中，每个主题都可以被划分成多个分区（Partition），每个分区包含一系列有序的消息（**消息被追加到分区日志文件的时候，会分配一个特定的偏移量（offset），offset是消息在这个分区的唯一标识，Kafka通过这保证消息的顺序性。**）。
+   2. offset不跨分区，也就是说Kafka只保证分区的消息有序而不保证主题有序。
+   3. 每个分区可以有多个副本，副本数可以在主题创建时指定。副本分布在Kafka集群的不同节点（Broker）上，以实现数据冗余和故障容忍。
+2. 主副本（Leader）与追随者（Follower）副本
+   1. 每个分区的副本由一个**主副本和多个追随者副本**组成。
    2. 主副本负责处理读写请求，而追随者副本被动地从主副本同步数据。
    3. 当主副本所在的节点发生故障时，Kafka会自动选举新的主副本，以确保分区的可用性。
 3. 同步副本与ISR
@@ -165,11 +168,12 @@ Kafka 是一个分布式系统，由通过高性能[TCP 网络协议进行通信
    - Kafka通过将分区分配给不同的消费者实现负载均衡和并行处理。
    - 一个消费者可以分配多个分区。
    - 消费者数量大于分区数量，则有消费者空闲。
-5. 消费者组：
+5. 消费者组（ConsumerGroup）：
    - 每个消费者组相互独立，每个组会独立的从主题的所有分区读取消息。
-6. 代理（Broker）：
-   - 代理是Kafka集群中的一个节点，负责存储和处理消息。
-   - 多个代理组成一个Kafka集群，每个代理可以管理多个主题和分区。
+   - 不指定消费组组名称，则属于默认的Group。
+6. 消息服务器（Broker）：
+   - Broker是Kafka集群中的一个节点，负责存储和处理消息。
+   - 多个Broker组成一个Kafka集群，每个代理可以管理多个主题和分区。
    - 代理之间通过使用Apache ZooKeeper进行协调和元数据管理。
 7. ZooKeeper：
    - ZooKeeper是Kafka的关键组件之一，用于管理和协调Kafka集群的状态和元数据。
@@ -216,6 +220,59 @@ free -h #查询服务器内存情况
 rm -rf /tmp/kafka-logs /tmp/zookeeper /tmp/kraft-combined-logs
 
 ~~~
+
+
+
+#### Zookeeper集群
+
+~~~zoo.cfg
+# 修改配置
+# 默认指向/tmp目录，修改其指向其它目录
+dataDir=/path
+
+# 新增配置
+# 指定Zookeeper集群中的Serverr节点，2888表示集群内Server节点通信端口，Leader将监听此端口；3888用于选举Leader
+server.1=hostname1:2888:3888
+server.2=hostname2:2888:3888
+server.3=hostname3:2888:3888
+
+~~~
+
+在dataDir配置目录下新建myid文件，hostname1、hostname2、hostname3各输入内容1、2、3。
+
+~~~bash
+# 配置Zookeeper环境变量
+ZOOKEEPER_HOME=/path
+export ZOOKEEPER_HOME
+PATH=$ZOOKEEPER/bin:$PATH
+
+source profile
+
+# 启动
+zkServer.sh start
+
+~~~
+
+
+
+#### Kafka集群
+
+修改kafka的config/server.properties配置
+
+~~~properties
+# zookeeper集群地址
+zookeeper.connect=hostname1:2181,hostname2:2181,hostname3:2181
+
+~~~
+
+
+
+~~~bash
+bin/kafka-server-start.sh config/server.properties &
+
+~~~
+
+
 
 
 
@@ -280,6 +337,9 @@ bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
 # 创建topic
 bin/kafka-topics.sh --create --topic org.test1 --bootstrap-server localhost:9092
+# 指定分区副本数2，topic的分区有3个
+bin/kafka-topics.sh --create --zookeeper zookeeperHost:2181 --replication-factor 2 --partitions 3 --topic org.test2 
+
 
 # 查询topic信息
 bin/kafka-topics.sh --describe --topic org.test1 --bootstrap-server localhost:9092
@@ -293,6 +353,7 @@ bin/kafka-topics.sh --describe --topic org.test1 --bootstrap-server localhost:90
 ~~~bash
 bin/kafka-console-producer.sh --topic org.test1 --bootstrap-server localhost:9092
 
+bin/kafka-console-producer.sh --broker-list localhost:9092 --topic org.test2
 
 ~~~
 
@@ -301,7 +362,11 @@ bin/kafka-console-producer.sh --topic org.test1 --bootstrap-server localhost:909
 #### consumer
 
 ~~~bash
+# 从开始位置消费
 bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server localhost:9092
+
+# 显示key消费
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning print.key=true --topic org.test2
 
 # 重置消费者组偏移量 消费者停止才能重置
 bin/kafka-consumer-groups.sh --bootstrap-server oycm:9092 --group <group_name> --reset-offsets --to-latest --all-topics --execute
@@ -558,7 +623,9 @@ docker run -d --rm -p 9000:9000 \
 auto.create.topics.enable=true # 默认true，在服务端启用自动创建topic
 auto.leader.rebalance.enable=true # 默认true，自动leader平衡
 background.threads=10 # 默认10，后台处理各种任务的线程数
-broker.id=-1 # 默认-1，int类型，如果未设置，生成的id从reserved.broker.max.id+1
+# 默认-1，int类型，如果未设置，生成的id从reserved.broker.max.id+1
+# 表示broker的id号，kafka集群中，不同的broker应该具有不同的id号，不能重复
+broker.id=-1 
 compression.type=producer # 指定topic的压缩类型，gzip snappy lz4 zstd uncompressed,producer指保留生产者原始编码，是保留生产者发送消息至topic的压缩方式
 controller.quorum.election.backoff.max.ms=1000 # 默认1000,开始新选举前的最大时间
 controller.quorum.election.timeout.ms=1000 # 默认1000,在触发新的选举之前,等待无法从leader获取的最大时间
@@ -574,8 +641,8 @@ listeners=PLAINTEXT://9092 # 启动之后,本地的连接能够访问到,但是�
 # PLAINTEXT://0.0.0.0:9092,需要修改上面的属性值暴露ip,不然服务无法起来
 # listeners=PLAINTEXT://myhost:9092,启动的主机名必须是oycm才能启动
 
-
-log.dir=/tmp/kafka-logs #保留日志的目录
+#保留kafka日志数据的目录地址
+log.dir=/tmp/kafka-logs 
 log.dirs=String # null,存储日志的列表
 
 log.flush.interval.messages=9223372036854775807 # default 在将消息刷新到磁盘之前，日志分区上累计的消息数
@@ -583,6 +650,7 @@ log.flush.interval.ms=null # long,在任何topic中的消息刷新到磁盘之�
 log.flush.offset.checkpoint.interval.ms=60000 # 我们更新作为日志恢复点的最后一次刷新的持久记录的频率
 log.flush.scheduler.interval.ms=9223372036854775807 # 日志刷新程序检查是否需要将日志刷新到磁盘的频率
 log.flush.start.offset.checkpoint.interval.ms=60000 # 更新日志开始偏移量的持久记录的频率
+# 日志保留相关
 log.retention.bytes=-1 # 日志删除前的最大容量
 log.retention.hours=168 # 删除日志文件之前保留它的小时数,优先级:3
 log.retention.minutes=null # int 优先级:2
@@ -594,7 +662,8 @@ log.roll.jitter.ms=null #
 log.segment.bytes=1073741824 # 1GB 单个最大的日志文件大小
 log.segment.delete.delay.ms=60000 # 从文件系统中删除文件之前等待的时间
 
-message.max.bytes=1048588 # Kafka允许的最大记录批大小(如果启用压缩，则在压缩后)
+# Kafka允许的最大记录批大小(如果启用压缩，则在压缩后)
+message.max.bytes=1048588 
 
 metadata.log.dir=null # Kraft模式下的元数据日志，没有则在log.dirs的第一个目录中
 metadata.log.max.record.bytes.between.snapshots=20971520 # 大小控制快照生成
@@ -642,7 +711,8 @@ request.timeout.ms=30000 # 配置控制客户端等待请求响应的最大时�
 sasl.mechanism.controller.protocol=GSSAPI # SASL机制用于与控制器通信
 
 socket.receive.buffer.bytes=102400 # 100Kb 套接字服务器套接字的SO_RCVBUF缓冲区.如果取值为-1,则使用操作系统默认值.
-socket.request.max.bytes=104857600 # 100Mb 套接字请求中的最大字节数
+# 100Mb 套接字请求中的最大字节数，要大于message.max.bytes，创建的topic可以覆盖此配置
+socket.request.max.bytes=104857600 
 socket.send.buffer.bytes==102400 # 100Kb 套接字服务器套接字的SO_SNDBUF缓冲区.如果取值为-1,则使用操作系统默认值.
 
 transaction.max.timeout.ms=900000 #15m 事务允许的最大超时.如果客户端请求的事务时间超过此时间，则代理将在InitProducerIdRequest中返回错误.客户端超时时间过大，会使消费者从事物主题中读取数据陷入停顿.
@@ -655,6 +725,7 @@ transactional.id.expiration.ms=604800000 #7d 在事务id过期之前，事务协
 
 unclean.leader.election.enable=false # 指示是否使不在ISR集中的副本作为最后手段被选举为leader，即使这样做可能导致数据丢失
 
+# 表示连接zookeeper集群的地址
 zookeeper.connect=null # string
 zookeeper.connection.timeout.ms=null # int 客户端等待与zookeeper建立连接的最长时间.如果没有设置,则使用zookeeper.session.timeout.ms中的值
 zookeeper.session.timeout.ms=18000 # Zookeeper会话超时
@@ -692,7 +763,8 @@ delete.records.purgatory.purge.interval.requests=1 # 删除记录请求炼狱的
 fetch.max.bytes=57671680 # 55MB 我们将为获取请求返回的最大字节数.必须至少为1024.
 fetch.purgatory.purge.interval.requests=1 #获取请求炼狱的清除间隔(以请求数为单位)
 
-group.initial.rebalance.delay.ms=3000 # 在执行第一次再平衡之前,组协调器等待更多使用者加入新组所需的时间 
+# 和消费者加入消费组有关
+group.initial.rebalance.delay.ms=3000 # ms在执行第一次再平衡之前,组协调器等待更多使用者加入新组所需的时间 
 group.max.session.timeout.ms=1800000 # 注册消费者允许的最大会话超时
 group.max.size=2147483647 # 单个消费者组可以容纳的最大消费者数量
 group.min.session.timeout.ms=6000 # 注册消费者允许的最小会话超时
@@ -732,7 +804,8 @@ max.connections.per.ip=2147483647 # 我们允许每个ip地址的最大连接数
 max.connections.per.ip.overrides=null # string 每个ip或主机名的逗号分隔列表覆盖到默认的最大连接数 hostName:100,
 max.incremental.fetch.session.cache.slots=1000 # 我们将维护的增量获取会话的最大数量
 
-num.partitions=1 # 每个主题的默认日志分区数
+# 每个主题的默认日志分区数
+num.partitions=1 
 
 password.encoder.old.secret=null # password 用于编码动态配置的密码的旧密钥
 password.encoder.secret=null # password 用于为此代理对动态配置的密码进行编码的密钥
