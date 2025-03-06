@@ -970,3 +970,33 @@ public class MvcController {
 
 
 #### @RequestHeader
+
+~~~md
+Host                    localhost:8080
+Accept                  text/html,application/xhtml+xml,application/xml;q=0.9
+Accept-Language         fr,en-gb;q=0.7,en;q=0.3
+Accept-Encoding         gzip,deflate
+Accept-Charset          ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive              300
+
+~~~
+
+
+
+~~~java
+// 使用controller的方法接收请求头的值
+// 注解作用于Map<String, String>, MultiValueMap<String, String>,HttpHeaders 自动结束所有头
+// 支持将','分割的值转换成String, String[], List<String>
+@GetMapping("/demo")
+public void handle(
+        @RequestHeader("Accept-Encoding") String encoding, 
+        @RequestHeader("Keep-Alive") long keepAlive) { 
+    //...
+}
+
+~~~
+
+
+
+#### @CookieValue
+
