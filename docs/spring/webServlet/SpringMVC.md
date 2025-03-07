@@ -1000,3 +1000,95 @@ public void handle(
 
 #### @CookieValue
 
+绑定请求头Cookie的value的数据。
+
+如：Cookie=JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84
+
+~~~java
+// 获取Cookie中JSESSIONID的值
+@GetMapping("/demo")
+public void handle(@CookieValue("JSESSIONID") String cookie) { 
+    //...
+}
+
+~~~
+
+
+
+#### @ModelAttribute
+
+将Servlet的请求参数绑定到@ModelAttribute注解的对象，将参数名对应的值映射到@ModelAttribute对象的属性名的值。
+
+
+
+~~~java
+@PostMapping("/owners/{ownerId}/pets/{petId}/edit")
+public String processSubmit(@ModelAttribute Pet pet) { }
+
+~~~
+
+
+
+绑定url参数到model
+
+~~~java
+@PutMapping("/accounts/{account}")
+public String save(@ModelAttribute("account") Account account) {
+    // ...
+}
+
+~~~
+
+
+
+添加数据绑定错误接收对象
+
+~~~java
+@PostMapping("/owners/{ownerId}/pets/{petId}/edit")
+public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result) { 
+    if (result.hasErrors()) {
+        return "petForm";
+    }
+    // ...
+}
+
+~~~
+
+
+
+model不进行数据绑定
+
+~~~java
+@ModelAttribute
+public AccountForm setUpForm() {
+    return new AccountForm();
+}
+
+@ModelAttribute
+public Account findAccount(@PathVariable String accountId) {
+    return accountRepository.findOne(accountId);
+}
+
+@PostMapping("update")
+public String update(@Valid AccountForm form, BindingResult result,
+        @ModelAttribute(binding=false) Account account) { 
+    // account对象不进行数据绑定
+}
+
+~~~
+
+
+
+添加@Valid或@Validated注解实现绑定后的数据校验
+
+~~~java
+@PostMapping("/owners/{ownerId}/pets/{petId}/edit")
+public String processSubmit(@Valid @ModelAttribute("pet") Pet pet, BindingResult result) { 
+    if (result.hasErrors()) {
+        return "petForm";
+    }
+    // ...
+}
+
+~~~
+
