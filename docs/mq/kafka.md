@@ -47,7 +47,7 @@ broker：Kafka集群包含一个或多个服务器，这种服务器就称为bro
 
 异步发送：Kafka 生产者将尝试在内存中累积数据并在单个请求中发送更大的批次。
 
-
+![image-20250307194401641](http://47.101.155.205/image-20250307194401641.png)
 
 #### 消费者
 
@@ -224,6 +224,8 @@ rm -rf /tmp/kafka-logs /tmp/zookeeper /tmp/kraft-combined-logs
 
 
 #### Zookeeper集群
+
+Kafka会将集群的配置信息和元信息存储在Zookeeper中，可以使用Zookeeper客户端工具ZooInspector管理Zookeeper的节点信息。
 
 ~~~zoo.cfg
 # 修改配置
@@ -407,6 +409,39 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/producer
 </dependency>
 
 ~~~
+
+Kafka生产者发送消息的主要模式：发后即忘(fire-and-forget)、同步发送（sync）、异步发送（async）。
+
+- 发后即忘：只管向Kafka发送消息而不关心消息是否正确到达。发送性能最好，可靠性最差。
+- 同步发送：利用返回的Feature对象阻塞等待Kafka的响应，知道消息发送成功。
+- 异步发送：生产者提供回调支持。
+
+Kafka生产者发送到主题的消息，只会保存在某一个分区，主题在被创建的时候，可以指定分区的数量。Kafka提供的分区策略Partitioner决定了消息发送到哪个分区。
+
+**常见的分区有几种：**
+
+1. DefaultPartitioner：默认分区策略。
+2. RoundRobinPartitioner：轮询分区策略。
+3. UniformStickyPartitioner：黏性分区策略。
+4. 散列分区策略：key不为空，使用了默认的分区器，Kafka会对key进行散列，然后根据散列值把消息映射到对应的分区。
+5. 实现Partitioner自定义分区策略。
+
+
+
+**生产者压缩机制：**
+
+生产者负责压缩、Broker端负责保持、消费端负责解压。利用生产者的CPU去换Broker端磁盘存储空间，以及生产者和消费者的网络I/O。
+
+compression.type配置压缩方式。
+
+1. gzip：压缩效率高，CPU消耗大，适合对带宽敏感场景。压缩和解压较慢。
+2. snappy：压缩率适中，CPU消耗较低，适用于延迟和吞吐量要求高的场景。
+3. lz4：压缩率和snappy相当，当压缩和解压速度更快。
+4. zstd（Zstandard）：压缩率高，接近gzip，压缩和解压更快。CPU介于gzip和snappy之间。
+
+
+
+**生产者拦截器**
 
 
 
@@ -1139,12 +1174,25 @@ message.downconversion.enable=true # 消息向下转换,不太懂?
 #### 2.4.3、Producer配置
 
 ~~~properties
+#acks=0 生产者将根本不等待来自服务器的任何确认,retries配置失效,为每条记录返回的偏移量将始终设置为-1
+#acks=1 leader副本将记录写入其本地日志，但无需等待所有follower副本的完全确认即可响应,如果leader在响应之后，没有复制sollower完之前失败,则出现数据丢失
+#acks=all leader将等待同步副本的完整集合来确认记录.这保证只要至少有一个同步副本保持活动状态,记录就不会丢失.效果等同-1配置
+#启用幂等性需要这个配置值为“all”。如果设置了冲突的配置，并且幂等性没有显式启用，则幂等性被禁用
+acks=all # [all, -1, 0, 1]
+
 key.serializer=className # 实现org.apache.kafka.common.serializ.serializer接口的class
 value.serializer=className # 实现org.apache.kafka.common.serializ.serializer接口的class
-bootstrap.servers=list # 
-buffer.memory=33554432 # 
+# Kafka服务端地址
+bootstrap.servers=list 
+# 生产者用于缓存等待发送到服务器的内存字节数。如果记录发送速度大于记录被提交到服务器的速度，缓存将耗尽，阻塞max.block.ms之后，则发送异常。RecordTooLargeException
+buffer.memory=33554432
+# 阻塞最大时间
+max.block.ms=60000 
+
+# Kafka 压缩消息机制
 compression.type=none # none,gzip,snappy,lz4,zstd
-retries=2147483647 #消息的幂等性相关
+# 启用幂等性，此值必须大于0。生产者发送消息失败的重试次数
+retries=2147483647 
 
 ssl.key.password=null #password
 ssl.keystore.certificate.chain=null
@@ -1155,29 +1203,36 @@ ssl.truststore.certificates=null
 ssl.truststore.location=null
 ssl.truststore.password=null
 
-batch.size=16384 # 为了生产这发送消息批处理发送
+# 当将多条记录发送到一个分区时，生产者将一批消息发送，生产者批量发送消息的大小（单位byte）。为0则禁用批处理
+batch.size=16384 
+#延迟发送消息，结合batch.size使用可以批处理发送消息（默认为0，意味着即使积累的消息小于batch.size也会立即发送）
+linger.ms=0
+# 每个请求的最大上限，如果大于Broker的message.max.bytes，生产者可能出现报错
+max.request.size=1048576 
 
 client.dns.lookup=use_all_dns_ips # resolve_canonical_bootstrap_servers_only
 
-client.id=null # 发出请求时传递给服务器的id字符串
+# 发出请求时传递给服务器的id字符串，生产者的唯一标识，方便日志记录、监控、配额管理和问题排查
+client.id=null 
 
 connections.max.idle.ms=540000  #9m 在此配置指定的毫秒数之后关闭空闲连接
 
-delivery.timeout.ms=120000 # 发送消息的时间上限,大于request.timeout.ms+linger.ms
+# 调用send后，返回成功或失败的时间上线。发送消息的时间上限,大于request.timeout.ms+linger.ms，加上失败处置时间
+delivery.timeout.ms=120000 
 
-linger.ms=0 #延迟发送消息，结合batch.size使用可以批处理发送消息
 
-request.timeout.ms=30000 # 配置控制客户端等待请求响应的最大时间。如果在超时之前未收到响应，则客户端将在必要时重新发送请求.>replica.lag.time.max.ms (a broker configuration)
+# 配置控制客户端等待请求响应的最大时间。如果在超时之前未收到响应，则客户端将在必要时重新发送请求.要大于Braker的replica.lag.time.max.ms配置，避免因为客户端重试导致消息重复的概率。为什么重复？
+request.timeout.ms=30000 
 
-max.block.ms=60000 # 阻塞最大时间
-
-max.request.size=1048576 # 每个请求的最大上限
-
-partitioner.class=class # 没有设置这个,到默认的分区,或者根据存在的key选择一个分区;org.apache.kafka.clients.producer.RoundRobinPartitioner,这种分区策略是将一系列连续记录中的每条记录发送到不同的分区(无论是否提供了“键”)，直到我们用完分区并重新开始。注意:有一个已知的问题会导致新批创建时分布不均匀。详情请查看KAFKA-9965。实现org.apache.kafka.clients.producer.Partitioner接口可以自定义分区器
+# 没有设置这个,使用默认的分区策略,或者根据存在的key选择一个分区;org.apache.kafka.clients.producer.RoundRobinPartitioner,这种分区策略是将一系列连续记录中的每条记录发送到不同的分区(无论是否提供了“键”)，直到我们用完分区并重新开始。注意:有一个已知的问题会导致新批创建时分布不均匀。详情请查看KAFKA-9965。实现org.apache.kafka.clients.producer.Partitioner接口可以自定义分区器。通过指定class自定义分区策略
+partitioner.class=class 
 
 partitioner.ignore.keys=false # 当设置为“true”时，生产者将不会使用记录键来选择分区。如果为“false”，当存在密钥时，生产者将根据密钥的散列选择分区。注意:如果使用自定义分区器，此设置不起作用。
 
-receive.buffer.bytes=32768 # 读取数据时使用的TCP接收缓冲区(SO_RCVBUF)的大小。如果取值为-1，则使用操作系统默认值
+# 读取数据时使用的TCP接收缓冲区(SO_RCVBUF)的大小。如果取值为-1，则使用操作系统默认值
+receive.buffer.bytes=32768
+# 发送数据时要使用的TCP发送缓冲区(SO_SNDBUF)的大小。如果取值为-1，则使用操作系统默认值
+send.buffer.bytes=131072
 
 sasl.client.callback.handler.class=null #class 实现AuthenticateCallbackHandler接口的SASL客户机回调处理程序类的完全限定名称
 sasl.jaas.config=null # password
@@ -1190,7 +1245,6 @@ sasl.oauthbearer.token.endpoint.url=null #
 
 security.protocol=PLAINTEXT # PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL和broker沟通的协议
 
-send.buffer.bytes=131072 # 发送数据时要使用的TCP发送缓冲区(SO_SNDBUF)的大小。如果取值为-1，则使用操作系统默认值
 
 socket.connection.setup.timeout.max.ms=30000 # 
 socket.connection.setup.timeout.ms=10000 # 
@@ -1201,22 +1255,20 @@ ssl.protocol=TLSv1.2
 ssl.provider=null
 ssl.truststore.type=JKS # JKS, PKCS12, PEM
 
-acks=all # [all, -1, 0, 1]
-#acks=0 生产者将根本不等待来自服务器的任何确认,retries配置失效,为每条记录返回的偏移量将始终设置为-1
-#acks=1 leader将记录写入其本地日志，但无需等待所有follower的完全确认即可响应,如果leader在响应之后，没有复制sollower完之前失败,则出现数据丢失
-#acks=all leader将等待同步副本的完整集合来确认记录.这保证只要至少有一个同步副本保持活动状态,记录就不会丢失.效果等同-1配置
-#启用幂等性需要这个配置值为“all”。如果设置了冲突的配置，并且幂等性没有显式启用，则幂等性被禁用
 
 auto.include.jmx.reporter=true # 	
 
-enable.idempotence=true # true生产者将确保在流中只写入每个消息的一个副本,要求max.in.flight.requests.per.connection<=5,retries >0,acks=all
+enable.idempotence=true # true生产者将确保在流中只写入每个消息的一个副本,幂等性要求max.in.flight.requests.per.connection<=5,retries >0,acks=all
 
-max.in.flight.requests.per.connection=5 # 客户端将在单个连接上发送的未确认请求的最大数量
+# 客户端将在单个连接上发送的未确认请求的最大数量。如果此配置设置为大于1且enable.idempotence设置为 false，则存在由于重试而导致发送失败后消息重新排序的风险；如果禁用重试或 enable.idempotence 设置为 true，则将保留顺序。
+max.in.flight.requests.per.connection=5
 
 interceptor.classes='' #  By default, there are no interceptors.
 
-metadata.max.age.ms=300000 # 
-metadata.max.idle.ms=300000 # 
+# 超过这个时间间隔，系统自动更新元数据。包含Topic、副本、分区、Broker信息。
+metadata.max.age.ms=300000
+# 生产者缓存Topic元数据，上次访问Topic至现在超过空闲时间，则Topic的元数据被抛弃，下次访问Topic强制获取元数据
+metadata.max.idle.ms=300000
 
 metric.reporters='' # list
 metrics.num.samples=2 # 
@@ -1226,7 +1278,9 @@ metrics.sample.window.ms=30000 #
 partitioner.adaptive.partitioning.enable=true # 
 partitioner.availability.timeout.ms=0 # 
 
-reconnect.backoff.max.ms=1000 # 
+# 客户端重连的最大时间，每次重连失败，会增加这个时间
+reconnect.backoff.max.ms=1000 
+# 客户端重连的间隔时间
 reconnect.backoff.ms=50 # 
 
 retry.backoff.ms=100 # 在尝试重试对给定主题分区的失败请求之前等待的时间。这避免了在某些故障场景下在紧密循环中重复发送请求
@@ -1261,7 +1315,10 @@ ssl.keymanager.algorithm=SunX509
 ssl.secure.random.implementation=null
 ssl.trustmanager.algorithm=PKIX
 
-transaction.timeout.ms=60000 # 不能>transaction.max.timeout.ms
+# 生产者主动终结当前操作的最大时间，不能>transaction.max.timeout.ms，大于则请求失败且报错InvalidTxnTimeoutException
+transaction.timeout.ms=60000
+
+# 用于事务性传输的 TransactionalId。这将启用跨多个生产者会话的可靠性语义，因为它允许客户端保证在开始任何新事务之前已经完成了使用相同 TransactionalId 的事务。如果未提供 TransactionalId，则生产者仅限于幂等传输。如果配置了 TransactionalId，则隐含 enable.idempotence。默认情况下，未配置 TransactionId，这意味着无法使用事务。请注意，默认情况下，事务需要至少三个代理的集群，这是 production 的推荐设置;对于 Development，您可以通过调整 Broker Setup transaction.state.log.replication.factor 来更改此设置。
 transactional.id=null # 事务消息
 
 
@@ -1281,7 +1338,8 @@ fetch.min.bytes=1 # 消费请求一次最小的响应数据单位字节,如果�
 fetch.max.bytes=52428800 # 50MB The maximum amount of data the server should return for a fetch request. 
 fetch.max.wait.ms=500 # 消费一次fetch.min.bytes没达到这个标准的阻塞时间
 
-group.id=null # 表示消费者组的唯一字符串,subscribe(topic) or the Kafka-based offset
+# 表示消费者组的唯一字符串
+group.id=null 
 
 heartbeat.interval.ms=3000 # The expected time between heartbeats to the consumer coordinator when using Kafka's group management facilities.The value must be set lower than session.timeout.ms, but typically should be set no higher than 1/3 of that value.
 session.timeout.ms=45000 #45s kafka消费者与broker的超时时间,group.min.session.timeout.ms group.max.session.timeout.ms
@@ -1310,8 +1368,10 @@ connections.max.idle.ms=540000  # 在此配置指定的毫秒数之后关闭空�
 
 default.api.timeout.ms=60000 # 1m Specifies the timeout for client APIs
 
+# 消费组是否自动提交消费的进度
 enable.auto.commit=true # If true the consumer's offset will be periodically committed in the background.
-auto.commit.interval.ms=5000 # enable.auto.commit设置为true，自动提交偏移量的频率
+# enable.auto.commit设置为true，自动提交偏移量的频率（提交消费进度的时间）
+auto.commit.interval.ms=5000 
 
 exclude.internal.topics=true # 监听topic相关
 
