@@ -2,7 +2,7 @@
 
 官方文档：https://kafka.apache.org/documentation
 
-## 设计理论
+## 1.设计理论
 
 ### 1.磁盘存储消息
 
@@ -52,10 +52,11 @@ broker：Kafka集群包含一个或多个服务器，这种服务器就称为bro
 #### 消费者
 
 消费者：Kafka消费者向所需要的代理分区发起拉取请求。消费者在每个请求中指定其日志中的偏移量，并接收该位置开始的日志块。**SpringBoot开始连接Kafka的消费者该从哪个偏移量获取消息？怎么往前设置偏移量以便重复消费？**
-1. 推和拉：从代理中拉取数据和代理往下推送数据各有区别。broker推送数据到不同的消费者，broker还需要控制数据传输的速率。当生产者的速率超过消费者消费速率时，这时就比较麻烦了。消费者拉取数据，消费者消费速率没赶上生产速率，可以在后面的时候赶上。**推模型，broker积累消息发送请求，它并不知道消费者能否立即处理它，就需要把消息发送给消费者，当配置推送频率较低时，就会一次又一次的推送消息。拉模型解决了这个问题，但是也带来了新问题，当代理没有消息时，消费者需要不停的循环等待**。
-2. 消费者定位：消息状态定位，broker和消费者消费内容保持一致，如果broker一发送消息就表示消费，消费者出现网络问题没有接收到消息，则这条消息就丢失了。为了解决这个问题：可以给消息系统添加消息确定功能，这表明消息发送表示消息只是**已发送**，并不是**被消费**，broker等待消费者的确定消息标记消息为**已消费**。这里解决了消息丢失问题，却带来了新的问题：消息消费完，确定消息时出现问题；broker性能。Kafka的topic分为一组有序的分区，每个分区在任何给定实际由每个订阅消费者组的一个消费者消费(确保了消息偏移量的准确性)。**每个分区只能被消费者组中的一个消费者进行消费，这样可以确保消息在消费者组内有序消费，但不同消费者组之间可以并行消费。**这表明每个分区中消费者的位置只是一个整数，即要消费下一条消息的偏移量。这样使得标记的性能消耗很低。这样还支持消费者**退回到旧的偏移量**并重新使用消息。
-3. 离线数据加载：Kafka的持久性允许消费者可以定期消费，批量加载数据，将数据加载到离线系统。
-4. 静态会员资格：是一种消费者组成员管理策略，用于在 Kafka 消费者组中控制消费者的加入和离开，以及在重新平衡发生时的行为。传统的 Kafka 消费者组中，消费者组的成员是通过一种动态分配的方式加入的，当新的消费者加入或离开时，会触发重新平衡，导致分区重新分配。这种动态分配机制在某些情况下可能会导致不稳定性，例如，在网络分区恢复时可能会触发不必要的重新平衡。Static Membership 通过引入手动管理消费者组成员，消费者可以预先注册到消费者组，并且不会因为网络分区或其他原因而自动触发重新平衡。Static Membership 需要在 Kafka 集群和消费者端进行配置，以及确保正确的协调和调度。
+1. 推和拉：从代理中拉取数据和Broker往下推送数据各有区别。Broker推送数据到不同的消费者，Broker还需要控制数据传输的速率；当生产者的速率超过消费者消费速率时，这时就比较麻烦了。消费者拉取数据，消费者消费速率没赶上生产速率，可以在后面的时候赶上。**推模型，broker积累消息发送请求，它并不知道消费者能否立即处理它，就需要把消息发送给消费者，当配置推送频率较低时，就会一次又一次的推送消息。拉模型解决了这个问题，但是也带来了新问题，当代理没有消息时，消费者需要不停的循环等待**。
+2. 消费者定位：消息状态定位，如果Broker一发送消息就表示消费，消费者出现网络问题没有接收到消息，则这条消息就丢失了。为了解决这个问题：可以给消息系统添加消息确定功能，这表明消息发送表示消息只是**已发送**，并不是**被消费**，Broker等待消费者的确定消息，收到则标记消息为**已消费**。这里解决了消息丢失问题，却带来了新的问题：消息消费完，确定消息时出现问题，出现重复消费问题；Broker性能，需要每条消息保留多个状态。
+3. Kafka的topic分为一组有序的分区，每个分区在任何给定实际由每个订阅消费者组的一个消费者消费(确保了消息偏移量的准确性)。**每个分区只能被消费者组中的一个消费者进行消费，这样可以确保消息在消费者组内有序消费，但不同消费者组之间可以并行消费。**这表明每个分区中消费者的位置只是一个整数，即要消费下一条消息的偏移量。这样使得标记的性能消耗很低。这样还支持消费者**退回到旧的偏移量**并重新使用消息。
+4. 离线数据加载：Kafka的持久性允许消费者可以定期消费，批量加载数据，将数据加载到离线系统。
+5. 静态会员资格：是一种消费者组成员管理策略，用于在 Kafka 消费者组中控制消费者的加入和离开，以及在重新平衡发生时的行为。传统的 Kafka 消费者组中，消费者组的成员是通过一种动态分配的方式加入的，当新的消费者加入或离开时，会触发重新平衡，导致分区重新分配。这种动态分配机制在某些情况下可能会导致不稳定性，例如，在网络分区恢复时可能会触发不必要的重新平衡。Static Membership 通过引入手动管理消费者组成员，消费者可以预先注册到消费者组，并且不会因为网络分区或其他原因而自动触发重新平衡。Static Membership 需要在 Kafka 集群和消费者端进行配置，以及确保正确的协调和调度。
 
 
 
@@ -79,7 +80,7 @@ broker：Kafka集群包含一个或多个服务器，这种服务器就称为bro
 
 通过情况下使用正好一次的分发机制：
 
-正常情况下，所有副本具有相同偏移量的完全相同的日志。消费者控制其在该日志中的位置。如果消费者从未奔溃，它将这个位置存储在内存中，但如果消费者失败，我们希望这个主题分区被另一个进程接管，新进程需要选择一个合适给位置开始处理。
+正常情况下，所有副本具有相同偏移量的完全相同的日志。消费者控制其在该日志中的位置。如果消费者从未奔溃，它将这个位置存储在内存中，但如果消费者消费失败，我们希望这个主题分区被另一个进程接管，新进程需要选择一个合适给位置开始处理。
 
 
 
@@ -99,7 +100,7 @@ Kafka的副本机制通过主-从副本模型、ISR、故障检测与恢复策�
    1. 每个分区的副本由一个**主副本和多个追随者副本**组成。
    2. 主副本负责处理读写请求，而追随者副本被动地从主副本同步数据。
    3. 当主副本所在的节点发生故障时，Kafka会自动选举新的主副本，以确保分区的可用性。
-3. 同步副本与ISR
+3. 同步副本ISR
    1. **同步副本（In-Sync Replicas, ISR）**是指与主副本保持同步的所有副本集合，通常包括主副本和至少一个追随者副本。
    2. 当消息写入主副本后，追随者副本需要尽快同步这些消息，以进入ISR队列。
    3. Kafka通过监控ISR中的副本来判断分区是否可用。如果主副本不可用且ISR有其他副本，Kafka会从ISR中选举新的主副本。
@@ -118,26 +119,160 @@ Kafka的副本机制通过主-从副本模型、ISR、故障检测与恢复策�
 
 
 
-
-
-
-
-### 5.Log Compaction
-
-
-
-### 6.Quotas
+Kafka的Leader副本选举，是采用Zookeeper上针对Topic维护的Isr列表激活进行选举，在选举时，首先选举Isr的第1个，如果第1个选举不成功，接着选第2个，依次类推。Kafka可以容忍N-1个Leader副本宕机或不可用。如果所有的Isr副本不可用，则从不再Isr列表的副本选举一个Leader。
 
 
 
 
 
+### 5.Log Compaction(日志压缩)
+
+日志压缩可确保 Kafka 始终保留单个主题分区的数据日志中每个消息键的至少最后一个已知值。 它解决了还原等使用案例和场景 状态，或者在作维护期间应用程序重启后重新加载缓存。
+
+![image-20250309114120104](http://47.101.155.205/image-20250309114120104.png)
+
+日志压缩是一种机制，用于提供更精细的每条记录保留，而不是更粗粒度的基于时间的保留。这个想法是有选择地删除具有相同主键的最新更新的记录。这样可以保证日志至少具有每个键的最后一个状态。
+
+此保留策略可以按主题设置，因此单个集群可以包含一些主题，其中保留是通过大小或时间强制执行的，而其他主题则通过压缩强制执行保留。
 
 
 
-## 1、初级入门
+![image-20250309120852747](http://47.101.155.205/image-20250309120852747.png)
 
-### 1.1、基本概念和架构
+日志的头部与传统的 Kafka 日志相同。它具有密集的连续偏移量并保留所有消息。Log compaction 添加了一个用于处理日志尾部的选项。上图显示了一根尾巴压实的原木。请注意，日志尾部的消息保留了首次写入时分配的原始偏移量，该偏移量永远不会更改。另请注意，所有偏移量在日志中仍然是有效位置，即使具有该偏移量的消息已被压缩掉;在这种情况下，此位置与日志中出现的**下一个最高偏移量**没有区别。例如，在上图中，偏移量 36、37 和 38 都是等效位置，从这些偏移量中的任何一个开始的读取都将返回以 38 开头的消息集。
+
+压缩是通过定期重新复制日志段在后台完成的。清理不会阻止读取，并且可以限制为使用不超过可配置的 I/O 吞吐量，以避免影响创建者和使用者。压缩日志段的实际过程如下所示：
+
+![image-20250309121020126](http://47.101.155.205/image-20250309121020126.png)
+
+日志压缩提供的保障：
+
+1. Topic配置`min.compaction.lag.ms` 可用于保证在写入消息后必须经过的最小时间长度才能压缩消息。Topic配置`max.compaction.lag.ms` 可用于保证写入消息的时间与消息符合压缩条件之间的最大延迟。
+2. 消息的顺序始终保持不变。 Compaction 永远不会对消息重新排序，只会删除一些消息。
+3. 消息的偏移量永远不会改变。 它是日志中某个位置的永久标识符。
+4. 任何从日志开头开始的使用者都将至少看到所有记录的最终状态（按写入顺序排列）。此外，如果使用者在小于主题的 `delete.retention.ms` 设置（默认值为 24 小时）的时间段内到达日志头，则将看到已删除记录的所有删除标记。超过这个时间，中间的消息可能未消费掉。
+
+
+
+~~~properties
+# 日志压缩配置
+log.cleanup.policy=compact
+
+# 时间
+log.cleaner.min.compaction.lag.ms
+log.cleaner.max.compaction.lag.ms
+
+~~~
+
+
+
+
+
+### 6.Quotas（配额）
+
+Kafka 集群能够对请求实施配额，以控制客户端使用的代理资源。Broker 可以为共享配额的每组客户端强制执行两种类型的客户端配额：
+
+1. 网络带宽的配额：网络带宽配额定义为共享配额的每组客户端的字节速率阈值。默认情况下，每个唯一客户端组都会收到集群配置的固定配额（以字节/秒为单位）。此配额是按代理定义的。在客户端受到限制之前，每组客户端最多可以发布/获取每个代理 X 字节/秒。
+2. 请求速率配额：请求速率配额定义为客户端在配额时段内可以利用每个代理的请求处理程序 I/O 线程和网络线程的时间百分比。`n%` 的配额表示 `n% 的 一个线程` ，因此配额超出了总容量 `((num.io.threads + num.network.threads) * 100)%` 。每组客户端可以在配额中的所有 I/O 和网络线程中使用最高 `n%` 的总百分比 窗口。由于分配给 I/O 和网络线程的线程数通常基于 根据 Broker 主机上的可用内核数，请求速率配额表示 CPU 的总百分比 可供共享配额的每组客户端使用。
+
+**为什么需要配额？**
+
+生产者和消费者可能会产生/消耗非常大量的数据，或者以非常高的速率生成请求，从而垄断代理资源，导致网络饱和，并且通常会DOS其他客户端和代理本身。拥有配额可以防止这些问题，并且在大型多租户集群中尤为重要，因为一小部分行为不良的客户端可能会降低行为良好的客户端的用户体验。事实上，当将 Kafka 作为服务运行时，这甚至可以根据商定的合同强制执行 API 限制。
+
+
+
+**可以实施配额的对象：**
+
+1. 用户级别：user。
+2. 客户端级别：clientId。
+3. 用户级别+客户端级别：user+clientId。
+
+![image-20250309112317027](http://47.101.155.205/image-20250309112317027.png)
+
+
+
+~~~bash
+# 设置配额 user=user1, client-id=clientA
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1 --entity-type clients --entity-name clientA
+Updated config for entity: user-principal 'user1', client-id 'clientA'
+
+# 设置配额 user=user1
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1
+Updated config for entity: user-principal 'user1'
+
+# 设置配额 client-id=clientA
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type clients --entity-name clientA
+Updated config for entity: client-id 'clientA'
+
+~~~
+
+
+
+~~~bash
+# 默认配额 
+# 为 user=userA 配置默认 client-id 配额
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1 --entity-type clients --entity-default
+Updated config for entity: user-principal 'user1', default client-id
+
+# user设置默认
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-default
+Updated config for entity: default user-principal
+
+# client-id 设置默认
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type clients --entity-default
+Updated config for entity: default client-id.
+
+~~~
+
+
+
+~~~bash
+# 查看配额
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --describe --entity-type users --entity-name user1 --entity-type clients --entity-name clientA
+Configs for user-principal 'user1', client-id 'clientA' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
+
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --describe --entity-type users --entity-name user1
+Configs for user-principal 'user1' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
+
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --describe --entity-type clients --entity-name clientA
+Configs for client-id 'clientA' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
+
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --describe --entity-type users
+
+bin/kafka-configs.sh --bootstrap-server localhost:9092 --describe --entity-type users --entity-type clients
+
+~~~
+
+
+
+### 7.Zookeeper
+
+Zookeeper功能：
+
+1. 存储Kafka的元数据.
+2. 管理Broker。
+3. 管理消费者。
+
+
+
+Zookeeper存储以下数据：
+
+1. Topic的注册信息。
+2. Topic的配置。
+3. 分区的状态信息。
+4. Broker的注册信息。
+5. Consumer的注册信息。
+6. Consumer owner。
+7. Consumer offset。
+
+
+
+
+
+
+## 2.初级入门
+
+### 1.基本概念和架构
 
 Apache Kafka 是最流行的开源流处理软件，用于大规模收集、处理、存储和分析数据。它以其出色的性能、低延迟、容错和高吞吐量而闻名，每秒能够处理数千条消息。Kafka 使用案例超过 1,000 个并且还在不断增加，一些常见的好处是构建数据管道、利用实时数据流、支持运营指标以及跨无数来源的数据集成。
 
@@ -182,9 +317,28 @@ Kafka 是一个分布式系统，由通过高性能[TCP 网络协议进行通信
 
 
 
-### 1.2、安装和配置Kafka
+### 2.安装和配置Kafka
 
 下载地址：https://www.apache.org/dyn/closer.cgi?path=/kafka/3.5.0/kafka_2.13-3.5.0.tgz
+
+~~~bash
+# 修改kafka Broker 的配置
+broker.id=0
+log.dir=/tmp/kafka-logs
+# 配置监听地址
+# PLAINTEXT://0.0.0.0:9092(需要配置 advertised.listeners) / PLAINTEXT://hostname:9092
+listeners=PLAINTEXT://oycm:9092
+# 官网推荐的例子
+# PLAINTEXT://myhost:9092,SSL://:9091 
+# CLIENT://0.0.0.0:9092,REPLICATION://localhost:9093
+# PLAINTEXT://127.0.0.1:9092,SSL://[::1]:9092
+
+# zookeeper暴露的监听地址
+advertised.listeners=PLAINTEXT://公网ip:9092
+
+~~~
+
+
 
 ~~~bash
 cd /usr/local
@@ -194,11 +348,11 @@ cd kafka_2.13-3.5.0/
 # 安装kafka环境：ZooKeeper or KRaft
 # 1.ZooKeeper
 bin/zookeeper-server-start.sh config/zookeeper.properties
-nohup bin/zookeeper-server-start.sh config/zookeeper.properties > log/zookeeper.log 2>&1 &
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties > logs/zookeeper.log 2>&1 &
 
 # 另一个窗口执行命令
 bin/kafka-server-start.sh config/server.properties
-nohup bin/kafka-server-start.sh config/server.properties > log/kafka.log 2>&1 &
+nohup bin/kafka-server-start.sh config/server.properties > logs/kafka.log 2>&1 &
 
 bin/kafka-server-start.sh k9093/server.properties
 
@@ -287,11 +441,9 @@ bin/kafka-server-start.sh config/server.properties &
 
 
 
+## 3.API
 
-
-
-
-### 1.3、Kafka基本操作
+### 1.Kafka基本操作
 
 - 创建主题、发送和接收消息
 - 管理消费组
@@ -337,10 +489,20 @@ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic connect-
 # 查询topic topic的名称
 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
-# 创建topic
+# 指定分区副本数2
+--replication-factor 2
+# 指定topic的分区有3个
+--partitions 3
+
+# 创建topic，默认监听配置启动
 bin/kafka-topics.sh --create --topic org.test1 --bootstrap-server localhost:9092
-# 指定分区副本数2，topic的分区有3个
-bin/kafka-topics.sh --create --zookeeper zookeeperHost:2181 --replication-factor 2 --partitions 3 --topic org.test2 
+
+# Broker 只配置 listeners=PLAINTEXT://oycm:9092 配置
+# default.replication.factor 默认配置是1，创建topic失败
+bin/kafka-topics.sh --create --replication-factor 2 --partitions 3 --topic org.test2 --bootstrap-server root:9092
+
+# Broker 指定监听地址 advertised.listeners=PLAINTEXT://公网ip:9092
+bin/kafka-topics.sh --create --replication-factor 1 --partitions 3 --topic org.test2 --bootstrap-server 内网ip:9092
 
 
 # 查询topic信息
@@ -348,12 +510,21 @@ bin/kafka-topics.sh --describe --topic org.test1 --bootstrap-server localhost:90
 
 ~~~
 
+![image-20250308130043211](http://47.101.155.205/image-20250308130043211.png)
+
 
 
 #### producer
 
 ~~~bash
+# 发送消息
 bin/kafka-console-producer.sh --topic org.test1 --bootstrap-server localhost:9092
+
+# Broker 只配置 listeners=PLAINTEXT://oycm:9092 配置
+bin/kafka-console-producer.sh --topic org.test1 --bootstrap-server root:9092
+
+# Broker 指定监听地址 advertised.listeners=PLAINTEXT://公网ip:9092
+bin/kafka-console-producer.sh --topic org.test1 --bootstrap-server 内网ip:9092
 
 bin/kafka-console-producer.sh --broker-list localhost:9092 --topic org.test2
 
@@ -366,17 +537,27 @@ bin/kafka-console-producer.sh --broker-list localhost:9092 --topic org.test2
 ~~~bash
 # 从开始位置消费
 bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server localhost:9092
-
 # 显示key消费
-bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning print.key=true --topic org.test2
+print.key=true
+
+# Broker 只配置 listeners=PLAINTEXT://oycm:9092 配置
+bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server root:9092
+
+# Broker 指定监听地址 advertised.listeners=PLAINTEXT://公网ip:9092
+bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server 内网ip:9092
+
 
 # 重置消费者组偏移量 消费者停止才能重置
 bin/kafka-consumer-groups.sh --bootstrap-server oycm:9092 --group <group_name> --reset-offsets --to-latest --all-topics --execute
-bin/kafka-consumer-groups.sh --bootstrap-server oycm:9092 --group test1 --reset-offsets --to-latest --all-topics --execute
+
+bin/kafka-consumer-groups.sh --bootstrap-server oycm:9092 --group c2 --reset-offsets --to-latest --all-topics --execute
+
+# 删除偏移量
+bin/kafka-consumer-groups.sh --bootstrap-server 172.24.117.21:9092 --group c2 --delete-offsets --topic org.test1
 
 # 查询kafka消费者组的偏移量
 bin/kafka-consumer-groups.sh --bootstrap-server <kafka-bootstrap-server> --group <consumer-group> --describe
-bin/kafka-consumer-groups.sh --bootstrap-server oycm:9092 --group test1 --describe
+bin/kafka-consumer-groups.sh --bootstrap-server 172.24.117.21:9092 --group c2 --describe
 
 
 ~~~
@@ -397,7 +578,7 @@ bin/kafka-administration.sh --bootstrap-server oycm:9092 --trigger-rebalance --g
 
 
 
-### 1.4、Kafka生产者API
+### 2.Kafka生产者API
 
 https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
@@ -415,6 +596,54 @@ Kafka生产者发送消息的主要模式：发后即忘(fire-and-forget)、同�
 - 发后即忘：只管向Kafka发送消息而不关心消息是否正确到达。发送性能最好，可靠性最差。
 - 同步发送：利用返回的Feature对象阻塞等待Kafka的响应，知道消息发送成功。
 - 异步发送：生产者提供回调支持。
+
+
+
+~~~java
+public class KafkaClient {
+
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        properties.put("bootstrap.servers", "host:9092");
+        properties.put("acks", "all");
+        properties.put("linger.ms", 10);
+        properties.put("retries", 1);
+        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        Producer<String,String> producer = new KafkaProducer<String, String>(properties);
+        for (int i = 1; i < 2; i++) {
+            System.out.println("开始: " + i);
+            producer.send(new ProducerRecord<String, String>("org.test1", Integer.toString(i), Integer.toString(i)));
+            System.err.println(i);
+        }
+        producer.close();
+    }
+}
+
+~~~
+
+Kafka发送消息的执行过程：
+
+1. 在创建KafkaProducer对象时，就已经创建了一个Kafka发送消息线程。
+2. 调用send，先执行消息拦截器（配置才执行，且不会抛出异常）。
+3. 获取topic的元数据。
+4. 消息序列化，key和value。
+5. 设置消息的分区。
+6. 消息追加器。
+7. 消息拦截器回调和同步等待、异步回调。ProducerInterceptor消息拦截器的onAcknowledgement回调，在消息被确认应答之前或消息发送失败时调用，在生产者线程中调用。
+
+
+
+![image-20250308153640572](http://47.101.155.205/image-20250308153640572.png)
+
+![image-20250308154029898](http://47.101.155.205/image-20250308154029898.png)
+
+![image-20250308154803356](http://47.101.155.205/image-20250308154803356.png)
+
+![image-20250308155304930](http://47.101.155.205/image-20250308155304930.png)
+
+
 
 Kafka生产者发送到主题的消息，只会保存在某一个分区，主题在被创建的时候，可以指定分区的数量。Kafka提供的分区策略Partitioner决定了消息发送到哪个分区。
 
@@ -441,11 +670,11 @@ compression.type配置压缩方式。
 
 
 
-**生产者拦截器**
+**消息插件回调？**
 
 
 
-### 1.5、Kafka消费者API
+### 2.Kafka消费者API
 
 https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html
 
@@ -458,15 +687,58 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/consumer
 
 ~~~
 
+创建KafkaConsumer(Properties properties)对象执行情况：
+
+1. 有配置group.instance.id，则日志上下文对象设置instanceId。
+2. 配置ConsumerInterceptor消费者拦截器，默认空。
+3. 设置key、value的反序列化器。
+4. 设置ConsumerPartitionAssignor消费者分区器。默认有RangeAssignor、CooperativeStickyAssignor。
+5. 有设置消费者组，创建ConsumerCoordinator消费者组协调器。
+
+
+
+**偏移量和提交：**
+
+Kafka的消费根据当前的偏移量来拉取消息，消息消费完成之后，会更新当前的偏移量，这个就是提交。
+
+Kafka消费者跟踪它在每个分区中消耗的最大偏移量，并具有提交偏移量的能力，以便在重新启动时可以从这些偏移量恢复。Kafka提供了一个选项，将给定消费者组的所有偏移量存储在一个指定的代理（针对该组）中，该代理称为组协调器。也就是说，该消费者组中的任何消费者实例都应该将其偏移量提交和提取发送到该组协调器（代理）。消费者组根据其组名分配给协调器。消费者可以通过向任何Kafka代理发出FindCoordinatorRequest并读取包含协调器详细信息的FindCoordinatorResponse来查找其协调器。然后，消费者可以继续提交或从协调器代理获取偏移量。如果协调器移动，消费者将需要重新发现协调器。偏移量提交可以由消费者实例自动或手动完成。
+
+当组协调器接收到OffsetCommitRequest时，它将请求附加到一个名为 __consumer_offsets 的特殊[压缩](https://kafka.apache.org/documentation/#compaction) Kafka主题。只有在偏移量主题的所有副本都收到偏移量之后，代理才会向消费者发送成功的偏移量提交响应。如果偏移量未能在可配置的超时时间内复制，则偏移量提交将失败，消费者可以在退出后重试提交。 代理会定期压缩 offsets 主题，因为它只需要维护每个分区的最新 offset 提交。 协调器还将偏移量缓存在内存中的表中，以便快速提供偏移量获取。
+
+当协调器收到偏移量获取请求时，它只会从 offsets 缓存中返回最后提交的偏移量向量。如果 coordinator 刚刚启动，或者它刚刚成为一组新的消费者组的协调器（通过成为 offsets 主题的分区的领导者），它可能需要将 offsets 主题分区加载到缓存中。在这种情况下，偏移量获取将失败，并显示 CoordinatorLoadInProgressException，并且消费者可以在回退后重试 OffsetFetchRequest。
+
+
+
+**偏移量提交方式：**
+
+1. 自动提交：enable.auto.commit=true，auto.commit.interval.ms=5000。
+2. 手动同步提交。
+3. 手动异步提交。
+4. 手动提交指定偏移量。
 
 
 
 
-### 1.6、Kafka Stream流API
+
+**分区重平衡：**
+
+当新的消费者加入消费者组或消费者离开消费者组，就会发送分区重平衡。重平衡的优点是保证高可用性和扩展性，但是也带来了问题，重平衡期间整个消费者组不可使用。
+
+在设置消费者消费的Topic时，可以指定ConsumerRebalanceListener重平衡监听器。
+
+
+
+### 3.Kafka StreamAPI
 
 https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/streams/KafkaStreams.html
 
 相关文档：https://kafka.apache.org/35/documentation/streams/
+
+DSL API：https://kafka.apache.org/35/documentation/streams/developer-guide/dsl-api.html
+
+Stream 配置介绍：https://kafka.apache.org/35/documentation/streams/developer-guide/config-streams.html
+
+开发文档：https://kafka.apache.org/35/documentation/streams/developer-guide/
 
 ~~~pom
 <dependency>
@@ -477,8 +749,442 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/streams/KafkaStr
 
 ~~~
 
+#### 流式计算框架介绍
 
-### 1.7、Connect API
+流式计算框架是一种用于处理实时数据流的计算框架。与传统的批处理框架（如 Hadoop MapReduce）不同，流式计算框架能够对持续生成的数据流进行实时处理和分析，适用于需要低延迟、高吞吐量的场景。
+
+**流式计算框架的核心作用：**
+
+1. 实时数据处理：流式计算框架能够处理持续生成的数据流（如日志、传感器数据、交易记录等），并在数据到达时立即进行处理。
+2. 低延迟：流式计算框架通常能够在毫秒或秒级内处理数据，满足对实时性要求较高的场景。
+3. 高吞吐量：流式计算框架能够高效处理大规模数据流，支持高并发和高吞吐量。
+4. 复杂事件处理：支持对数据流中的复杂事件进行检测和处理，例如模式匹配、时间窗口聚合等。
+5. 容错性和状态管理：流式计算框架通常具备容错机制，能够在节点故障时恢复计算状态，确保数据处理的准确性和一致性。
+
+**常见的流式计算框架：**
+
+1. Apache Flink：一个高性能的流式计算框架，支持事件时间处理、状态管理和精确一次（exactly-once）语义。
+2. Apache Spark Streaming：基于 Spark 的流处理模块，将数据流划分为小批次进行处理。支持精确一次（exactly-once）语义。
+3. Apache Kafka Streams：基于 Kafka 的轻量级流处理库。支持精确一次（exactly-once）语义。
+
+
+
+#### 命令行demo
+
+1. ~~~bash
+   # 在Kafka启动的情况下，创建输入、输出Topic：
+   # 创建名为streams-plaintext-input的输入Topic
+   bin/kafka-topics.sh --create \
+       --bootstrap-server root:9092 \
+       --replication-factor 1 \
+       --partitions 1 \
+       --topic streams-plaintext-input
+   
+   # 创建名为 streams-plaintext-output 的输入Topic，支持压缩功能
+   bin/kafka-topics.sh --create \
+       --bootstrap-server root:9092 \
+       --replication-factor 1 \
+       --partitions 1 \
+       --topic streams-wordcount-output \
+       --config cleanup.policy=compact
+   
+   # 查询所有Topic的情况
+   bin/kafka-topics.sh --bootstrap-server root:9092 --describe
+   
+   ~~~
+
+2. ~~~bash
+   # 启动WordCountDemo程序，注意如果本机监听不是localhost，无法来，需要改listener和advertised.listeners配置
+   bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
+   
+   ~~~
+
+3. ~~~bash
+   # 启动输入Topic的生产者，修改为localhost
+   bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic streams-plaintext-input
+   
+   ~~~
+
+4. ~~~bash
+   # 启动输出Topic的消费者，修改为localhost
+   bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+       --topic streams-wordcount-output \
+       --from-beginning \
+       --formatter kafka.tools.DefaultMessageFormatter \
+       --property print.key=true \
+       --property print.value=true \
+       --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+       --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+   
+   ~~~
+
+
+
+~~~bash
+# 输入Topic，第1次发送消息
+all streams lead to kafka
+
+~~~
+
+![image-20250309155044960](http://47.101.155.205/image-20250309155044960.png)
+
+~~~bash
+# 输入Topic，第2次发送消息
+hello kafka streams
+
+~~~
+
+![image-20250309155127183](http://47.101.155.205/image-20250309155127183.png)
+
+~~~bash
+# 输入Topic，第3次发送消息
+join kafka summit
+
+~~~
+
+![image-20250309155212978](http://47.101.155.205/image-20250309155212978.png)
+
+Wordcount 应用程序的输出实际上是一个连续的更新流，其中每条输出记录（即上面原始输出中的每一行）都是 单个单词的更新计数，也称为记录键，例如 “Kafka”。对于具有相同键的多条记录，后面的每条记录都是前一条记录的更新。
+
+![image-20250309155622359](http://47.101.155.205/image-20250309155622359.png)
+
+
+
+#### demo代码
+
+**拓扑**：Stream应用程序中的计算逻辑（流式计算任务）。定义了数据源、如何处理数据、最终输出。
+
+**-->和<--箭头分别表示该节点的下游和上游处理器节点，即拓扑图中的 子和父。**
+
+
+
+##### Pipe
+
+~~~java
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
+
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+
+/**
+ * Topic 到 Topic 管道
+ */
+public class Pipe {
+
+    public static void main(String[] args) throws Exception {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-pipe");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "47.101.155.205:9092");
+        // 序列化的配置
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        // 开始定义 Stream的计算逻辑（拓扑）
+        final StreamsBuilder builder = new StreamsBuilder();
+        // 指定拓扑从 一个Topic到另一个Topic
+        builder.stream("org.test1").to("org.test2");
+
+        final Topology topology = builder.build();
+
+        // 打印拓扑描述
+        System.out.println(topology.describe());
+
+        // Stream 客户端
+        final KafkaStreams streams = new KafkaStreams(topology, props);
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        // 关闭的回调
+        Runtime.getRuntime().addShutdownHook(new Thread("streams-shutdown-hook") {
+            @Override
+            public void run() {
+                streams.close();
+                latch.countDown();
+            }
+        });
+
+        try {
+            // 启动流式计算
+            streams.start();
+            latch.await();
+        } catch (Throwable e) {
+            System.exit(1);
+        }
+        System.exit(0);
+    }
+}
+
+~~~
+
+![image-20250309164341586](http://47.101.155.205/image-20250309164341586.png)
+
+
+
+##### LineSplit
+
+~~~java
+public class LineSplit {
+
+    public static void main(String[] args) throws Exception {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-linesplit");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        // 开始定义 Stream的计算逻辑（拓扑）
+        final StreamsBuilder builder = new StreamsBuilder();
+
+        KStream<String, String> source = builder.stream("streams-plaintext-input");
+        source.flatMapValues(value -> Arrays.asList(value.split("\\W+")))
+                .to("streams-linesplit-output");
+
+        final Topology topology = builder.build();
+        System.out.println(topology.describe());
+
+        // 与 Pipe 代码相同
+
+    }
+}
+
+~~~
+
+
+
+![image-20250309165702067](http://47.101.155.205/image-20250309165702067.png)
+
+
+
+##### WordCount
+
+**不知道这里的count计算是如何实现累加？**
+
+~~~java
+public class WordCount {
+
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-wordcount");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "47.101.155.205:9092");
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        final StreamsBuilder builder = new StreamsBuilder();
+
+        KStream<String, String> source = builder.stream("streams-plaintext-input");
+        source.flatMapValues(value -> Arrays.asList(value.toLowerCase(Locale.getDefault()).split("\\W+")))
+                .groupBy((key, value) -> value)
+                .count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as("counts-store"))
+                .toStream()
+                .to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
+
+        final Topology topology = builder.build();
+        System.out.println(topology.describe());
+
+        // 与 Pipe 代码相同
+
+    }
+}
+
+~~~
+
+
+
+![image-20250309173507189](http://47.101.155.205/image-20250309173507189.png)
+
+
+
+#### Kafka Stream概念
+
+![image-20250309200754925](http://47.101.155.205/image-20250309200754925.png)
+
+Kafka Streams 是一个客户端库，用于处理和分析存储在 Kafka 中的数据。它建立在重要的流处理概念之上，例如正确区分事件时间和处理时间、窗口支持以及简单而高效的管理和实时查询应用程序状态。
+
+**拓扑中有两个特殊处理器：**
+
+1. **Source Processor：**源处理器是一种特殊类型的流处理器，没有任何上游处理器。它通过使用来自这些主题的记录并将其转发到其下游处理器，从一个或多个 Kafka 主题生成到其拓扑的输入流。
+2. **Sink Processor：**接收器处理器是一种特殊类型的流处理器，没有下游处理器。它将从其上游处理器收到的任何记录发送到指定的 Kafka 主题。
+
+![image-20250309174655493](http://47.101.155.205/image-20250309174655493.png)
+
+
+
+**时间概念：**
+
+1. **事件时间（Event time ）：**事件或数据记录发生的时间点，即最初在“源”处创建。消息到达Kafka Broker的时间戳。
+2. **处理时间（Processing time）：**事件或数据记录恰好由流处理应用程序处理的时间点，即使用记录时。
+3. **接收时间（Ingestion time）：** Kafka Broker将事件或数据记录存储在主题分区中的时间点。
+
+
+
+ Kafka Streams 应用程序将记录写入 Kafka 的时间：
+
+1. 当通过处理某些输入记录生成新的输出记录时，例如，在 `process()` 函数调用中触发的 `context.forward()`时，输出记录时间戳会直接从输入记录时间戳继承。
+2. 当通过 `Punctuator.punctuate()` 等周期性函数生成新的输出记录时，输出记录时间戳被定义为流任务的当前内部时间（通过 `context.timestamp()` 获取）。
+3. 可以通过在调用 `forward()` 时将时间戳显式分配给输出记录来更改处理器 API 中的默认行为。
+4. 聚合和联接计算规则：
+   1. 对于具有 left 和 right 的连接 （stream-stream， table-table） input records 时，将分配输出记录的时间戳 `max(left.ts， right.ts)`。
+   2. 对于流表联接，将向输出记录分配流记录中的时间戳。
+   3. 对于聚合，Kafka Streams 还会计算`最大值` 每个键的所有记录的时间戳，全局（对于非窗口） 或每个窗口。
+   4. 对于无状态操作，将传递输入记录时间戳。对于发出多条记录的 `flatMap` 和 siblings，所有输出记录都从相应的 input 记录继承时间戳。
+
+
+
+
+
+
+
+**流分区和任务：**
+
+Kafka 的消息收发层对数据进行分区，以便存储和传输数据。Kafka Streams 对数据进行分区以进行处理。在这两种情况下，这种分区都是实现数据局部性、弹性、可扩展性、高性能和容错能力的原因。Kafka Streams 使用**分区**和**任务**的概念作为其基于 Kafka 主题分区的并行模型的逻辑单元。 在并行性上下文中，Kafka Streams 和 Kafka 之间存在密切联系：
+
+1. 每个**流分区**都是一个完全有序的数据记录序列，并映射到 Kafka **主题分区**。
+2. 流中的数据**记录**映射到来自该主题的 Kafka **消息**。
+3. 数据记录的**键**决定了 Kafka 和 Kafka Streams 中的数据分区，即数据如何路由到 Topic 中的特定分区。
+
+通过将应用程序的处理器拓扑分解为多个任务来扩展应用程序。更具体地说，Kafka Streams 根据应用程序的输入流分区创建固定数量的任务，每个任务都分配了来自输入流的分区列表（即 Kafka 主题）。**分配给任务的分区永远不会改变**，因此每个任务都是应用程序的固定并行单元。然后，任务可以根据分配的分区实例化自己的处理器拓扑;它们还为每个分配的分区维护一个缓冲区，并一次处理来自这些记录缓冲区的消息。因此，流任务可以独立并行处理，无需人工干预。
+
+稍微简化一下，应用程序可以运行的最大并行度受最大流任务数的限制，而流任务本身由应用程序正在读取的输入主题的最大分区数决定。例如，如果您的输入主题有 5 个分区，则您最多可以运行 5 个应用程序实例。这些实例将协作处理主题的数据。如果您运行的应用程序实例数多于输入主题的分区数，则“多余的”应用程序实例将启动，但保持空闲状态；但是，如果其中一个繁忙的实例宕机，其中一个空闲实例将恢复前者的工作。
+
+重要的是要了解 Kafka Streams 不是一个资源管理器，而是一个库，它可以“运行”在流处理应用程序运行的任何位置。应用程序的多个实例要么在同一台计算机上执行，要么分布在多台计算机上，并且任务可以由库自动分配给运行应用程序实例的用户。**对任务的分区分配永远不会改变**；如果应用程序实例失败，则其分配的所有任务将在其他实例上自动重启，并继续使用同一流分区中的任务。
+
+主题分区分配给任务，并将任务分配给所有实例上的所有线程，以尽最大努力在负载均衡和有状态任务的粘性之间进行权衡。对于此分配，Kafka Streams 使用 [StreamsPartitionAssign](https://github.com/apache/kafka/blob/trunk/streams/src/main/java/org/apache/kafka/streams/processor/internals/StreamsPartitionAssignor.java)，并且**不允许**您更改为其他分配器。如果您尝试使用不同的分配器，Kafka Streams 会忽略它。
+
+![image-20250309201703759](http://47.101.155.205/image-20250309201703759.png)
+
+
+
+**线程模型：**
+
+Kafka Streams 允许用户配置库可用于在应用程序实例中并行处理的**线程**数。每个线程都可以独立执行一个或多个具有其处理器拓扑的任务。例如，下图显示了一个运行两个流任务的流线程：
+
+![image-20250309201923771](http://47.101.155.205/image-20250309201923771.png)
+
+启动应用程序的更多流线程或更多实例仅相当于复制拓扑并让它处理 Kafka 分区的不同子集，从而有效地并行化处理。值得注意的是，线程之间没有共享状态，因此不需要线程间协调。这使得跨应用程序实例和线程并行运行拓扑变得非常简单。Kafka Streams 利用 [Kafka 的协调](https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Client-side+Assignment+Proposal)功能，透明地处理各种流线程之间 Kafka 主题分区的分配。
+
+如上所述，使用 Kafka Streams 扩展您的流处理应用程序很容易：您只需启动应用程序的其他实例，Kafka Streams 负责在应用程序实例中运行的任务之间分配分区。您可以启动与输入 Kafka 主题分区数量一样多的应用程序线程，以便在应用程序的所有运行实例中，每个线程（或者更确切地说，它运行的任务）至少有一个输入分区要处理。
+
+
+
+#### 流和表的对偶性
+
+流和表的对偶性(Duality of Streams and Tables)。
+
+**流的定义：**
+
+1. 流是一个无界的数据序列，表示持续生成的事件记录。
+2. 每条记录通常包含一个键（Key）和一个值（Value）。
+3. 流是不可变的，新记录会追加到流的末尾。
+
+**表的定义：**
+
+1. 表是一个有界的数据集合，表示某个时间点的状态。
+2. 表是可变的，可以通过插入、更新或删除操作来修改表中的记录。
+3. 表通常用于存储聚合结果或物化视图。
+
+
+
+**流作为表**：流可以被视为表的更改日志，其中流中的每个数据记录都捕获表的状态更改。因此，流是一个伪装的表，通过从头到尾重放 changelog 来重建表，可以很容易地将其变成一个 “真实” 的表。同样，在更一般的类比中，聚合流中的数据记录（例如从网页浏览事件流中计算用户的总网页浏览量）将返回一个表格（此处的键和值分别是用户及其相应的网页浏览量）。
+
+**表作为流**：表可以被视为流中每个键在某个时间点的最新值的快照（流的数据记录是键值对）。因此，表是伪装的流，通过迭代表中的每个键值条目，可以很容易地将其转换为“真实”流。
+
+![image-20250309181342534](http://47.101.155.205/image-20250309181342534.png)
+
+
+
+#### 聚合
+
+聚合作采用一个输入流或表，并通过将多个输入记录合并到单个输出记录中来生成一个新表。
+
+在 Kafka Streams DSL 中，聚合的输入流可以是 KStream 或 KTable，但输出流将始终是 **KTable**。这允许 Kafka Streams 在生成和发出值后，在更多记录无序到达时更新聚合值。当发生此类无序到达时，聚合 KStream 或 KTable 会发出新的聚合值。由于输出是 KTable，因此在后续处理步骤中，新值被视为使用相同的键覆盖旧值。
+
+
+
+#### 窗口
+
+窗口化允许您控制如何将具有相同键的记录分组，以便进行有状态操作，例如聚合或联接到所谓的窗口中。按记录键跟踪窗口。
+
+`Kafka Streams DSL` 中提供了`窗口操作`。使用窗口时，您可以为窗口指定宽**限期**。此宽限期控制 Kafka Streams 将等待给定窗口的**无序**数据记录的时间。如果记录在窗口的宽限期过后到达，则该记录将被丢弃，并且不会在该窗口中进行处理。具体来说，如果记录的时间戳指示该记录属于某个窗口，但当前流时间大于窗口结束时间加上宽限期，则会丢弃该记录。
+
+四种类型的窗口：
+
+1. 跳跃时间窗口（Hopping time window）：窗口大小固定，窗口重叠。
+2. 滚动时间窗口（Tumbling time window）：窗口大小固定，窗口不重叠，窗口间无间隙。
+3. 滑动时间窗口（Sliding time window）：窗口大小固定，窗口重叠，通过处理窗口时间戳的差异支持窗口重叠。
+4. 会话窗口（Session Window）：窗口大小可动态调整，窗口不重叠，通过数据进行驱动。
+
+
+
+无序记录在现实世界中总是可能的，应该在你的应用程序中适当地考虑。它取决于 Effective `time 语义`如何处理无序记录。在处理时间的情况下，语义是“当记录被处理时”，这意味着无序记录的概念不适用，因为根据定义，没有记录可以乱序。因此，无序记录只能被视为事件时间。在这两种情况下，Kafka Streams 都能够正确处理无序记录。
+
+
+
+#### 状态
+
+Kafka Streams 提供**状态存储**，流处理应用程序可以使用它来存储和查询数据。 在实施有状态作时，这是一项重要的功能。 Kafka Streams 中的每个任务都嵌入了一个或多个状态存储，可以通过 API 访问这些状态存储，以存储和查询处理所需的数据。 这些状态存储可以是持久化键值存储、内存中的 hashmap 或其他方便的数据结构。 Kafka Streams 为本地状态存储提供容错和自动恢复功能。
+
+Kafka Streams 允许创建状态存储的流处理应用程序外部的方法、线程、进程或应用程序对状态存储进行直接只读查询。这是通过一个名为 **Interactive Queries** 的功能提供的。所有 store 都已命名，并且 Interactive Queries 仅公开底层实现的读取作。
+
+
+
+Kafka Streams 应用程序中的每个流任务都可以嵌入一个或多个本地状态存储，这些状态存储可以通过 API 访问，以存储和查询处理所需的数据。Kafka Streams 为此类本地状态存储提供容错和自动恢复功能。
+
+![image-20250309202218950](http://47.101.155.205/image-20250309202218950.png)
+
+
+
+#### 保证次数
+
+在流处理中，最常见的问题之一是”我的流处理系统是否保证每条记录只处理一次，即使在处理过程中遇到一些故障？ a”对于许多无法容忍任何数据丢失或数据重复的应用程序来说，不能保证 exactly-once 流处理会破坏交易，在这种情况下，通常会额外使用面向批处理的框架到流处理管道，称为 [Lambda 架构](http://lambda-architecture.net/)。 在 0.11.0.0 之前，Kafka 仅提供至少一次交付保证，因此任何将其用作后端存储的流处理系统都无法保证端到端的恰好一次语义。 事实上，即使那些声称支持恰好一次处理的流处理系统，只要它们以 source / sink 作为 Kafka 进行读取/写入，其应用程序实际上也无法保证 在整个管道中不会生成重复项。
+
+自 0.11.0.0 版本以来，Kafka 增加了支持，允许其生产者以[事务性和幂等的方式](https://kafka.apache.org/documentation/#semantics)将消息发送到不同的主题分区。 因此，Kafka Streams 通过利用这些功能添加了端到端的 Exactly-once 处理语义。 更具体地说，它保证对于从源 Kafka 主题读取的任何记录，其处理结果将只反映在输出 Kafka 主题以及状态作的状态存储中一次。 请注意，Kafka Streams 端到端的 Exactly-once 保证与其他流处理框架声称的保证之间的主要区别在于，Kafka Streams 与底层 Kafka 存储系统紧密集成，并确保 对输入主题的提交偏移量、对状态存储的更新和对输出主题的写入将以原子方式完成，而不是将 Kafka 视为可能具有副作用的外部系统。
+
+Exactly-once：https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics
+
+从 2.6.0 版本开始，Kafka Streams 支持改进的 exactly-once 处理实现，称为“exactly-once v2”。 这需要 Broker 版本 2.5.0 或更高版本。 此实现效率更高，因为它降低了客户端和代理资源利用率，例如客户端线程和使用的网络连接。 它支持更高的吞吐量和改进的可扩展性。 从 3.0.0 版本开始，exactly-once 的第一个版本已被弃用。鼓励用户对 从现在开始进行 Exactly-once 处理，并在必要时通过升级他们的代理来做好准备。
+
+Exactly-once-v2：https://cwiki.apache.org/confluence/display/KAFKA/KIP-447%3A+Producer+scalability+for+exactly+once+semantics
+
+
+
+要在运行 Kafka Streams 应用程序时启用 exactly-once 语义， 设置 `processing.guarantee` 配置值（默认值为 **at_least_once**） 设置为 **StreamsConfig.EXACTLY_ONCE_V2**
+
+
+
+#### 无序处理
+
+除了保证每条记录将被恰好处理一次之外，许多流处理应用程序将面临的另一个问题是如何处理可能影响其业务逻辑[的无序数据](https://dl.acm.org/citation.cfm?id=3242155)。在 Kafka Streams 中，有两个原因可能 导致数据到达相对于其时间戳的顺序错误：
+
+- 在主题分区中，记录的时间戳不能随其偏移量单调增加。由于 Kafka Streams 将始终尝试处理主题分区中的记录以遵循偏移量顺序，因此可能会导致时间戳较大（但偏移量较小）的记录比同一主题分区中时间戳较小（但偏移量较大）的记录更早得到处理。
+- 在可能正在处理多个主题分区的[流任务](https://kafka.apache.org/35/documentation/streams/architecture#streams_architecture_tasks)中，如果用户将应用程序配置为不等待所有分区都包含一些缓冲数据，并且 从时间戳最小的分区中选择以处理下一条记录，然后稍后当为其他主题分区获取某些记录时，它们的时间戳可能小于从另一个主题分区获取的已处理记录。
+
+对于无状态作，乱序数据不会影响处理逻辑，因为一次只考虑一条记录，而不查看过去处理记录的历史记录;但是，对于聚合和联接等有状态作，无序数据可能会导致处理逻辑不正确。如果用户想要处理此类乱序数据，通常需要允许应用程序等待更长的时间，同时在等待时间内对状态进行统计，即在延迟、成本和正确性之间做出权衡。特别是在 Kafka Streams 中，用户可以为窗口聚合配置其窗口运算符以实现此类权衡。
+
+对于 Join，用户可以使用[版本化的状态存储](https://kafka.apache.org/35/documentation/streams/developer-guide/dsl-api.html#versioned-state-stores)来解决对无序数据的问题，但默认情况下不会处理无序数据：
+
+- 对于 Stream-Stream 联接，所有三种类型（inner、outer、left）都可以正确处理无序记录。
+- 对于 Stream-Table 联接，如果不使用版本控制的存储，则不会处理无序记录（即，Streams 应用程序不检查无序记录，只按偏移顺序处理所有记录），因此它可能会产生不可预知的结果。对于版本控制存储，流端无序数据将通过在表中执行基于时间戳的查找来正确处理。仍未处理表端无序数据。
+- 对于 Table-Table 联接，如果不使用版本控制存储，则不会处理无序记录（即，Streams 应用程序不检查无序记录，只按偏移顺序处理所有记录）。 但是，join 结果是一个 changelog 流，因此最终将是一致的。使用版本控制存储，表-表联接语义从基于偏移量的语义更改为 [基于时间戳的语义](https://kafka.apache.org/35/documentation/streams/developer-guide/dsl-api.html#versioned-state-stores)和乱序记录将得到相应的处理。
+
+
+
+#### 容错
+
+Kafka Streams 基于 Kafka 中原生集成的容错功能构建。Kafka 分区具有高可用性和可复制性;因此，当流数据持久化到 Kafka 时，即使应用程序出现故障并需要重新处理它，它也可以使用。Kafka Streams 中的任务利用 Kafka 使用者客户端提供的容错功能来处理故障。如果任务在发生故障的计算机上运行，Kafka Streams 会自动在应用程序的剩余运行实例之一中重新启动该任务。
+
+此外，Kafka Streams 还确保本地状态存储对故障也很健壮。对于每个状态存储，它维护一个复制的 changelog Kafka 主题，并在其中跟踪任何状态更新。 这些 changelog 主题也被分区，以便每个本地 state store 实例以及访问该 store 的任务都有自己专用的 changelog 主题分区。 在 changelog 主题上启用了[日志压缩](https://kafka.apache.org/35/documentation/#compaction)，以便可以安全地清除旧数据，以防止主题无限增长。 如果任务在发生故障的机器上运行并在另一台机器上重新启动，则 Kafka Streams 保证通过以下方式将其关联的状态存储恢复到发生故障之前的内容 在恢复对新启动的任务的处理之前重放相应的 changelog 主题。因此，故障处理对最终用户是完全透明的。
+
+请注意，任务（重新）初始化的成本通常主要取决于通过重放状态存储的关联更改日志主题来恢复状态的时间。为了最大限度地缩短此还原时间，用户可以将其应用程序配置为具有本地状态**的备用副本**（即状态的完全复制副本）。当任务迁移发生时，Kafka Streams 会将任务分配给已存在此类备用副本的应用程序实例，以最大限度地降低任务（重新）初始化成本。请参阅 [**Kafka Streams 配置**](https://kafka.apache.org/35/documentation/#streamsconfigs)部分中的 `num.standby.replicas`。 从 2.6 开始，Kafka Streams 将保证仅将任务分配给具有完全捕获的状态本地副本的实例，如果此类实例 存在。备用任务将增加在发生故障时存在 caught up 实例的可能性。
+
+您还可以配置具有机架感知功能的备用副本。配置后，Kafka Streams 将尝试将备用任务分发到与活动任务不同的“机架”上，从而在活动任务的机架发生故障时具有更快的恢复时间。请参阅 [**Kafka Streams 开发人员指南**](https://kafka.apache.org/35/documentation/streams/developer-guide/config-streams.html#rack-aware-assignment-tags) 部分中的 `rack.aware.assignment.tags`。
+
+
+
+### 4.Connect API
 
 Connect API 允许实现不断从某个源数据系统拉入 Kafka 或从 Kafka 推送到某个接收器数据系统的连接器。
 
@@ -487,7 +1193,7 @@ Connect API 允许实现不断从某个源数据系统拉入 Kafka 或从 Kafka 
 
 
 
-### 1.8、Admin API
+### 5.Admin API
 
 https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/admin/Admin.html
 
@@ -500,9 +1206,27 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/admin/Ad
 
 ~~~
 
+管理或查看Kafka。
+
+KafkaAdminClient常用的API
+
+| API                    | 说明                   |
+| ---------------------- | ---------------------- |
+| createTopics           | 创建Topic              |
+| deleteTopics           | 删除Topic              |
+| describeTopics         | 查询Topic的详细信息    |
+| describeCluster        | 查询集群信息           |
+| describeConfigs        | 查询配置信息           |
+| alterConfigs           | 修改配置信息           |
+| alterReplicaLogDirs    | 修改副本的日志目录     |
+| describeLogDirs        | 查询节点的日志目录信息 |
+| describeReplicaLogDirs | 查询副本的日志目录信息 |
+| createPartitions       | 增加分区               |
+|                        |                        |
 
 
-### 1.9、Spring for Kafka
+
+### 6.Spring for Kafka
 
 Spring官网：https://spring.io/projects/spring-kafka
 
@@ -573,7 +1297,7 @@ RecordFilterStrategy、CommonErrorHandler、AfterRollbackProcessor、ConsumerAwa
 
 
 
-### 1.10、Kafka可视化插件
+### 7.Kafka可视化插件
 
 #### kafdrop
 
@@ -629,20 +1353,163 @@ docker run -d --rm -p 9000:9000 \
 
 
 
-## 2、核心概念
+## 3.核心概念
 
-### 2.1、Kafka主题和分区
+### 1.Kafka主题和分区
 
 - 了解主题和分区的概念和原理
-- ...
+- 分区副本之间的关系
+- Broker端管理Topic
+
+Topic负责接收生产者发送的消息，消费者负责从Topic获取消息。Topic其实是一个逻辑概念，由分区组成。分区则是一个物理概念，一个Topic可以有多个分区，一个分区只能属于一个Topic。
+
+生产者将消息发送至Kafka，实则是将消息发送至Topic的某个分区，并且被添加至分区的最后，通过偏移量来指定消息的位置。
 
 
 
-### 2.2、生产者和消费者详解
+在创建Topic时，还可以指定分区的副本数，通过增加分区的副本数，可以增加Kafka的容错性，通过多副本机制可以实现故障转移。在同一个分区中，存在一个Leader副本和多个Follower副本，它们保存的消息都是相同的。Leader副本负责处理读写请求，Follower副本负责从Leader副本同步消息。不同的副本可能位于不同的Broker上，当Leader副本出现故障时，Kafka会从Follower中选举新的Leader副本。分区的副本数也称为冗余度。
 
-- 生产者配置和消息发送
-- 消费者配置和消息消费
-- ...
+
+
+#### kafka-topics.sh
+
+用命令操作和管理Topic
+
+| 参数选项                      | 接参数值    | 作用                                                  |
+| ----------------------------- | ----------- | ----------------------------------------------------- |
+| --alter                       |             | 更改主题的分区数、副本配置、其它配置                  |
+| --bootstrap-server            | kafka地址   | 连接对应的kafka服务端                                 |
+| --command-config              | 文件路径    | 用于修改Broker的配置                                  |
+| --config                      | topic的配置 | 修改topic的配置                                       |
+| --create                      | /           | 创建Topic                                             |
+| --delete                      | string      | 删除Topic                                             |
+| --delet-config                | topic的配置 | 删除Topic中的配置                                     |
+| --describe                    | string      | 列出Topic的详细信息                                   |
+| --disable-rack-aware          | /           | 禁用机架感知副本配置机制                              |
+| --exclude-internal            | /           | 列出信息排除内部主题                                  |
+| --force                       |             | 取消控制台提示                                        |
+| --help                        |             | 帮助                                                  |
+| --list                        | /           | 列出所有的可用的Topic                                 |
+| --partitions                  | int         | 指定创建Topic的分区数                                 |
+| --replica-assignment          |             | 将Topic中的分区手动进行分配的分区Broker的列表         |
+| --replication-factor          | int         | Topic中分区的副本数                                   |
+| --topic                       | string      | Topic的名称                                           |
+| --topic-with-overrides        |             | 描述主题时设置，仅显示已重写配置的主题                |
+| --unavailable-partitions      |             | 描述主题时设置，仅显示Leader不可用的分区              |
+| --under-min-isr-partitions    |             | 描述主题时设置，仅显示isr计数小于配置分区的分区最小值 |
+| --under-replicated-partitions |             | 描述主题时设置，仅显示已经完全同步的分区              |
+| --version                     |             | 显示Kafka的版本                                       |
+| --zookeeper                   |             | 过期，zookeeper地址                                   |
+
+**Isr表示列表中表示已经完成数据同步的副本号。**
+
+
+
+#### kafka-configs.sh
+
+用于查看或修改配置
+
+| 参数          | 参数值 | 作用                                                         |
+| ------------- | ------ | ------------------------------------------------------------ |
+| --entity-name | string | 指定操作配置的名称：topic、client id、user principal name、broker id |
+| --entity-type | string | 指定操作配置的类型：topics、clients、users、brokers、broker-loggers |
+|               |        |                                                              |
+
+
+
+### 2.消息的持久性
+
+Java的磁盘IO操作有两个缺点：
+
+- 存储缓存对象验证影响性能。
+- 堆内存数据的增加导致Java垃圾回收的速度越来越慢。
+
+因为磁盘线性写入性能远远大于随机写入的性能。底层操作系统对磁盘的线性写入进行了大量优化。所有Kafka在进行消息持久化操作时，写日志文件采用的就是磁盘的线性写入方式，从而解决了传统磁盘上写操慢的问题。
+
+每个分区在存储层面就是一个append-only的日志文件，属于一个分区的消息会被追加到日志文件的尾部，每条消息在日志文件中的位置称为偏移量。
+
+![image-20250309104738723](http://47.101.155.205/image-20250309104738723.png)
+
+
+
+index文件存储元数据，即索引文件。
+
+log文件存储消息，即数据文件。
+
+可以使用Kafka自带工具kafka.tools.DumpLogSegments查看log日志文件中的数据信息。
+
+~~~bash
+./bin/kafka-run-class.sh kafka.tools.DumpLogSegments --help
+
+./bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files kafka_log_broker0/org.test1-0/00000000000000000000.log -- print-data-log
+
+~~~
+
+![image-20250309105457072](http://47.101.155.205/image-20250309105457072.png)
+
+
+
+#### Log（官网）
+
+具有两个分区的名为”my-topic“的主题的日志由两个目录（即my-topic-0和my-topic-1）组成，其中填充了包含该主题消息的数据文件。日志文件的格式是一系列“日志条目”；每个日志条目是一个4字节的整数N，存储消息长度，后面跟着N个消息字节。每条消息都由一个64位整数偏移量唯一标识，该偏移量给出了该消息在所有发送到该分区上的该主题的消息流中的起始字节位置。每个消息的磁盘格式如下所示。每个日志文件都使用其包含的第一条消息的偏移量来命名。因此，创建的第一个文件将是0000000000000000000.log，每个附加文件将具有一个整数名称，大约是前一个文件的S字节，其中S是配置中给出的最大日志文件大小。
+
+记录的确切二进制格式作为标准接口进行版本控制和维护，因此可以在生产者、代理和客户端之间传输记录批次，而无需在需要时重新复制或转换。
+
+使用 message offset 作为消息 ID 是不常见的。我们最初的想法是使用生产者生成的 GUID，并在每个代理上维护从 GUID 到 offset 的映射。但是，由于使用者必须维护每个服务器的 ID，因此 GUID 的全局唯一性没有提供任何值。此外，维护从随机 ID 到偏移量的 Map 的复杂性需要一个重量级的索引结构，该结构必须与磁盘同步，本质上需要一个完整的持久随机访问数据结构。因此，为了简化查找结构，我们决定使用一个简单的每个分区原子计数器，它可以与分区 ID 和节点 ID 耦合来唯一标识消息;这使得查找结构更简单，尽管每个使用者请求仍可能有多个 looked。然而，一旦我们确定了一个计数器，直接使用偏移量似乎是很自然的——毕竟两者都是分区独有的单调递增整数。由于偏移量对使用者 API 是隐藏的，因此此决定最终是一个实现细节，我们采用了更高效的方法。
+
+![image-20250309104649434](http://47.101.155.205/image-20250309104649434.png)
+
+**写：**
+
+日志允许串行附加，这些附加总是转到最后一个文件。当此文件达到可配置的大小（例如 1GB）时，该文件将滚动到新文件。日志采用两个配置参数：**M**，它提供在强制 OS 将文件刷新到磁盘之前要写入的消息数，以及 **S**，它提供强制刷新的秒数。这提供了持久性保证，在系统崩溃时最多丢失 M 条消息或 S 秒的数据。
+
+
+
+**读：**
+
+通过给出消息的 64 位逻辑偏移量和 S 字节最大块大小来完成读取。这将返回 S 字节缓冲区中包含的消息的迭代器。S 旨在大于任何单个消息，但在消息异常大的情况下，可以重试多次读取，每次将缓冲区大小增加一倍，直到成功读取消息。可以指定最大消息和缓冲区大小，以使服务器拒绝大于某个大小的消息，并给客户端一个 Client 端一个最大读取量的绑定，以获得完整的消息。读取缓冲区很可能以部分消息结尾，这很容易通过大小定界来检测。
+
+从 offset 读取的实际过程需要首先找到存储数据的 log segment 文件，根据全局 offset 值计算特定于文件的 offset，然后从该文件 offset 中读取。搜索是针对为每个文件维护的内存中范围的简单二进制搜索变体完成的。
+
+该日志提供了获取最近写入的消息的功能，以允许客户端从“现在”开始订阅。当使用者未能在 SLA 指定的天数内使用其数据时，这也很有用。在这种情况下，当客户端尝试使用不存在的偏移量时，它会得到一个 OutOfRangeException，并且可能会根据用例重置自身或失败。
+
+
+
+**删除：**
+
+一次删除一个日志段的数据。日志管理器应用两个量度来识别符合删除条件的区段：time 和 size。对于基于时间的策略，会考虑记录时间戳，其中区段文件中的最大时间戳（记录顺序无关紧要）定义整个区段的保留时间。默认情况下，基于大小的保留处于禁用状态。启用后，日志管理器会不断删除最旧的 segment 文件，直到分区的总大小再次处于配置的限制范围内。如果同时启用两个策略，则将删除由于任一策略而符合删除条件的区段。为了避免锁定读取，同时仍然允许修改段列表的删除，我们使用写时复制样式的段列表实现，该实现提供一致的视图，以允许在删除过程中在日志段的不可变静态快照视图上继续进行二进制搜索。
+
+
+
+**可靠性：**
+
+日志提供了一个配置参数 *M*，该参数控制在强制刷新到磁盘之前写入的最大消息数。启动时，将运行一个日志恢复进程，该进程将迭代最新日志分段中的所有消息，并验证每个消息条目是否有效。如果消息的大小和偏移量之和小于文件的长度，并且消息负载的 CRC32 与消息中存储的 CRC 匹配，则消息条目有效。如果检测到损坏，日志将被截断为最后一个有效偏移量。
+
+请注意，必须处理两种损坏：由于崩溃而丢失未写入块的截断，以及将无意义的块添加到文件中的损坏。这样做的原因是，一般来说，作系统不保证文件 inode 和实际块数据之间的写入顺序，因此，如果 inode 更新为新大小，则除了丢失写入数据外，文件还可能获得无意义的数据，但在写入包含该数据的块之前发生崩溃。CRC 检测到这种极端情况，并防止它损坏日志（尽管未写的消息当然会丢失）。
+
+
+
+### 3.消息的传输保障
+
+**生产者ack机制：**
+
+生产者向Broker的分区Leader副本发送数据时，可以通过acks参数设置生产者数据可靠性的级别：
+
+- 1：生产者在Broker分区的Leader副本成功接收，就发送下一条消息。
+- 0：生产者不用等待来自服务端Broker的确认，继续发送下一条消息。
+- all：默认，意味着生产者发送完数据后，需要等待Broker端Topic分区的所有Follower副本都完成与Leader副本的数据同步后，消息才算发送完成。
+
+
+
+**消费者高水位线机制：**
+
+LEO（Log End Offset），表示Topic分区中每个副本日志中最后一条消息的位置。
+
+高水位线（high watermark）等于Topic分区中每个副本对应最小的LEO值。
+
+
+
+
 
 ### 2.3、消息传递模式
 
@@ -652,7 +1519,7 @@ docker run -d --rm -p 9000:9000 \
 
 ### 2.4、Kafka配置
 
-#### 2.4.1、Broker节点
+#### 2.4.1、Broker配置
 
 ~~~properties
 auto.create.topics.enable=true # 默认true，在服务端启用自动创建topic
@@ -671,8 +1538,11 @@ early.start.listeners=String # null
 leader.imbalance.check.interval.seconds=300 # default 控制器触发分区平衡的频率
 leader.imbalance.per.broker.percentage=10 # default 不平衡的比例阈值
 
-advertised.listeners=String # null 和监听器相关，默认null.如果与监听器配置属性不同,监听器发布到ZooKeeper供客户端连接使用.如果没有配置,会使用listeners的值.如果listenrs配置成包含0.0.0.0,并且这个配置没有配置,这里会导致kafka-server启动失败,这个配置对与这个属性是无效的.
-listeners=PLAINTEXT://9092 # 启动之后,本地的连接能够访问到,但是远程连接访问不到
+# Broker的监听地址，支持的协议PLAINTEXT（明文）、SSL（使用 SSL/TLS 加密传输）、SASL_PLAINTEXT（使用 SASL 认证，但传输不加密）、SASL_SSL（使用 SASL 认证，并且传输加密）
+# null 和监听器相关，默认null.如果与监听器配置属性不同,监听器发布到ZooKeeper供客户端连接使用.如果没有配置,会使用listeners的值.如果listenrs配置成包含0.0.0.0,并且这个配置没有配置,这里会导致kafka-server启动失败,这个配置对与这个属性是无效的.
+advertised.listeners=String 
+# 本地监听的地址
+listeners=PLAINTEXT://9092 
 # PLAINTEXT://0.0.0.0:9092,需要修改上面的属性值暴露ip,不然服务无法起来
 # listeners=PLAINTEXT://myhost:9092,启动的主机名必须是oycm才能启动
 
@@ -818,7 +1688,8 @@ log.cleaner.io.buffer.size=524288 # 所有清理器线程中用于日志清理�
 log.cleaner.io.max.bytes.per.second=1.7976931348623157E308 #将对日志清理器进行节流,使其读i/o和写i/o的总和平均小于此值
 log.cleaner.max.compaction.lag.ms=9223372036854775807 # 消息在日志中不适合进行压缩的最长时间
 log.cleaner.min.cleanable.ratio=0.5 # 符合清洗条件的日志的脏日志与总日志的最小比率
-log.cleaner.min.compaction.lag.ms=0 # 消息在日志中保持未压缩状态的最短时间
+# 消息在日志中保持未压缩状态的最短时间
+log.cleaner.min.compaction.lag.ms=0
 log.cleaner.threads=1 # 用于日志清理的后台线程数
 log.cleanup.policy=delete # 保留窗口以外的段的默认清理策略
 
@@ -1143,7 +2014,8 @@ message.timestamp.difference.max.ms=9223372036854775807 #
 message.timestamp.type=CreateTime # [CreateTime, LogAppendTime] 定义消息中的时间戳是消息创建时间还是日志追加时间
 
 min.cleanable.dirty.ratio=0.5 # [0,...,1] 
-min.compaction.lag.ms=0 # 日志中保持未压缩状态的最短时间
+# 日志中保持未压缩状态的最短时间
+min.compaction.lag.ms=0 
 
 min.insync.replicas=1 # 和生产者acks相关
 
@@ -1180,8 +2052,8 @@ message.downconversion.enable=true # 消息向下转换,不太懂?
 #启用幂等性需要这个配置值为“all”。如果设置了冲突的配置，并且幂等性没有显式启用，则幂等性被禁用
 acks=all # [all, -1, 0, 1]
 
-key.serializer=className # 实现org.apache.kafka.common.serializ.serializer接口的class
-value.serializer=className # 实现org.apache.kafka.common.serializ.serializer接口的class
+key.serializer=className # 实现org.apache.kafka.common.serializ.Serializer 接口的class
+value.serializer=className # 实现org.apache.kafka.common.serializ.Serializer 接口的class
 # Kafka服务端地址
 bootstrap.servers=list 
 # 生产者用于缓存等待发送到服务器的内存字节数。如果记录发送速度大于记录被提交到服务器的速度，缓存将耗尽，阻塞max.block.ms之后，则发送异常。RecordTooLargeException
@@ -1227,7 +2099,8 @@ request.timeout.ms=30000
 # 没有设置这个,使用默认的分区策略,或者根据存在的key选择一个分区;org.apache.kafka.clients.producer.RoundRobinPartitioner,这种分区策略是将一系列连续记录中的每条记录发送到不同的分区(无论是否提供了“键”)，直到我们用完分区并重新开始。注意:有一个已知的问题会导致新批创建时分布不均匀。详情请查看KAFKA-9965。实现org.apache.kafka.clients.producer.Partitioner接口可以自定义分区器。通过指定class自定义分区策略
 partitioner.class=class 
 
-partitioner.ignore.keys=false # 当设置为“true”时，生产者将不会使用记录键来选择分区。如果为“false”，当存在密钥时，生产者将根据密钥的散列选择分区。注意:如果使用自定义分区器，此设置不起作用。
+# 当设置为“true”时，生产者将不会使用记录键来选择分区。如果为“false”，当存在密钥时，生产者将根据密钥的散列选择分区。注意:如果使用自定义分区器，此设置不起作用。
+partitioner.ignore.keys=false 
 
 # 读取数据时使用的TCP接收缓冲区(SO_RCVBUF)的大小。如果取值为-1，则使用操作系统默认值
 receive.buffer.bytes=32768
@@ -1329,14 +2202,17 @@ transactional.id=null # 事务消息
 #### 2.4.4、Consumer配置
 
 ~~~properties
-key.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer接口的class
-value.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer接口的class
+key.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
+value.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
 
 bootstrap.servers=list # kafka服务器的ip+port,host1:port1,host2:port2,... 
 
-fetch.min.bytes=1 # 消费请求一次最小的响应数据单位字节,如果服务端没有足够的数据返回，则会等待至超时返回(不确定)
-fetch.max.bytes=52428800 # 50MB The maximum amount of data the server should return for a fetch request. 
-fetch.max.wait.ms=500 # 消费一次fetch.min.bytes没达到这个标准的阻塞时间
+# 消费者请求一次最小的响应数据单位字节,如果服务端没有足够的数据返回，则会等待至超时返回
+fetch.min.bytes=1 
+# 50MB 消费者在一次请求中返回最大的字节数。消费者消费消息的最大值不由这个决定，而是Broker配置决定
+fetch.max.bytes=52428800 
+# 消费一次fetch.min.bytes没达到这个标准的阻塞时间
+fetch.max.wait.ms=500 
 
 # 表示消费者组的唯一字符串
 group.id=null 
@@ -1344,7 +2220,8 @@ group.id=null
 heartbeat.interval.ms=3000 # The expected time between heartbeats to the consumer coordinator when using Kafka's group management facilities.The value must be set lower than session.timeout.ms, but typically should be set no higher than 1/3 of that value.
 session.timeout.ms=45000 #45s kafka消费者与broker的超时时间,group.min.session.timeout.ms group.max.session.timeout.ms
 
-max.partition.fetch.bytes=1048576 # The maximum amount of data per-partition the server will return.The maximum record batch size accepted by the broker is defined via message.max.bytes (broker config) or max.message.bytes (topic config)
+# 每个分区返回给消费者的最大消息，设置比消息小，不会影响消费message.max.bytes (broker/topic config)
+max.partition.fetch.bytes=1048576
 
 ssl.key.password=null # password
 ssl.keystore.certificate.chain=null # password
@@ -1360,28 +2237,31 @@ auto.offset.reset=latest # [latest, earliest, none] 当Kafka中没有初始偏�
 # earliest 自动将偏移量重置为最早的偏移量,加入开始处理
 # latest 自动将偏移量重置为最新偏移量,分区最早开始处理
 # none 如果没有为消费者组找到先前的偏移量，则向消费者抛出异常
-# anything else 向消费者抛出异常
+# anything else 其他值，向消费者抛出异常
 
 client.dns.lookup=use_all_dns_ips # [use_all_dns_ips, resolve_canonical_bootstrap_servers_only]
-
-connections.max.idle.ms=540000  # 在此配置指定的毫秒数之后关闭空闲连接
+# 在此配置指定的毫秒数之后关闭空闲连接
+connections.max.idle.ms=540000  
 
 default.api.timeout.ms=60000 # 1m Specifies the timeout for client APIs
 
-# 消费组是否自动提交消费的进度
+# 消费组是否自动提交消费的进度，默认true
 enable.auto.commit=true # If true the consumer's offset will be periodically committed in the background.
 # enable.auto.commit设置为true，自动提交偏移量的频率（提交消费进度的时间）
 auto.commit.interval.ms=5000 
 
-exclude.internal.topics=true # 监听topic相关
+# 是否公开kafka的默认主题，默认开启
+exclude.internal.topics=true
 
-group.instance.id=null # string 和消费组相关
+group.instance.id=null # string 和消费组相关（静态相关）
 
 isolation.level=read_uncommitted # [read_committed, read_uncommitted] 读取事务性消息设置,非事物消息不受控制
 
 max.poll.interval.ms=300000 # The maximum delay between invocations of poll() when using consumer group management. 这为消费者在获取更多记录之前可以空闲的时间设置了上限。如果在此超时到期之前未调用poll()，则认为消费者失败，组将重新平衡，以便将分区重新分配给另一个成员
-max.poll.records=500 # The maximum number of records returned in a single call to poll().max.poll.records并不影响底层的抓取行为。消费者将缓存来自每个获取请求的记录，并从每个轮询中增量地返回它们。
+# 消费者一次拉取请求的最大消息数
+max.poll.records=500 # 并不影响底层的抓取行为。消费者将缓存来自每个获取请求的记录，并从每个轮询中增量地返回它们。
 
+# 消费者的分区分配策略
 partition.assignment.strategy=class org.apache.kafka.clients.consumer.RangeAssignor,class org.apache.kafka.clients.consumer.CooperativeStickyAssignor 客户端将使用这些策略在消费者实例之间分配分区所有权
 # RangeAssignor 基于每个主题分配分区
 # RoundRobinAssignor 以循环方式将分区分配给消费者。
@@ -1389,9 +2269,9 @@ partition.assignment.strategy=class org.apache.kafka.clients.consumer.RangeAssig
 # CooperativeStickyAssignor 遵循相同的StickyAssignor逻辑，但允许协作再平衡
 # org.apache.kafka.clients.consumer.ConsumerPartitionAssignor自定义接口实现
 
-receive.buffer.bytes=65536 # 64kb The size of the TCP receive buffer to use when reading data.-1 default OS
 
-request.timeout.ms=30000 # 配置控制客户端等待请求响应的最大时间
+# 配置控制客户端等待请求响应的最大时间
+request.timeout.ms=30000
 
 sasl.client.callback.handler.class=null #class
 sasl.jaas.config=null # password
@@ -1424,8 +2304,10 @@ sasl.oauthbearer.sub.claim.name=sub
 
 
 security.protocol=PLAINTEXT # 用于与代理通信的协议,[PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL]
-
-send.buffer.bytes=131072 # 发送数据时要使用的TCP发送缓冲区,-1 default OS
+# 发送数据时要使用的TCP发送缓冲区,-1 default OS
+send.buffer.bytes=131072 
+# 读取数据时使用的TCP接收缓冲区(SO_RCVBUF)的大小。如果取值为-1，则使用操作系统默认值
+receive.buffer.bytes=65536
 
 socket.connection.setup.timeout.max.ms=30000 # 客户端等待套接字连接建立的最长时间
 socket.connection.setup.timeout.ms=10000 # 客户端等待套接字连接建立所需的时间
@@ -1443,7 +2325,6 @@ ssl.secure.random.implementation=null # string
 ssl.trustmanager.algorithm=PKIX
 
 
-
 auto.include.jmx.reporter=true # 
 
 check.crcs=true # 
@@ -1452,19 +2333,25 @@ client.id= # string 发出请求时传递给服务器的id字符串
 
 client.rack= # string 
 
-interceptor.classes= # 拦截器org.apache.kafca.clients.consumer.consumerinterceptor
+# 拦截器org.apache.kafca.clients.consumer.Consumerinterceptor
+interceptor.classes= string
 
 metric.reporters= # org.apache.kafka.common.metrics.MetricsReporter 实现系统监控通过JMX
 metrics.num.samples=2 # The number of samples maintained to compute metrics.
 metrics.recording.level=INFO # [INFO, DEBUG, TRACE]
 metrics.sample.window.ms=30000 # 
 
+# 
 reconnect.backoff.max.ms=1000 # 
-reconnect.backoff.ms=50 # 重连时间
+# 重连间隔时间
+reconnect.backoff.ms=50 
 
 retry.backoff.ms=100 # 在尝试重试对给定主题分区的失败请求之前等待的时间
 
 security.providers=null # string org.apache.kafka.common.security.auth.SecurityProviderCreator
+
+# 以毫秒为单位，元数据过期时间，在此之后，即使我们没有看到任何分区领导更改以主动发现任何新的代理或分区，我们也会强制刷新元数据。
+metadata.max.age.ms=300000 
 
 
 ~~~
@@ -1475,7 +2362,7 @@ max.poll.records=500
 
 
 
-## 3、高级特性和性能优化
+## 4.高级特性和性能优化
 
 
 
@@ -1510,7 +2397,7 @@ max.poll.records=500
 
 
 
-## 4、实际应用
+## 5.实际应用
 
 - 数据流处理和Kafka Streams、数据流优化
 - 数据集成和Kafka Connect
@@ -1521,7 +2408,7 @@ max.poll.records=500
 
 
 
-## 5、监控和运维
+## 6.监控和运维
 
 - Kafka集群监控
 - 日志管理、备份和恢复
@@ -1529,9 +2416,50 @@ max.poll.records=500
 
 
 
+**Kafka Broker指标：**
+
+| 指标                                  | 作用                                                         |
+| ------------------------------------- | ------------------------------------------------------------ |
+| UnderReplicationPartitions            | 处于同步状态的副本数(Isr)应该和总副本数(Ar)完全相等          |
+| IsrShrinkPerSec<br />IsrExpandsPerSec |                                                              |
+| ActiveControllerCount                 | 维护分区Leader列表                                           |
+| OfflinePartitionsCount                | 没有活跃Leader的分区数                                       |
+| LeaderElectionRateAndTimeMs           | Leader选举频率和集群无Leader状态的时长                       |
+| UncleanLeaderElectionsPerSec          | 寻找分区Leader节点出现问题                                   |
+| TotalTimesMs                          | queue：处于请求队列中的等待时间<br />local：Leader节点处理的事件<br />remote：等待Fellower节点响应时间<br />response：发送响应的时间 |
+| BytesInPerSec<br />BytesOutPerSec     | Kafka的吞吐量                                                |
 
 
 
+**生产者指标：**
+
+| 指标                 | 作用                     |
+| -------------------- | ------------------------ |
+| Response rate        | 生产者发送到Broker的速率 |
+| Request rate         | 生产者发送到Broker的速率 |
+| Requeset latency avg | 平均请求延迟             |
+| Outgoing byte rate   | 生产者的网络吞吐量       |
+| IO wait time ns avg  | 生产者的I/O等待时间      |
 
 
+
+**消费者指标：**
+
+| 指标               | 作用                                         |
+| ------------------ | -------------------------------------------- |
+| ConsumerLag MaxLag | 消费者当前的日志偏移量相对生产者的日志偏移量 |
+| BytesPerSec        | 消费者的网络吞吐量                           |
+| MessagePerSec      | 消息的消费速度                               |
+
+
+
+### Kafka Manager
+
+
+
+### Kafka Tool
+
+
+
+### Jconsole
 
