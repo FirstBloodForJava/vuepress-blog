@@ -149,7 +149,7 @@ DCL（数据控制语言Data Control Language）grant授权 revoke撤销权限
    [Install]
    WantedBy=multi-user.target
    
-   # 重新加载
+   # 重新加载(新增修改mysqld.service文件后)
    systemctl daemon-reload
    # 启动自启动
    systemctl enable mysqld
@@ -193,7 +193,12 @@ DCL（数据控制语言Data Control Language）grant授权 revoke撤销权限
     
     ~~~
 
-11. 
+11. ~~~bash
+    # 停止mysql服务
+    systemctl stop mysqld.service
+    systemctl stop mysqld
+    
+    ~~~
 
 
 
