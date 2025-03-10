@@ -1092,3 +1092,68 @@ public String processSubmit(@Valid @ModelAttribute("pet") Pet pet, BindingResult
 
 ~~~
 
+
+
+#### @SessionAttribute
+
+访问会话属性，例如在controller之外的Filter设置的，可以通过@SessionAttribute快速访问。
+
+需要删除或添加会话属性，添加`org.springframework.web.context.request.WebRequest` or `javax.servlet.http.HttpSession`。
+
+~~~java
+@RequestMapping("/")
+public String handle(@SessionAttribute User user) { 
+    // ...
+}
+
+~~~
+
+
+
+#### @RequestAttribute
+
+访问请求属性，例如在controller之外的Filter或HandlerInterceptor设置的，可以通过@RequestAttribute快速访问。
+
+
+
+~~~java
+@GetMapping("/")
+public String handle(@RequestAttribute Client client) { 
+    // ...
+}
+
+~~~
+
+
+
+#### 重定向
+
+
+
+
+~~~java
+@PostMapping("/files/{path}")
+public String upload(...) {
+    // ...
+    return "redirect:files/{path}";
+}
+
+~~~
+
+
+
+#### Flash属性
+
+Flash 属性为一个请求提供了一种存储属性的方法，这些属性旨在用于另一个请求。这在重定向时最常用 — 例如，Post-Redirect-Get 模式。Flash 属性在重定向之前临时保存（通常在会话中），以便在重定向后可供请求使用，并立即删除。
+
+Spring MVC 有两个主要的抽象来支持 flash 属性。`FlashMap` 用于保存 Flash 属性，而 `FlashMapManager` 用于存储、检索和管理 `FlashMap` 实例。
+
+Flash 属性支持始终处于“打开”状态，不需要显式启用。但是，如果不使用，则永远不会导致 HTTP 会话创建。在每个请求中，都有一个“输入”`FlashMap`，其中包含从前一个请求传递的属性（如果有）和一个“输出”`FlashMap`，其中包含要保存以供后续请求使用的属性。`FlashMap` 实例可以通过 `RequestContextUtils 的 Utils` 请求。
+
+
+
+flash 属性的概念存在于许多其他 Web 框架中，并且已被证明有时会面临并发问题。这是因为，根据定义，flash 属性将被存储到下一个请求。但是，非常“下一个”请求可能不是预期的接收者，而是另一个异步请求（例如，轮询或资源请求），在这种情况下，flash 属性被**过早删除**。
+
+为了减少此类问题的可能性，`RedirectView` 会自动 “stamps” `FlashMap` 实例，其中包含目标重定向 URL 的 path 和 query 参数。反过来，默认的 `FlashMapManager` 在查找“输入”`FlashMap` 时将该信息与传入请求进行匹配。
+
+这并不能完全消除并发问题的可能性，但会使用重定向 URL 中已有的信息大大减少并发问题。因此，我们建议您主要将 flash 属性用于重定向方案。
