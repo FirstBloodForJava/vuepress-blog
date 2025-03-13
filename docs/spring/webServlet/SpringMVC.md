@@ -390,7 +390,7 @@ org.springframework.web.servlet.ThemeResolver DispatcherServlet寻找themeResolv
 
 
 
-### 多部分处理
+### 多部分处理Multipart
 
 文件上传处理。
 
@@ -1157,3 +1157,46 @@ flash 属性的概念存在于许多其他 Web 框架中，并且已被证明有
 为了减少此类问题的可能性，`RedirectView` 会自动 “stamps” `FlashMap` 实例，其中包含目标重定向 URL 的 path 和 query 参数。反过来，默认的 `FlashMapManager` 在查找“输入”`FlashMap` 时将该信息与传入请求进行匹配。
 
 这并不能完全消除并发问题的可能性，但会使用重定向 URL 中已有的信息大大减少并发问题。因此，我们建议您主要将 flash 属性用于重定向方案。
+
+
+
+#### Multipart
+
+在MultipartResolver功能开启后，POST请求的请求头内容为`multipart/form-data`，可以将请求参数解析的controller的方法：
+
+~~~java
+@Controller
+public class FileUploadController {
+
+    // 解析普通字段和文件
+    @PostMapping("/form")
+    public String handleFormUpload(@RequestParam("name") String name,
+            @RequestParam("file") MultipartFile file) {
+
+        if (!file.isEmpty()) {
+            byte[] bytes = file.getBytes();
+            // 二进制文件
+            return "redirect:uploadSuccess";
+        }
+        return "redirect:uploadFailure";
+    }
+    // 声明为List<MultipartFile> 类型，可以解析多个文件
+    // 其它使用方式和@RequestParam注解类似
+}
+
+~~~
+
+
+
+**@RequestPart注解获取文件部分**
+
+~~~java
+// 不清楚作用在 MetaData 属性上有什么作用
+@PostMapping("/")
+public String handle(@RequestPart("meta-data") MetaData metadata,
+        @RequestPart("file-data") MultipartFile file) {
+    // ...
+}
+
+~~~
+
