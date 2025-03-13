@@ -353,7 +353,17 @@ export default {
 
 ~~~
 
+algolia官网：https://docsearch.algolia.com/
+
+填写抓取博客地址：https://docsearch.algolia.com/apply/
+
+![image-20250313124745079](http://47.101.155.205/image-20250313124745079.png)
+
+
+
 ![image-20241021133507181](http://47.101.155.205/image-20241021133507181.png)
+
+**填写信息后需要等待确认邮件**
 
 
 
@@ -365,6 +375,8 @@ indexName索引名称需要再等邮件。
 
 #### algolia创建爬虫(索引)
 
+**需要先认证这个域名，后面才能抓取数据。**
+
 dashboard.algolia.com->data sources->crawler->click on your crawler->点击Domains
 
 ![image-20241022111515610](http://47.101.155.205/image-20241022111515610.png)
@@ -373,7 +385,7 @@ dashboard.algolia.com->data sources->crawler->click on your crawler->点击Domai
 
 ![image-20241022111603332](http://47.101.155.205/image-20241022111603332.png)
 
-域名验证，部署在GitHub上的vuepress项目，可以通过修改config.js来操作。
+**域名验证，部署在GitHub上的vuepress项目，可以通过修改config.js来操作。**
 
 ~~~javascript
 // config.js文件中使用vue的head设置meta标签
@@ -398,7 +410,7 @@ export default defineUserConfig({
 
 
 
-dashboard.algolia.com->data sources->crawler->click on your crawler->Add new crawler
+**dashboard.algolia.com->data sources->crawler->click on your crawler->Add new crawler**
 
 ![image-20241022110300153](http://47.101.155.205/image-20241022110300153.png)
 
