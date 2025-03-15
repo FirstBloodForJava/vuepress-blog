@@ -354,9 +354,9 @@ export default defineUserConfig({
 
   plugins: [
     docsearchPlugin({
-      appId: 'EOLMTMRF6T ',
-      apiKey: '90a59ebf3501d859c18c6d8dd6c39a92',
-      indexName: 'firstbloodforjavaio',
+      appId: 'ECD96NGN0A',
+      apiKey: 'b7a2f201eb5c101c045690ab526cf995',
+      indexName: 'firstbloodforjava_vuepress_blog',
       locales: {
         '/': {
           placeholder: '搜索文档',
