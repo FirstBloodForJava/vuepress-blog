@@ -416,6 +416,11 @@ export default defineUserConfig({
 
 ![image-20241022110714099](http://47.101.155.205/image-20241022110714099.png)
 
+**新版选择网页类型**
+![新版本网页模板变化](http://47.101.155.205/image-20250315133447465.png)
+
+
+
 打开页面，SETUP->Editor->修改配置->右上角Save ->Start Crawl
 
 ![image-20241022112333211](http://47.101.155.205/image-20241022112333211.png)
@@ -559,6 +564,254 @@ new Crawler({
 http://ecosystem.vuejs.press/zh/plugins/search/docsearch.html#%E8%8E%B7%E5%8F%96%E6%90%9C%E7%B4%A2%E7%B4%A2%E5%BC%95
 
 配置config.js文件即可使用，在GitHub上才会生效，因为查询放回的url信息是之前网站的域名。
+
+
+
+#### algolia新增应用步骤
+
+![image-20250315145948902](http://47.101.155.205/image-20250315145948902.png)
+
+
+
+~~~bash
+# 这个命令包含了这个爬虫的appid和apiKey以及indexName
+npx create-instantsearch-app@latest instantsearch-app --name "instantsearch-app" --template "InstantSearch.js" --app-id "appId" --api-key "apiKey" --index-name "indexName"  --attributes-to-display "keywords" --no-interactive
+
+# 安装完成启动
+npm start
+
+# 最后一步可以获取vuepress的3项配置，也可以不使用这个项目，通过vuepress的搜索插件来实现次数的访问。
+
+
+~~~
+
+
+
+**生成的数据索引，搜索后不能为vuepress所用**
+
+::: details  走新建应用自动生成crawler
+
+~~~conf
+new Crawler({
+  appId: "ECD96NGN0A",
+  apiKey: "6148cabd0c1092fda3022f5b10fdf621",
+  indexPrefix: "",
+  rateLimit: 8,
+  maxUrls: 300,
+  schedule: "on the 15 day of the month",
+  startUrls: ["https://firstbloodforjava.github.io/vuepress-blog/"],
+  sitemaps: [],
+  saveBackup: false,
+  ignoreQueryParams: ["source", "utm_*"],
+  actions: [
+    {
+      indexName: "firstbloodforjava_github_io_ecd96ngn0a_articles",
+      pathsToMatch: ["https://firstbloodforjava.github.io/vuepress-blog/**"],
+      recordExtractor: ({ url, $, helpers }) => {
+        return helpers.article({ $, url });
+      },
+    },
+    {
+      indexName: "firstbloodforjava_github_io_ecd96ngn0a_products",
+      pathsToMatch: ["https://firstbloodforjava.github.io/vuepress-blog/**"],
+      recordExtractor: ({ url, $, helpers }) => {
+        return helpers.product({ $, url });
+      },
+    },
+    {
+      indexName: "firstbloodforjava_github_io_ecd96ngn0a_pages",
+      pathsToMatch: ["https://firstbloodforjava.github.io/vuepress-blog/**"],
+      recordExtractor: ({ url, $, helpers, contentLength, fileType }) => {
+        return helpers.page({ $, url, contentLength, fileType });
+      },
+    },
+  ],
+  initialIndexSettings: {
+    firstbloodforjava_github_io_ecd96ngn0a_articles: {
+      distinct: true,
+      attributeForDistinct: "url",
+      searchableAttributes: [
+        "unordered(keywords)",
+        "unordered(title)",
+        "unordered(description)",
+        "url",
+      ],
+      customRanking: ["asc(depth)"],
+      attributesForFaceting: ["category"],
+    },
+    firstbloodforjava_github_io_ecd96ngn0a_products: {
+      distinct: true,
+      attributeForDistinct: "url",
+      searchableAttributes: [
+        "unordered(name)",
+        "unordered(description)",
+        "url",
+      ],
+      customRanking: ["asc(depth)"],
+      attributesForFaceting: ["category"],
+    },
+    firstbloodforjava_github_io_ecd96ngn0a_pages: {
+      distinct: true,
+      attributeForDistinct: "url",
+      searchableAttributes: [
+        "unordered(keywords)",
+        "unordered(title)",
+        "unordered(description)",
+        "url",
+      ],
+      customRanking: ["asc(depth)"],
+      attributesForFaceting: ["category"],
+    },
+  },
+  
+});
+
+~~~
+
+:::
+
+
+
+::: details  替换crawler的配置内容
+
+~~~conf
+new Crawler({
+  appId: 'appId',
+  apiKey: 'apiKey',
+  rateLimit: 8,
+  maxUrls: 100,
+  startUrls: [
+    // 这是 Algolia 开始抓取网站的初始地址
+    // 如果你的网站被分为数个独立部分，你可能需要在此设置多个入口链接
+    'https://firstbloodforjava.github.io/vuepress-blog/',
+  ],
+  ignoreCanonicalTo: false,
+  exclusionPatterns: [
+    // 你可以通过它阻止 Algolia 抓取某些 URL
+  ],
+  discoveryPatterns: [
+    // 这是 Algolia 抓取 URL 的范围
+    'https://firstbloodforjava.github.io/vuepress-blog/**',
+  ],
+  // 爬虫执行的计划时间，可根据文档更新频率设置
+  schedule: 'at 02:00 every 1 day',
+  actions: [
+    // 你可以拥有多个 action，特别是你在一个域名下部署多个文档时
+    {
+      // 使用适当的名称为索引命名
+      indexName: 'firstbloodforjava_vuepress_blog',
+      // 索引生效的路径
+      pathsToMatch: ['https://firstbloodforjava.github.io/vuepress-blog/**'],
+      // 控制 Algolia 如何抓取你的站点
+      recordExtractor: ({ $, helpers }) => {
+        // @vuepress/theme-default 的选项
+        return helpers.docsearch({
+          recordProps: {
+            lvl0: {
+              selectors: '.vp-sidebar-heading.active',
+              defaultValue: 'Documentation',
+            },
+            lvl1: '[vp-content] h1',
+            lvl2: '[vp-content] h2',
+            lvl3: '[vp-content] h3',
+            lvl4: '[vp-content] h4',
+            lvl5: '[vp-content] h5',
+            lvl6: '[vp-content] h6',
+            content: '[vp-content] p, [vp-content] li',
+          },
+          indexHeadings: true,
+        })
+      },
+    },
+  ],
+  initialIndexSettings: {
+    // 控制索引如何被初始化，这仅当索引尚未生成时有效
+    // 你可能需要在修改后手动删除并重新生成新的索引
+    firstbloodforjava_vuepress_blog: {
+      attributesForFaceting: ['type', 'lang'],
+      attributesToRetrieve: ['hierarchy', 'content', 'anchor', 'url'],
+      attributesToHighlight: ['hierarchy', 'hierarchy_camel', 'content'],
+      attributesToSnippet: ['content:10'],
+      camelCaseAttributes: ['hierarchy', 'hierarchy_radio', 'content'],
+      searchableAttributes: [
+        'unordered(hierarchy_radio_camel.lvl0)',
+        'unordered(hierarchy_radio.lvl0)',
+        'unordered(hierarchy_radio_camel.lvl1)',
+        'unordered(hierarchy_radio.lvl1)',
+        'unordered(hierarchy_radio_camel.lvl2)',
+        'unordered(hierarchy_radio.lvl2)',
+        'unordered(hierarchy_radio_camel.lvl3)',
+        'unordered(hierarchy_radio.lvl3)',
+        'unordered(hierarchy_radio_camel.lvl4)',
+        'unordered(hierarchy_radio.lvl4)',
+        'unordered(hierarchy_radio_camel.lvl5)',
+        'unordered(hierarchy_radio.lvl5)',
+        'unordered(hierarchy_radio_camel.lvl6)',
+        'unordered(hierarchy_radio.lvl6)',
+        'unordered(hierarchy_camel.lvl0)',
+        'unordered(hierarchy.lvl0)',
+        'unordered(hierarchy_camel.lvl1)',
+        'unordered(hierarchy.lvl1)',
+        'unordered(hierarchy_camel.lvl2)',
+        'unordered(hierarchy.lvl2)',
+        'unordered(hierarchy_camel.lvl3)',
+        'unordered(hierarchy.lvl3)',
+        'unordered(hierarchy_camel.lvl4)',
+        'unordered(hierarchy.lvl4)',
+        'unordered(hierarchy_camel.lvl5)',
+        'unordered(hierarchy.lvl5)',
+        'unordered(hierarchy_camel.lvl6)',
+        'unordered(hierarchy.lvl6)',
+        'content',
+      ],
+      distinct: true,
+      attributeForDistinct: 'url',
+      customRanking: [
+        'desc(weight.pageRank)',
+        'desc(weight.level)',
+        'asc(weight.position)',
+      ],
+      ranking: [
+        'words',
+        'filters',
+        'typo',
+        'attribute',
+        'proximity',
+        'exact',
+        'custom',
+      ],
+      highlightPreTag: '<span class="algolia-docsearch-suggestion--highlight">',
+      highlightPostTag: '</span>',
+      minWordSizefor1Typo: 3,
+      minWordSizefor2Typos: 7,
+      allowTyposOnNumericTokens: false,
+      minProximity: 1,
+      ignorePlurals: true,
+      advancedSyntax: true,
+      attributeCriteriaComputedByMinProximity: true,
+      removeWordsIfNoResults: 'allOptional',
+    },
+  },
+})
+
+~~~
+
+:::
+
+
+
+**如果定时自动爬取没有生成新的索引，可以尝试以下方式：**
+
+1. 删除现在的索引，在编辑页面点击Start Crawling启动。
+2. 修改crawler的配置文件索引名称，点击Start Crawling启动（这样虽然新的不能增加，老的还能使用）。
+
+
+
+![image-20250315150923524](http://47.101.155.205/image-20250315150923524.png)
+
+
+
+image-20250315133447465
 
 
 
