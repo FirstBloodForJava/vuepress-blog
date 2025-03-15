@@ -14,9 +14,9 @@ export default defineUserConfig({
         "name": "algolia-site-verification", 
         "content": "9C077AD22DBCE0BD",
         // 表示所有http协议增强为https协议
-        'http-equiv': 'Content-Security-Policy',
+        //'http-equiv': 'Content-Security-Policy',
         // 本地启动需要注释，否则本地访问资源切换成https
-        "content": "upgrade-insecure-requests"
+        //"content": "upgrade-insecure-requests"
       },
 
     ]
