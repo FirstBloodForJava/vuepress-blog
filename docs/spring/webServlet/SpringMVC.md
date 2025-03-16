@@ -295,12 +295,12 @@ HandlerMapping能处理拦截器，拦截器org.springframework.web.servlet.Hand
 
 可用的HandlerExceptionResolver实现：
 
-| HandlerExceptionResolver          | 描述                                      |
-| --------------------------------- | ----------------------------------------- |
-| SimpleMappingExceptionResolver    | 如果是浏览器请求则渲染渲染页面返回        |
-| DefaultHandlerExceptionResolver   | 解决异常映射对应的http状态码              |
-| ResponseStatusExceptionResolver   | 使用@ResponseStatus注解响应状态码         |
-| ExceptionHandlerExceptionResolver | 根据@ExceptionHandler注解配置进行异常处理 |
+| HandlerExceptionResolver          | 描述                                                         |
+| --------------------------------- | ------------------------------------------------------------ |
+| SimpleMappingExceptionResolver    | 如果是浏览器请求则渲染渲染页面返回                           |
+| DefaultHandlerExceptionResolver   | 解决异常映射对应的http状态码，ResponseEntityExceptionHandler |
+| ResponseStatusExceptionResolver   | 使用@ResponseStatus注解响应状态码                            |
+| ExceptionHandlerExceptionResolver | 根据@ExceptionHandler注解配置进行异常处理                    |
 
 
 
@@ -1200,3 +1200,941 @@ public String handle(@RequestPart("meta-data") MetaData metadata,
 
 ~~~
 
+
+
+#### @RequestBody
+
+通过@RequestBody注解来读取请求正文并通过HttpMessageConverter其反序列化到一个对象。
+
+MVC也对外开放了配置或自定义反序列化的方式。
+
+可以通过绑定javax.validation.Valid或Spring的Validated注解来校验参数，默认会抛出MethodArgumentNotValidException异常，返回400的状态码结果。也可以通过Errors或BindingResult参数接收校验结果。
+
+~~~java
+@PostMapping("/accounts")
+public void handle(@RequestBody Account account) {
+    // ...
+}
+
+~~~
+
+
+
+#### HttpEntity
+
+作用和@RequestBody大致相同，但是这个包含了请求头和请求头。
+
+~~~java
+@PostMapping("/accounts")
+public void handle(HttpEntity<Account> entity) {
+    // ...
+}
+
+~~~
+
+
+
+#### @ResponseBody
+
+@ResponseBody作用在方法上，通过HttpMessageConverter将内容序列化到响应体中。
+
+@ResponseBody也可以作用域Controller类上，表示所有方法都继承这个效果。@RestController是基于元注解@Controller和@ResponseBody的注解。
+
+MVC也对外开放了配置或自定义序列化的方式。
+
+
+
+~~~java
+@GetMapping("/accounts/{id}")
+@ResponseBody
+public Account handle() {
+    // ...
+}
+
+~~~
+
+
+
+#### ResponseEntity
+
+与@ResponseBody注解作用很像，多了响应状态和响应头
+
+~~~java
+@GetMapping("/something")
+public ResponseEntity<String> handle() {
+    String body = ... ;
+    String etag = ... ;
+    return ResponseEntity.ok().eTag(etag).build(body);
+}
+
+~~~
+
+
+
+#### Jackson JSON
+
+Jackson通过方法名来序列化和反序列化对象。
+
+~~~java
+@RestController
+public class UserController {
+
+    // 指定只序列化带有User.WithoutPasswordView.class注解的方法属性
+    @GetMapping("/user")
+    @JsonView(User.WithoutPasswordView.class)
+    public User getUser() {
+        return new User("eric", "7!jd#h23");
+    }
+}
+
+public class User {
+
+    public interface WithoutPasswordView {};
+    public interface WithPasswordView extends WithoutPasswordView {};
+
+    private String username;
+    private String password;
+
+    public User() {
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    @JsonView(WithoutPasswordView.class)
+    public String getUsername() {
+        return this.username;
+    }
+
+    @JsonView(WithPasswordView.class)
+    public String getPassword() {
+        return this.password;
+    }
+}
+
+~~~
+
+
+
+~~~java
+@Controller
+public class UserController extends AbstractController {
+
+    // 在视图中添加user属性，使用Jackson的视图序列化这个对象
+    @GetMapping("/user")
+    public String getUser(Model model) {
+        model.addAttribute("user", new User("eric", "7!jd#h23"));
+        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);
+        return "userView";
+    }
+}
+
+~~~
+
+
+
+### Model
+
+使用@ModelAttribute注解的场景：
+
+1. 在@RequestMapping注解的方法参数上创建或访问来自Model的对象，并通过WebDataBinder将其绑定到请求上。
+2. 作用@Controller或@ControllerAdvice类中的方法上，在@RequestMapping方法调用之前初始化Model。
+3. 在@RequestMapping方法上，标注其方法值是Model的属性（这种情况现在很少使用）。
+
+
+
+1. ~~~java
+   
+   
+   ~~~
+
+2. ~~~java
+   @ModelAttribute
+   public void populateModel(@RequestParam String number, Model model) {
+       model.addAttribute(accountRepository.findAccount(number));
+       
+   }
+   
+   // 和上面作用相同，自动添加到Model中
+   @ModelAttribute
+   public Account addAccount(@RequestParam String number) {
+       return accountRepository.findAccount(number);
+   }
+   
+   ~~~
+
+3. ~~~java
+   @GetMapping("/accounts/{id}")
+   @ModelAttribute("myAccount")
+   public Account handle() {
+       // ...
+       return account;
+   }
+   ~~~
+
+
+
+### DataBinder
+
+@Controller或@ControllerAdvice类可以指定@InitBinder方法初始化WebDataBinder对象，可以实现以下作用：
+
+1. 将请求参数（表单或请求体）绑定到Model对象。
+2. 将基于String类型的请求值（请求参数、路径参数、请求头、Cookie等）转换成controller方法参数的目标类型。
+3. 在渲染为html表单时，将Model对象的值转换成String。
+
+@InitBinder可以注册特定于controller级别的`java.bean.PropertyEditor`或Spring的`Converter `和`Formatter `组件。也可以通过MVC在全局共享的`FormattingConversionService`中注册`Converter`和`Formatter`。
+
+
+
+**@InitBinder方法支持和@RequestMapping方法相同的参数，除了@ModelAttribute参数。通常是使用WebDataBinder参数用于注册，返回void。**
+
+~~~java
+@Controller
+public class FormController {
+
+    @InitBinder 
+    public void initBinder(WebDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        // 解析格式的配置，是否支持宽松的日期格式解析
+        dateFormat.setLenient(false);
+        // 指定的Date类型注册解析器
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+        
+        // 添加一个全局使用的自定义的格式化解析器(org.springframework.format.Formatter)
+        binder.addCustomFormatter(new DateFormatter("yyyy-MM-dd"));
+    }
+
+}
+
+~~~
+
+
+
+### Exceptions
+
+@Controller或@ControllerAdvice类可以声明@ExceptionHandler的方法处理来自controller方法的异常。
+
+~~~java
+@Controller
+public class SimpleController {
+
+    
+
+    @ExceptionHandler
+    public ResponseEntity<String> handle(IOException ex) {
+        // 可以处理来自这个controller映射方法的 IOException 异常，也能处理cause异常时IOException的异常
+    }
+    
+    @ExceptionHandler({FileSystemException.class, RemoteException.class})
+	public ResponseEntity<String> handle(IOException ex) {
+    	// 缩小捕获的异常类型，使用 IOException 异常接收
+	}
+    
+    @ExceptionHandler({FileSystemException.class, RemoteException.class})
+	public ResponseEntity<String> handle(Exception ex) {
+    	// 缩小捕获的异常类型，使用 Exception 异常接收
+	}
+}
+
+~~~
+
+@ExceptionHandler支持处理异常是建立在DispatcherServlet的SpringMVC，
+
+HandlerExceptionResolver处理机制。
+
+
+
+**@ExceptionHandler方法支持的参数**
+
+| 方法参数                                                     | 作用                                                        |
+| ------------------------------------------------------------ | ----------------------------------------------------------- |
+| 异常类型                                                     | 接收抛出的异常对象                                          |
+| HandlerMethod                                                | 导致异常的controller的方法                                  |
+| WebRequest, NativeWebRequest                                 | 不通过Servlet API对请求内容的访问                           |
+| javax.servlet.ServletRequest, javax.servlet.ServletResponse  | 可以选择特定实现类型接收请求或响应对象                      |
+| javax.servlet.http.HttpSession                               | 请求会话，不是线程安全的。                                  |
+| java.security.Principal                                      | 已验证的用户，Principal的实现类                             |
+| HttpMethod                                                   | 请求的请求方式                                              |
+| java.util.Locale                                             | 当前请求的区域，配置的LocaleResolver或LocaleContextResolver |
+| java.util.TimeZone, java.time.ZoneId                         | 当前请求的时区，由LocaleContextResolver确认                 |
+| java.io.OutputStream, java.io.Writer                         | 访问Servlet生成的响应体流                                   |
+| java.util.Map, org.springframework.ui.Model, org.springframework.ui.ModelMap | 访问错误响应的模型，总是空                                  |
+| RedirectAttributes                                           | 指定重定向下的属性                                          |
+| @SessionAttribute                                            | 请求session会话                                             |
+| @RequestAttribute                                            | 请求属性                                                    |
+|                                                              |                                                             |
+
+
+
+**@ExceptionHandler方法支持的返回值：**
+
+| 返回值类型                                  | 作用                                              |
+| ------------------------------------------- | ------------------------------------------------- |
+| @ResponseBody                               | 方法使用注解，返回响应体                          |
+| HttpEntity\<B\>, ResponseEntity\<B\>        | 作用和请求的方法中返回的一致                      |
+| String                                      | 视图                                              |
+| View                                        | View对象                                          |
+| java.util.Map, org.springframework.ui.Model |                                                   |
+| @ModelAttribute                             |                                                   |
+| ModelAndView object                         | 视图                                              |
+| void                                        | 可能会返回空的响应结果                            |
+| Any other return value                      | 不匹配上面的值，默认情况下，被视为添加到Model属性 |
+
+
+
+REST请求通常是在响应中包含详细信息。Spring框架不会自动做到这一点，可以通过全局使用@ControllerAdvice加@ExceptionHandler注解使用ResponseEntity返回值来做到。
+
+
+
+**扩展 ResponseEntityExceptionHandler 抽象，可以自定义错误的返回详细信息。**
+
+
+
+### Controller Advice
+
+@ExceptionHandler, @InitBinder或@ModelAttribute的注解作用于Controller类的映射方法上，可以通过在@ControllerAdvice或@RestControllerAdvice注解的类上声明它们，而作用于全局的controller 类的方法。
+
+
+
+**全局的@InitBinder或@ModelAttribute方法比本类的方法先应用。**
+
+**全局的@ExceptionHandler方法晚于本类的方法应用。**
+
+**默认@ControllerAdvice匹配所有的的请求。可以通过注解的属性限制其匹配的请求。**
+
+
+
+~~~java
+// 目标是所有带有注解 @RestController 的controller
+@ControllerAdvice(annotations = RestController.class)
+public class ExampleAdvice1 {}
+
+// 目标是这个包下的所有controller
+@ControllerAdvice("org.example.controllers")
+public class ExampleAdvice2 {}
+
+// 目标是特定的controller
+@ControllerAdvice(assignableTypes = {ControllerInterface.class, AbstractController.class})
+public class ExampleAdvice3 {}
+
+~~~
+
+**注意：这些匹配会在运行时作用，增加太多匹配器会对性能造成影响。**
+
+
+
+## 4.Functional接口
+
+SpringMVC包含WebMvc.fn，这是一个轻量级的函数编程模型，其中函数用于路由和处理请求。它是基于注解编程的替代方案，但是其它方面运行在相同的DispatcherServlet上。
+
+在WebMvc.fn中，http请求使用HandlerFunction处理，这个函数接收ServerRequest参数，返回ServerResponse结果，**请求参数和响应结果都是不可变的（实现类的属性是final修饰）**。
+
+![image-20250316162153297](http://47.101.155.205/image-20250316162153297.png)
+
+传入的请求被函数RouterFunction处理，该函数接收一个SerrverRequest，返回一个可选的Optional\<HandlerFunction\>。RouterFunction相当于一个@RequestMapping注解，区别在于Router函数不仅提供数据，还提供行为。
+
+![image-20250316162226427](http://47.101.155.205/image-20250316162226427.png)
+
+
+
+~~~java
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.servlet.function.RequestPredicates.*;
+import static org.springframework.web.servlet.function.RouterFunctions.route;
+
+PersonRepository repository = new PersonRepository();
+PersonHandler handler = new PersonHandler(repository);
+
+// RouterFunctions.route 用于构建Router构造器。
+// RouterFunction注册为Bean，则Servlet自动检测到它
+RouterFunction<ServerResponse> route = route()
+    .GET("/person/{id}", accept(APPLICATION_JSON), handler::getPerson)
+    .GET("/person", accept(APPLICATION_JSON), handler::listPeople)
+    .POST("/person", handler::createPerson)
+    .build();
+
+
+public class PersonHandler {
+
+    public ServerResponse listPeople(ServerRequest request) {
+        // ...
+    }
+
+    public ServerResponse createPerson(ServerRequest request) {
+        // ...
+    }
+
+    public ServerResponse getPerson(ServerRequest request) {
+        // ...
+    }
+}
+
+~~~
+
+
+
+### HandlerFunction API
+
+#### ServerRequest
+
+**API：**
+
+~~~java
+String string = request.body(String.class);
+
+List<Person> people = request.body(new ParameterizedTypeReference<List<Person>>() {});
+
+MultiValueMap<String, String> params = request.params();
+
+~~~
+
+
+
+#### ServerResponse
+
+**API：**
+
+~~~java
+// 创建一个状态码200的ServerResponse
+ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(person);
+
+// 201 没有响应体
+ServerResponse.created(location).build();
+
+
+~~~
+
+
+
+
+
+#### HandlerFunction
+
+
+
+~~~java
+// lambda 表达式
+HandlerFunction<ServerResponse> helloWorld =
+  request -> ServerResponse.ok().body("Hello World");
+
+~~~
+
+
+
+~~~java
+// 可以在一个类中封装该表达式的行为，通过对象方法简化
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+
+public class PersonHandler {
+
+    private final PersonRepository repository;
+
+    public PersonHandler(PersonRepository repository) {
+        this.repository = repository;
+    }
+
+    public ServerResponse listPeople(ServerRequest request) { 
+        List<Person> people = repository.allPeople();
+        return ok().contentType(APPLICATION_JSON).body(people);
+    }
+
+    public ServerResponse createPerson(ServerRequest request) throws Exception { 
+        Person person = request.body(Person.class);
+        repository.savePerson(person);
+        return ok().build();
+    }
+
+    public ServerResponse getPerson(ServerRequest request) { 
+        int personId = Integer.parseInt(request.pathVariable("id"));
+        Person person = repository.getPerson(personId);
+        if (person != null) {
+            return ok().contentType(APPLICATION_JSON).body(person))
+        }
+        else {
+            return ServerResponse.notFound().build();
+        }
+    }
+
+}
+
+~~~
+
+
+
+#### Validation
+
+~~~java
+public class PersonHandler {
+
+    private final Validator validator = new PersonValidator(); 
+
+    public ServerResponse createPerson(ServerRequest request) {
+        Person person = request.body(Person.class);
+        validate(person); 
+        repository.savePerson(person);
+        return ok().build();
+    }
+
+    private void validate(Person person) {
+        Errors errors = new BeanPropertyBindingResult(person, "person");
+        validator.validate(person, errors);
+        if (errors.hasErrors()) {
+            throw new ServerWebInputException(errors.toString()); 
+        }
+    }
+}
+
+~~~
+
+~~~java
+// 自定义的校验器
+public class PersonValidator implements Validator {
+
+    /**
+     * 只争对Person的校验
+     */
+    public boolean supports(Class clazz) {
+        return Person.class.equals(clazz);
+    }
+
+    public void validate(Object obj, Errors e) {
+        ValidationUtils.rejectIfEmpty(e, "name", "name.empty");
+        Person p = (Person) obj;
+        if (p.getAge() < 0) {
+            e.rejectValue("age", "negativevalue");
+        } else if (p.getAge() > 110) {
+            e.rejectValue("age", "too.darn.old");
+        }
+    }
+}
+
+~~~
+
+校验配置介绍：https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#validation-beanvalidation
+
+
+
+### RouterFunction
+
+RouterFunctions.route()提供了流式创建RouterFunction的构造器。
+
+RouterFunctions.route(RequestPredicate, HandlerFunction)提供了一种直接创建RouterFunction的方式，RequestPredicate来判断是否路由到HandlerFunction。
+
+
+
+#### Predicates
+
+可以自定义实现RequestPredicate也可以使用RequestPredicates提供的基于请求路径、请求方式、请求内容等判断。
+
+~~~java
+//使用RequestPredicates.accept()
+RouterFunction<ServerResponse> route = RouterFunctions.route()
+    .GET("/hello-world", accept(MediaType.TEXT_PLAIN),
+        request -> ServerResponse.ok().body("Hello World")).build();
+
+~~~
+
+RequestPredicate支持多种组合在一起，例如：
+
+1. RequestPredicate.and(RequestPredicate)表示都需要满足；
+2. RequestPredicate.or(RequestPredicate)表示匹配任意一个即满足。
+
+
+
+其实前面使用的RequestPredicates.GET(String)就是一个RequestPredicates.method()和RequestPredicates.path()的and组合。
+
+
+
+#### Routes
+
+Rrouter功能是按顺序匹配的，第一个匹配不上，使用第二个，以此类推。
+
+~~~java
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.servlet.function.RequestPredicates.*;
+
+PersonRepository repository = ...
+PersonHandler handler = new PersonHandler(repository);
+
+RouterFunction<ServerResponse> otherRoute = ...
+
+// 创建一个RouterFunction
+RouterFunction<ServerResponse> route = route()
+    .GET("/person/{id}", accept(APPLICATION_JSON), handler::getPerson) 
+    .GET("/person", accept(APPLICATION_JSON), handler::listPeople) 
+    .POST("/person", handler::createPerson) 
+    .add(otherRoute) 
+    .build();
+
+~~~
+
+
+
+#### Nested Routes
+
+嵌套路由
+
+~~~java
+RouterFunction<ServerResponse> route = route()
+    .path("/person", builder -> builder 
+        .GET("/{id}", accept(APPLICATION_JSON), handler::getPerson)
+        .GET("", accept(APPLICATION_JSON), handler::listPeople)
+        .POST("/person", handler::createPerson))
+    .build();
+
+// 和上面等价
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET("", handler::listPeople))
+        .POST("/person", handler::createPerson))
+    .build();
+
+~~~
+
+
+
+### Run In Server
+
+在Spring的Bean中注册RouterFunction Bean。
+
+~~~java
+@Configuration
+@EnableMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Bean
+    public RouterFunction<?> routerFunctionA() {
+        // 声明routerFunctionA bean
+    }
+
+    @Bean
+    public RouterFunction<?> routerFunctionB() {
+        // 声明routerFunctionB bean
+    }
+
+    // ...
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // 配置消息转换器
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        // 配置 CORS
+    }
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        // 配置视图解析器
+    }
+}
+
+~~~
+
+
+
+### HandlerFunction过滤链
+
+~~~java
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET("", handler::listPeople)
+            .before(request -> ServerRequest.from(request) // 2个请求添加前置处理，会被包装成一个
+                .header("X-RequestHeader", "Value")
+                .build()))
+        .POST("/person", handler::createPerson))
+    .after((request, response) -> logResponse(response)) // after应用上面所有的Router
+    .build();
+
+~~~
+
+![image-20250316181045209](http://47.101.155.205/image-20250316181045209.png)
+
+Router构建器上的过滤器HandlerFilterFunction方法filter工作原理：接收ServerRequest和HandlerFunction，返回ServerResponse。HandlerFunction表示过滤链中的下一个执行程序。
+
+~~~java
+SecurityManager securityManager = ...
+
+RouterFunction<ServerResponse> route = route()
+    .path("/person", b1 -> b1
+        .nest(accept(APPLICATION_JSON), b2 -> b2
+            .GET("/{id}", handler::getPerson)
+            .GET("", handler::listPeople))
+        .POST("/person", handler::createPerson))
+    .filter((request, next) -> {
+        // HandlerFunction,这里为true才执行
+        if (securityManager.allowAccessTo(request.path())) {
+            return next.handle(request);
+        }
+        else {
+            return ServerResponse.status(UNAUTHORIZED).build();
+        }
+    })
+    .build();
+
+~~~
+
+
+
+## 5.URI
+
+### UriComponents
+
+使用UriComponentsBuilder构建UriComponents：
+
+~~~java
+UriComponents uriComponents = UriComponentsBuilder
+        .fromUriString("https://example.com/hotels/{hotel}")  
+        .queryParam("q", "{q}")  
+        .encode() 
+        .build(); 
+
+URI uri = uriComponents.expand("Westin", "123").toUri();
+// 和上面等价
+URI uri = UriComponentsBuilder
+        .fromUriString("https://example.com/hotels/{hotel}")
+        .queryParam("q", "{q}")
+        .encode()
+        .buildAndExpand("Westin", "123")
+        .toUri();
+// 和上面等价
+URI uri = UriComponentsBuilder
+        .fromUriString("https://example.com/hotels/{hotel}")
+        .queryParam("q", "{q}")
+        .build("Westin", "123");
+// 和上面等价
+URI uri = UriComponentsBuilder
+        .fromUriString("https://example.com/hotels/{hotel}?q={q}")
+        .build("Westin", "123");
+
+~~~
+
+
+
+### UriBuilder
+
+UriComponentsBuilder实现了UriBuilder。可以使用UriBuilderFactory构建UriBuilder。
+
+通过给RestTemplate和WebClient配置自定义的UriBuilderFactory来构建URI。DefaultUriBuilderFactory是UriBuilderFactory的默认实现，内部使用的是UriComponentsBuilder来共享配置。
+
+
+
+**RestTemplate配置UriBuilderFactory：**
+
+~~~java
+import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
+
+String baseUrl = "https://example.org";
+DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
+// 设置编码方式
+factory.setEncodingMode(EncodingMode.TEMPLATE_AND_VALUES);
+
+RestTemplate restTemplate = new RestTemplate();
+restTemplate.setUriTemplateHandler(factory);
+
+~~~
+
+**WebClient配置UriBuilderFactory：**
+
+~~~java
+import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
+
+String baseUrl = "https://example.org";
+DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
+factory.setEncodingMode(EncodingMode.TEMPLATE_AND_VALUES);
+
+WebClient client = WebClient.builder().uriBuilderFactory(factory).build();
+
+~~~
+
+**使用DefaultUriBuilderFactory构建URI：**
+
+~~~java
+String baseUrl = "https://example.com";
+DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
+
+URI uri = uriBuilderFactory.uriString("/hotels/{hotel}")
+        .queryParam("q", "{q}")
+        .build("Westin", "123");
+
+~~~
+
+
+
+### URI编码
+
+UriComponentsBuilder提供了两种编码方式：
+
+1. UriComponentsBuilder.encode()：首先对 URI 模板进行预编码，然后在展开时对 URI 变量进行严格编码。
+2. UriComponents.encode()：在 URI 变量展开后对 URI 组件进行编码。
+
+两种模式都会转义八位字节的非ASCII和非法字符。第一个还会转义在URI变量中由保留含义的字符。例如：";"在路径中是合法的，在第1个编码方式中，会被转义为"%3B"。
+
+~~~java
+URI uri = UriComponentsBuilder.fromPath("/hotel list/{city}")
+        .queryParam("q", "{q}")
+        .encode()
+        .buildAndExpand("New York", "foo+bar")
+        .toUri();
+// 结果"/hotel%20list/New%20York?q=foo%2Bbar"
+URI uri = UriComponentsBuilder.fromPath("/hotel list/{city}")
+        .queryParam("q", "{q}")
+        .build("New York", "foo+bar");
+URI uri = UriComponentsBuilder.fromPath("/hotel list/{city}?q={q}")
+        .build("New York", "foo+bar");
+
+~~~
+
+DefaultUriBuilderFactory使用UriComponentsBuilder来扩展和编码URI模板，提供了几种编码方式：
+
+1. TEMPLATE_AND_VALUES：使用UriComponentsBuilder.encode()。
+2. VALUES_ONLY：不编码URI模板，通过UriUtils.encodeUriUriVariables()对URI变量进行严格编码。
+3. URI_COMPONENT：使用UriComponents.encode()。
+4. NONE：不使用编码。
+
+
+
+### ByServletRequest
+
+通过ServletUriComponentsBuilder用当前请求创建URI：
+
+~~~java
+// HttpServletRequest request
+ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request)
+        .replaceQueryParam("accountId", "{id}").build()
+        .expand("123")
+        .encode();
+
+ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromContextPath(request)
+        .path("/accounts").build();
+
+~~~
+
+
+
+### Controller链接
+
+~~~java
+@Controller
+@RequestMapping("/hotels/{hotel}")
+public class BookingController {
+
+    @GetMapping("/bookings/{booking}")
+    public ModelAndView getBooking(@PathVariable Long booking) {
+        // ...
+    }
+}
+
+~~~
+
+
+
+~~~java
+// 通过controller创建URI
+UriComponents uriComponents = MvcUriComponentsBuilder
+    .fromMethodName(BookingController.class, "getBooking", 21).buildAndExpand(42);
+
+URI uri = uriComponents.encode().toUri();
+
+// 通过代理创建Controller的URI
+UriComponents uriComponents = MvcUriComponentsBuilder
+    .fromMethodCall(MvcUriComponentsBuilder.on(BookingController.class).getBooking(21)).buildAndExpand(42);
+
+URI uri = uriComponents.encode().toUri();
+
+~~~
+
+
+
+~~~java
+// 有上下文 /en的情况
+UriComponentsBuilder base = ServletUriComponentsBuilder.fromCurrentContextPath().path("/en");
+MvcUriComponentsBuilder builder = MvcUriComponentsBuilder.relativeTo(base);
+builder.withMethodCall(on(BookingController.class).getBooking(21)).buildAndExpand(42);
+
+URI uri = uriComponents.encode().toUri();
+
+~~~
+
+
+
+### View链接
+
+~~~java
+@RequestMapping("/people/{id}/addresses")
+public class PersonAddressController {
+
+    @RequestMapping("/{country}")
+    public HttpEntity<PersonAddress> getAddress(@PathVariable String country) { 
+        //  
+    }
+}
+
+~~~
+
+~~~jsp
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+...
+<a href="${s:mvcUrl('PAC#getAddress').arg(0,'US').buildAndExpand('123')}">Get Address</a>
+
+~~~
+
+
+
+## 6.异步请求
+
+SpringMVC集成了Servlet 3.0的异步请求：
+
+1. DeferredResult和Callable作为控制器方法中返回值，并为单个异步返回值提供基本支持。
+2. 控制器可以流式传输多个值，包括SSE和原始数据（raw data）。
+3. 控制器可以使用响应客户端并返回响应类型来处理响应。
+
+
+
+### DeferredResult
+
+~~~java
+@GetMapping("/quotes")
+@ResponseBody
+public DeferredResult<String> quotes() {
+    DeferredResult<String> deferredResult = new DeferredResult<String>();
+    // 
+    return deferredResult;
+}
+
+// 其它线程设置结果
+deferredResult.setResult(result);
+
+~~~
+
+
+
+### Callable
+
+~~~java
+@PostMapping
+public Callable<String> processUpload(final MultipartFile file) {
+
+    return new Callable<String>() {
+        public String call() throws Exception {
+            // 线程
+            return "someView";
+        }
+    };
+}
+
+~~~
+
+
+
+
+
+### 处理
