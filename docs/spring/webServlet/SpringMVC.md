@@ -2138,3 +2138,187 @@ public Callable<String> processUpload(final MultipartFile file) {
 
 
 ### 处理
+
+Servlet处理异步请求概述：
+
+1. 通过调用request.startAsync()可以将ServletRequest置于异步模式。这样做的效果是Servlet可以退出，但响应保持打开状态，以便后续处理。
+2. 调用request.startAsync()返回AsyncContext，可以通过这个控制异步处理。例如，提供了dispatch方法，类似Servlet的转发API，不同的是它允许应用在Servlet容器线程上恢复处理请求。
+3. ServletRequest提供对当前DispatcherType的访问，可以使用它区分处理初始请求、异步分派、转发和其它分派类型。
+
+
+
+DeferredResult的处理工作原理：
+
+1. controller返回DeferredResult并将其保存在内存中的queue或list中，以便能够访问。
+2. SpringMVC调用request.startAsync()。
+3. DispatcherServlet和所有配置的过滤器退出请求处理线程，但响应保持打开状态。
+4. 应用程序从某个线程设置DeferredResult，SpringMVC将请求分派会Servlet容器。
+5. 再次调用DispatcherServlet，并使用异步返回值恢复处理。
+
+
+
+Callable的处理工作原理：
+
+1. controller返回一个Callable。
+2. SpringMVC调用request.startAsync()，并将Callable提交给TaskExecutor以便在单独的相册运行。
+3. DispatcherServlet和所有配置的过滤器退出请求处理线程，但响应保持打开状态。
+4. 最终Callable产生结果，SpringMVC将请求分派会Servlet容器以完成处理。
+5. 再次调用DispatcherServlet，并使用Callable异步产生的值恢复处理
+
+
+
+SpringMVC引入Servlet异步介绍：https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support
+
+
+
+**异常处理：**当使用DeferredResult时，可以选择是否调用带有异常的setResult或setErrorResult。在这两种情况下，Spring MVC都将请求分派回Servlet容器以完成处理。然后将其视为控制器方法返回给定值或产生给定异常。然后异常经过常规异常处理机制（例如，调用@ExceptionHandler方法）。
+
+当您使用 Callable 时，会出现类似的处理逻辑，主要区别在于结果是从 Callable 返回的，或者它引发了异常。
+
+**拦截：**HandlerInterceptor对象可以是AsyncHandlerInterceptor类型，以接收 afterConcurrentHandlingStarted 启动异步处理的初始请求的 callback（而不是 postHandle 和 afterCompletion）。
+
+HandlerInterceptor实现还可以注册CallableProcessingInterceptor 或 a DeferredResultProcessingInterceptor ，以便更深入地与 异步请求的生命周期（例如，处理超时事件）
+
+DeferredResult 提供 onTimeout（Runnable） 和 onCompletion（Runnable） 回调。Callable 可以替换为 WebAsyncTask，后者公开了超时和完成回调的其他方法。
+
+**与WebFlux对比：**Servlet API 最初是为通过 Filter-Servlet 链进行一次传递而构建的。Servlet 3.0 中添加的异步请求处理允许应用程序退出 Filter-Servlet 链，但使响应保持打开状态以供进一步处理。Spring MVC 异步支持是围绕该机制构建的。当控制器返回 DeferredResult 时，将退出 Filter-Servlet 链，并释放 Servlet 容器线程。稍后，当设置 DeferredResult 时，将进行 ASYNC 调度（到同一 URL），在此期间，控制器将再次映射，但不是调用它，而是使用 DeferredResult 值（就像控制器返回它一样）来恢复处理。
+
+相比之下，Spring WebFlux 既不是基于 Servlet API 构建的，也不需要这样的异步请求处理功能，因为它在设计上是异步的。异步处理内置于所有框架协定中，并且在请求处理的所有阶段都受到内部支持。
+
+从编程模型的角度来看，Spring MVC 和 Spring WebFlux 都支持异步和反应类型作为控制器方法中的返回值。Spring MVC 甚至支持流，包括反应式背压。但是，对响应的单个写入仍然是阻塞的（并且在单独的线程上执行），这与 WebFlux 不同，它依赖于非阻塞 I/O，并且每次写入不需要额外的线程。
+
+另一个根本区别是 Spring MVC 不支持控制器方法参数中的异步或反应类型（例如，@RequestBody、@RequestPart 等），也不明确支持异步和反应类型作为模型属性。Spring WebFlux 确实支持所有这些。
+
+
+
+### Http流
+
+可以将DeferredResult 和 Callable 用于单个异步返回值。如何生成多个异步值并将这些值写入响应？
+
+
+
+#### Objects
+
+可以使用ResponseBodyEmitter返回值生成对象流，每个对象都使用HttpMessageConverter序列化并写入响应。
+
+~~~java
+@GetMapping("/events")
+public ResponseBodyEmitter handle() {
+    ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+    // Save the emitter somewhere..
+    return emitter;
+}
+
+// In some other thread
+emitter.send("Hello once");
+
+// and again later on
+emitter.send("Hello again");
+
+// and done at some point
+emitter.complete();
+
+~~~
+
+还可以将ResponseBodyEmitter作为ResponseEntity的泛型，从而自定义响应头和状态码。
+
+当emitter抛出 IOException 时（例如，如果远程客户端消失），应用程序不负责清理连接，也不应调用 `emitter.complete`或`emitter.completeWithError`。相反，Servlet 容器会自动启动`AsyncListener`错误通知，其中 Spring MVC调用`completeWithError`。反过来，此调用对应用程序执行最后一次`ASYNC`分派，在此期间 Spring MVC 调用配置的异常解析器并完成请求。
+
+
+
+#### SEE
+
+SseEmitter是ResponseBodyEmitter的子类，支持Server-sent Events(https://www.w3.org/TR/eventsource/)。
+
+~~~java
+@GetMapping(path="/events", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
+public SseEmitter handle() {
+    SseEmitter emitter = new SseEmitter();
+    // Save the emitter somewhere..
+    return emitter;
+}
+
+// In some other thread
+emitter.send("Hello once");
+
+// and again later on
+emitter.send("Hello again");
+
+// and done at some point
+emitter.complete();
+
+~~~
+
+虽然 SSE 是流式传输到浏览器的主要选项，但请注意，Internet Explorer(IE)不支持 Server-Sent Events。
+
+
+
+#### Raw Data
+
+绕过消息转换并直接流式传输到OutputStream，例如文件下载。使用StreamingResponseBody作为返回值。
+
+将StreamingResponseBody作为ResponseEntity的泛型，从而自定义响应头和状态码。
+
+~~~java
+@GetMapping("/download")
+public StreamingResponseBody handle() {
+    return new StreamingResponseBody() {
+        @Override
+        public void writeTo(OutputStream outputStream) throws IOException {
+            // write...
+        }
+    };
+}
+
+~~~
+
+
+
+### Reactive Types
+
+Spring MVC 支持在控制器中使用反应式客户端库。这包括来自 spring-webflux 的 WebClient 和其他对象，例如 Spring Data 反应式数据库。在这种情况下，能够从 controller 方法返回响应式类型很方便。
+
+反应式返回值的处理方式如下：
+
+1. 单值返回，类似使用DeferredResult。例如Mono、Single。
+2. 流媒体类型(application/stream+json、ext/event-stream)，类似ResponseBodyEmitter或SseEmitter。例如Flux、Observable。application返回Flux\<ServerSentEvent\>、Observable\<ServerSentEvent\>。
+3. 其它媒体类型，例如application/json。类似使用DeferredResult\<List\<?\>\>。
+
+
+
+### 断开连接
+
+当远程客户端消失时，Servlet API 不提供任何通知。因此，在流式传输到响应时，无论是通过 SseEmitter 或 reactive 类型，定期发送数据很重要，因为如果客户端断开连接，写入就会失败。发送可以采用空（仅评论）SSE 事件或另一方必须解释为检测信号并忽略的任何其他数据的形式。
+
+或者，考虑使用 Web 消息传递解决方案（例如 STOMP over WebSocket 或 WebSocket with SockJS），它们具有内置的心跳机制。
+
+
+
+### 配置
+
+必须在 Servlet 容器级别启用异步请求处理功能。
+
+**Servlet容器：**
+
+Filter 和 Servlet 声明有一个`asyncSupported`标志，需要将其设置为`true`以启用异步请求处理。此外，Filter 映射应声明为ASYNC javax.servlet.DispatchType。
+
+在 Java 配置中，当您使用 AbstractAnnotationConfigDispatcherServletInitializer 初始化 Servlet 容器，此作会自动完成。
+
+在web.xml中，可以添加\<async-supported\>true\</async-supported\>到DispatcherServlet和Filter的声明中，然后添加\<dispatcher\>ASYNC\</dispatcher\>。
+
+
+
+**SpringMVC：**
+
+- Java配置：在`WebMvcConfigurer`上使用`configureAsyncSupport`回调。
+- XML命名空间：使用\<mvc：annotation-driven\> 下的\<async-support\> 元素。
+
+可以配置以下内容：
+
+1. 异步请求的默认超时值（如果未设置），则取决于底层 Servlet 容器。
+2. `AsyncTaskExecut`用于阻塞写流与反应类型和执行可调用的实例从控制器方法返回。如果你使用响应型流或者控制器方法返回Callable，我们强烈建议配置这个属性，因为默认情况下，它是SimpleAsyncTaskExecutor。
+3. `DeferredResultProcessingInterceptor`实现和`CallableProcessingInterceptor`实现。
+
+
+
+还可以在`DeferredResult`、`ResponseBodyEmitter`和`SseEmitter`上设置默认超时值。对于`Callable`，可以使用`WebAsyncTask`提供超时值。
