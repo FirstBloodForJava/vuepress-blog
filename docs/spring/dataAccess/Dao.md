@@ -116,19 +116,9 @@ Spring的JDBC做了什么
 
 三种JdbcTemplate访问风格：
 
-1. 1
-
-
-
-NamedParameterJdbcTemplate包装JdbcTemplate提供命名参数查询。
-
-
-
-SimpleJdbcInsert和SimpleJdbcCall提供了数据库配置方法的访问方式。
-
-
-
-Java对象查询MappingSqlQuery、SqlUpdate 和StoredProcedure
+1. NamedParameterJdbcTemplate包装JdbcTemplate提供命名参数查询。
+2. SimpleJdbcInsert和SimpleJdbcCall提供了数据库配置方法的访问方式。
+3. Java对象查询MappingSqlQuery、SqlUpdate 和StoredProcedure
 
 
 
