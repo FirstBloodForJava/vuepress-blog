@@ -279,6 +279,10 @@ export default defineUserConfig({
                 {
                   text: 'SpringMVC',
                   link: 'SpringMVC',
+                },
+                {
+                  text: 'WebSocket',
+                  link: 'WebSocket',
                 }
             ]
           },
