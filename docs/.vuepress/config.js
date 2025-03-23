@@ -269,6 +269,10 @@ export default defineUserConfig({
                 text: '事物管理',
                 link: 'transactionManagement'
               },
+              {
+                text: '数据访问对象',
+                link: 'Dao'
+              },
             ]
           },
           // 接口层
