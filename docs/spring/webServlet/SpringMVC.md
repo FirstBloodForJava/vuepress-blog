@@ -1372,6 +1372,7 @@ public class UserController extends AbstractController {
        // ...
        return account;
    }
+   
    ~~~
 
 
@@ -2322,3 +2323,1378 @@ Filter 和 Servlet 声明有一个`asyncSupported`标志，需要将其设置为
 
 
 还可以在`DeferredResult`、`ResponseBodyEmitter`和`SseEmitter`上设置默认超时值。对于`Callable`，可以使用`WebAsyncTask`提供超时值。
+
+
+
+## 7.CORS
+
+CORS(Cross-Origin Resource Sharing)跨域资源访问。
+
+出于安全，浏览器禁止AJAX调用当前域之外的资源。CORS是一种W3C规范，允许指定的跨域请求访问。而不是通过基于IFRAME或JSONP。
+
+CORS工作原理介绍：https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+
+浏览器在发送请求之前，会将当前域放在Origin请求头中。SpringMVC通过HandlerMapping实现对CORS的内置支持。通过配置确认哪些请求支持跨域，哪些域被允许等。
+
+支持跨域功能的相关类：
+
+1. CorsConfiguration
+2. CorsProcessor、CorsProcessor
+3. AbstractHandlerMapping
+
+
+
+### @CrossOrigin
+
+@CrossOrigin注解支持在controllerr的方法上使用，表示该请求支持跨域：
+
+~~~java
+@RestController
+@RequestMapping("/account")
+public class AccountController {
+
+    // 
+    @CrossOrigin
+    @GetMapping("/{id}")
+    public Account retrieve(@PathVariable Long id) {
+        
+    }
+
+    @DeleteMapping("/{id}")
+    public void remove(@PathVariable Long id) {
+        
+    }
+}
+
+~~~
+
+默认配置：
+
+1. 支持所有的域跨域；
+2. All headers；
+3. 所有的请求方式都支持。
+
+
+
+`allowedCredentials` 默认不启用，因为它建立了一个信任级别，该信任级别公开了敏感的用户特定信息（例如 cookie 和 CSRF 令牌），并且只应在适当的情况下使用。
+
+
+
+@CrossOrigin注解可以在类上使用，表示该controller的所有方法都继承该配置：
+
+~~~java
+// maxAge 表示跨域预检响应保存的有效时间,单位秒
+@CrossOrigin(origins = "https://domain2.com", maxAge = 3600)
+@RestController
+@RequestMapping("/account")
+public class AccountController {
+
+    @GetMapping("/{id}")
+    public Account retrieve(@PathVariable Long id) {
+        
+    }
+
+    @DeleteMapping("/{id}")
+    public void remove(@PathVariable Long id) {
+        
+    }
+}
+
+~~~
+
+
+
+### 全局配置
+
+可以通过CorsConfiguration设置基于URL的全局配置。默认全局配置开启功能：
+
+1. 所有的域允许跨域；
+2. All headers；
+3. GET、HEAD、POST请求方式；
+
+
+
+#### Java配置CORS
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+
+        registry.addMapping("/api/**")
+            .allowedOrigins("https://domain2.com")
+            .allowedMethods("PUT", "DELETE")
+            .allowedHeaders("header1", "header2", "header3")
+            .exposedHeaders("header1", "header2")
+            .allowCredentials(true).maxAge(3600);
+
+        // Add more mappings...
+    }
+}
+
+~~~
+
+
+
+#### XML配置CORS
+
+**需要启动CORS命名空间。**
+
+~~~xml
+<mvc:cors>
+
+    <mvc:mapping path="/api/**"
+        allowed-origins="https://domain1.com, https://domain2.com"
+        allowed-methods="GET, PUT"
+        allowed-headers="header1, header2, header3"
+        exposed-headers="header1, header2" allow-credentials="true"
+        max-age="123" />
+
+    <mvc:mapping path="/resources/**"
+        allowed-origins="https://domain1.com" />
+
+</mvc:cors>
+
+~~~
+
+
+
+### CORS Filter
+
+可以通过CORS过滤器配置跨域支持。
+
+~~~java
+// 跨域的相关配置
+CorsConfiguration config = new CorsConfiguration();
+config.setAllowCredentials(true);
+config.addAllowedOrigin("https://domain1.com");
+config.addAllowedHeader("*");
+config.addAllowedMethod("*");
+
+UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+// url注册允许的跨域配置
+source.registerCorsConfiguration("/**", config);
+
+CorsFilter filter = new CorsFilter(source);
+
+~~~
+
+
+
+## 8.WebSecurity
+
+
+
+## 9.Http缓存
+
+HTTP 缓存可以显著提高 Web 应用程序的性能。HTTP 缓存围绕`Cache-Control`响应标头和随后的条件请求标头（例如`Last-Modified`和`ETag`）展开。`Cache-Control`建议私有（例如浏览器）和公共（例如代理）缓存如何缓存和重用响应。`ETag`标头用于发出条件请求，如果内容未更改，则可能导致没有正文的 304 （`NOT_MODIFIED`）。`ETag`可以看作是`Last-Modified`标头的更复杂的继承者。
+
+
+
+### CacheControl
+
+`CacheControl`支持配置与`Cache-Control`请求头相关的设置，并在许多地方被接受为参数：
+
+1. WebContentInterceptor
+2. WebContentGenerator
+3. Controllers：
+4. Static Resources：
+
+Cache-control相关请求头：
+
+~~~java
+// 缓存1个小时 - "Cache-Control: max-age=3600"
+CacheControl ccCacheOneHour = CacheControl.maxAge(1, TimeUnit.HOURS);
+
+// 阻止缓存 - "Cache-Control: no-store"
+CacheControl ccNoStore = CacheControl.noStore();
+
+// 公共和私有缓存保存10天
+// 公共缓存不应该改变响应
+// "Cache-Control: max-age=864000, public, no-transform"
+CacheControl ccCustom = CacheControl.maxAge(10, TimeUnit.DAYS).noTransform().cachePublic();
+
+~~~
+
+
+
+### Controllers
+
+controller可以添加对HTTP缓存的显式支持。因为需要先计算资源的`lastModified`或`ETag`值才能和请求头比较，也可以像下面一样，将`ETag`响应头和Cache-Control直接添加到响应中。
+
+~~~java
+@GetMapping("/book/{id}")
+public ResponseEntity<Book> showBook(@PathVariable Long id) {
+
+    Book book = findBook(id);
+    String version = book.getVersion();
+
+    return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS))
+            .eTag(version) // lastModified is also available
+            .body(book);
+}
+
+~~~
+
+如果`ETag`和请求头的相比没有变化，则返回一个304(NOT_MODIFIED)的响应，没有响应体。否则， 将`ETag`和`Cache-Control`响应头已添加到响应中。
+
+也可以在controller方法中进行计算
+
+~~~java
+@RequestMapping
+public String myHandleMethod(WebRequest webRequest, Model model) {
+
+    // 应用程序计算 long eTag    
+
+    // 响应内容没有变化,则返回空
+    if (request.checkNotModified(eTag)) {
+        return null; 
+    }
+
+    // 没有缓存,继续处理请求
+    model.addAttribute(...); 
+    return "myViewName";
+}
+
+~~~
+
+有三种方式比较方式：比较eTag、lastModified、eTag和lastModified对于条件 GET 和 HEAD 请求，您可以将响应设置为 304 （NOT_MODIFIED）。对于条件 POST、PUT 和 DELETE，您可以改为将响应设置为 412 （PRECONDITION_FAILED），以防止并发修改。
+
+
+
+### Static Resources
+
+
+
+### ETag Filter
+
+使用`ShallowEtagHeaderFilter`过滤器，会节省带宽，但是不会节省CPU。
+
+
+
+## 10.视图
+
+
+
+### Thymeleaf
+
+Thymeleaf官网介绍：https://www.thymeleaf.org/
+
+Thymelead和Spring整合介绍：https://www.thymeleaf.org/documentation.html
+
+相关Bean：`ServletContextTemplateResolver`、`SpringTemplateEngine`、`ThymeleafViewResolver`
+
+
+
+### FreeMarker
+
+Apache FreeMarker官网介绍：https://freemarker.apache.org/
+
+Apache FreeMarker是一个模板引擎，用于生成从HTML到电子邮件和其他任何类型的文本输出。
+
+
+
+#### View Configuration
+
+**Java配置：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.freeMarker();
+    }
+
+    // 配置 FreeMarker
+    @Bean
+    public FreeMarkerConfigurer freeMarkerConfigurer() {
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setTemplateLoaderPath("/WEB-INF/freemarker");
+        return configurer;
+    }
+}
+
+~~~
+
+**XML配置：**
+
+~~~xml
+<mvc:annotation-driven/>
+
+<mvc:view-resolvers>
+    <mvc:freemarker/>
+</mvc:view-resolvers>
+
+<!-- 配置 FreeMarker... -->
+<mvc:freemarker-configurer>
+    <mvc:template-loader-path location="/WEB-INF/freemarker"/>
+</mvc:freemarker-configurer>
+
+<!-- 配置等价上面 -->
+<bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <property name="templateLoaderPath" value="/WEB-INF/freemarker/"/>
+</bean>
+
+~~~
+
+**模板需要存储在FreeMarkerConfigurer指定的目录中，例如前面的配置会查找/WEB-INF/freemarker/welcome.ftl模板。**
+
+
+
+#### FreeMarker Configuration
+
+配置FreeMarkerConfigurer的freemarkerVariables属性。
+
+~~~xml
+<bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <property name="templateLoaderPath" value="/WEB-INF/freemarker/"/>
+    <property name="freemarkerVariables">
+        <map>
+            <entry key="xml_escape" value-ref="fmXmlEscape"/>
+        </map>
+    </property>
+</bean>
+
+<bean id="fmXmlEscape" class="freemarker.template.utility.XmlEscape"/>
+
+~~~
+
+
+
+#### Form Handling
+
+Spring提供了一个在jsp中使用的标记库，其中包含\<Spring:bind/\>元素。这个元素主要让表单显示来自表单支持对象的值，并显示来自web层或业务层的Validator的验证失败的结果。Spring还支持FreeMarker中的相同功能，并提供了用于生成表单输入元素的额外便利宏。
+
+
+
+### Groovy Markup
+
+Groovy Markup模板引擎主要用于生成类XML标记（XML、XHTML、HTML5等），但是您可以使用它生成任何基于文本的内容。Spring框架为使用Spring MVC和Groovy Markup提供了内置集成。
+
+Froovy Markup官网：http://groovy-lang.org/templating.html#_the_markuptemplateengine
+
+
+
+#### Configuration
+
+**Java配置：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.groovy();
+    }
+
+    // 配置 Groovy Markup Template Engine
+
+    @Bean
+    public GroovyMarkupConfigurer groovyMarkupConfigurer() {
+        GroovyMarkupConfigurer configurer = new GroovyMarkupConfigurer();
+        configurer.setResourceLoaderPath("/WEB-INF/");
+        return configurer;
+    }
+}
+
+~~~
+
+**XML配置：**
+
+~~~xml
+<mvc:annotation-driven/>
+
+<mvc:view-resolvers>
+    <mvc:groovy/>
+</mvc:view-resolvers>
+
+<!-- Configure the Groovy Markup Template Engine... -->
+<mvc:groovy-configurer resource-loader-path="/WEB-INF/"/>
+
+~~~
+
+
+
+#### Example
+
+与传统的模板引擎不同，Groovy Markup依赖于使用构建器语法的DSL。
+
+~~~groovy
+yieldUnescaped '<!DOCTYPE html>'
+html(lang:'en') {
+    head {
+        meta('http-equiv':'"Content-Type" content="text/html; charset=utf-8"')
+        title('My page')
+    }
+    body {
+        p('This is an example of HTML contents')
+    }
+}
+
+~~~
+
+
+
+### Script视图
+
+Spring框架有一个内置的集成，可以将Spring MVC与任何可以运行在JSR-223 Java脚本引擎之上的模板库一起使用。我们已经在不同的脚本引擎上测试了以下模板库：
+
+| 脚本库                                                       | 脚本引擎                                              |
+| ------------------------------------------------------------ | :---------------------------------------------------- |
+| [Handlebars](https://handlebarsjs.com/)                      | [Nashorn](https://openjdk.java.net/projects/nashorn/) |
+| [Mustache](https://mustache.github.io/)                      | [Nashorn](https://openjdk.java.net/projects/nashorn/) |
+| [React](https://facebook.github.io/react/)                   | [Nashorn](https://openjdk.java.net/projects/nashorn/) |
+| [EJS](https://www.embeddedjs.com/)                           | [Nashorn](https://openjdk.java.net/projects/nashorn/) |
+| [ERB](https://www.stuartellis.name/articles/erb/)            | [JRuby](https://www.jruby.org/)                       |
+| [String templates](https://docs.python.org/2/library/string.html#template-strings) | [Jython](https://www.jython.org/)                     |
+| [Kotlin Script templating](https://github.com/sdeleuze/kotlin-script-templating) | [Kotlin](https://kotlinlang.org/)                     |
+
+集成任何其他脚本引擎的基本规则是，它必须实现`ScriptEngine`和`Invocable`接口。
+
+**需要在 Classpath 上具有脚本引擎，其详细信息因脚本引擎而异：**
+
+1. java8 +提供了Nashorn JavaScript引擎。强烈建议使用可用的最新更新版本。
+2. JRuby应该作为Ruby支持的依赖项添加。
+3. 应该将Jython作为Python支持的依赖项添加。
+4. `org.jetbrains.kotlin:kotlin-script-util` dependency and a `META-INF/services/javax.script.ScriptEngineFactory` file containing a `org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory` line should be added for Kotlin script support. See [this example](https://github.com/sdeleuze/kotlin-script-templating) for more details.
+
+
+
+#### Example
+
+**Java配置：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.scriptTemplate();
+    }
+
+    @Bean
+    public ScriptTemplateConfigurer configurer() {
+        ScriptTemplateConfigurer configurer = new ScriptTemplateConfigurer();
+        configurer.setEngineName("nashorn");
+        configurer.setScripts("mustache.js");
+        configurer.setRenderObject("Mustache");
+        configurer.setRenderFunction("render");
+        return configurer;
+    }
+}
+
+~~~
+
+**XML配置：**
+
+~~~xml
+<mvc:annotation-driven/>
+
+<mvc:view-resolvers>
+    <mvc:script-template/>
+</mvc:view-resolvers>
+
+<mvc:script-template-configurer engine-name="nashorn" render-object="Mustache" render-function="render">
+    <mvc:script location="mustache.js"/>
+</mvc:script-template-configurer>
+
+~~~
+
+**Controller：**
+
+~~~java
+@Controller
+public class SampleController {
+
+    @GetMapping("/sample")
+    public String test(Model model) {
+        model.addAttribute("title", "Sample title");
+        model.addAttribute("body", "Sample body");
+        return "template";
+    }
+}
+
+~~~
+
+**Mustache模板：**
+
+~~~html
+<html>
+    <head>
+        <title>{{title}}</title>
+    </head>
+    <body>
+        <p>{{body}}</p>
+    </body>
+</html>
+
+~~~
+
+
+
+### JSP和JSTL
+
+JSP开发，声明`InternalResourceViewResolver`和`ResourceBundleViewResolver`Bean。
+
+ResourceBundleViewResolver依赖于一个属性文件来定义映射到类和URL的视图名。使用ResourceBundleViewResolver，你可以只使用一个resolver来混合不同类型的视图，如下面的例子所示：
+
+~~~xml
+<!-- the ResourceBundleViewResolver -->
+<bean id="viewResolver" class="org.springframework.web.servlet.view.ResourceBundleViewResolver">
+    <property name="basename" value="views"/>
+</bean>
+
+# And a sample properties file is used (views.properties in WEB-INF/classes):
+welcome.(class)=org.springframework.web.servlet.view.JstlView
+welcome.url=/WEB-INF/jsp/welcome.jsp
+
+productList.(class)=org.springframework.web.servlet.view.JstlView
+productList.url=/WEB-INF/jsp/productlist.jsp
+
+~~~
+
+InternalResourceViewResolver也可以用于jsp。作为最佳实践，我们强烈建议将JSP文件放在“WEB-INF”目录下的目录中，这样客户端就无法直接访问。
+
+~~~xml
+<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+</bean>
+
+~~~
+
+
+
+### Tiles
+
+
+
+### RSS and Atom
+
+
+
+### PDF和Excel
+
+Spring 提供了返回 HTML 以外的输出的方法，包括 PDF 和 Excel 电子表格。
+
+为了使用Excel视图，需要添加Apache的POI库。PDF视图，需要使用OpenPDF库。
+
+
+
+#### PDF
+
+~~~java
+public class PdfWordList extends AbstractPdfView {
+
+    protected void buildPdfDocument(Map<String, Object> model, Document doc, PdfWriter writer,
+            HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        List<String> words = (List<String>) model.get("wordList");
+        for (String word : words) {
+            doc.add(new Paragraph(word));
+        }
+    }
+}
+
+~~~
+
+
+
+#### Excel
+
+从Spring Framework 4.2开始，org.springframework.web.servlet.view.document.AbstractXlsView作为Excel视图的基类提供。它基于Apache POI，具有专门的子类（`AbstractXlsxView`和`AbstractXlsxStreamingView`），取代了过时的AbstractExcelView类。
+
+
+
+编程模型类似于AbstractPdfView，使用buildExcelDocument()作为中心模板方法，控制器能够从外部定义（按名称）返回这样的视图，或者从处理程序方法返回视图实例。
+
+
+
+### Jackson
+
+`MappingJackson2JsonView`使用Jackson库的`ObjectMapper`将响应内容呈现为JSON。默认情况下，模型映射的全部内容（特定于框架的类除外）都被编码为JSON。对于需要过滤映射内容的情况，您可以使用`modelKeys`属性指定要编码的特定模型属性集。您还可以使用`extractValueFromSingleKeyModel`属性来直接提取和序列化单键模型中的值，而不是作为模型属性的映射。
+
+您可以根据需要使用Jackson提供的注释来定制JSON映射。当您需要进一步控制时，您可以通过ObjectMapper属性注入自定义ObjectMapper，用于需要为特定类型提供自定义JSON序列化器和反序列化器的情况。
+
+
+
+`MappingJackson2XmlView`使用Jackson XML扩展的`XmlMapper`将响应内容呈现为XML。如果模型包含多个条目，则应该使用`modelKey`bean属性显式地设置要序列化的对象。如果模型包含单个条目，它将自动序列化。
+
+您可以根据需要使用JAXB或Jackson提供的注释来定制XML映射。当需要进一步控制时，可以通过ObjectMapper属性注入自定义XmlMapper，用于需要为特定类型提供序列化器和反序列化器的自定义XML。
+
+
+
+### XML Marshalling
+
+`MarshallingView`使用XML Marshaller（在org.springframework.oxm包中定义）将响应内容呈现为XML。您可以使用MarshallingView实例的`modelKey` bean属性显式地设置要封送的对象。或者，视图遍历所有模型属性并封送出Marshaller支持的第一种类型。
+
+
+
+### XSLT Views
+
+`XSLT`是XML的一种转换语言，在web应用程序中作为一种视图技术很流行。如果您的应用程序自然地处理XML，或者您的模型可以很容易地转换为XML，那么XSLT作为视图技术可能是一个不错的选择。下个示例将展示如何生成XML文档作为模型数据，并在Spring Web MVC应用程序中使用XSLT对其进行转换。
+
+这个示例是一个简单的Spring应用程序，它在Controller中创建一个单词列表，并将它们添加到模型映射中。返回映射以及XSLT视图的视图名称。XSLT控制器将单词列表转换为准备进行转换的简单XML文档。
+
+**配置XsltViewResolverBean**
+
+~~~java
+@EnableWebMvc
+@ComponentScan
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Bean
+    public XsltViewResolver xsltViewResolver() {
+        XsltViewResolver viewResolver = new XsltViewResolver();
+        viewResolver.setPrefix("/WEB-INF/xsl/");
+        viewResolver.setSuffix(".xslt");
+        return viewResolver;
+    }
+}
+
+~~~
+
+**Controller：创建了一个DOM文档并将其添加到Model**
+
+~~~java
+@Controller
+public class XsltController {
+
+    @RequestMapping("/")
+    public String home(Model model) throws Exception {
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element root = document.createElement("wordList");
+
+        List<String> words = Arrays.asList("Hello", "Spring", "Framework");
+        for (String word : words) {
+            Element wordNode = document.createElement("word");
+            Text textNode = document.createTextNode(word);
+            wordNode.appendChild(textNode);
+            root.appendChild(wordNode);
+        }
+
+        model.addAttribute("wordList", root);
+        return "home";
+    }
+}
+
+~~~
+
+**home模板文件**
+
+~~~xml
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+    <xsl:output method="html" omit-xml-declaration="yes"/>
+
+    <xsl:template match="/">
+        <html>
+            <head><title>Hello!</title></head>
+            <body>
+                <h1>My First Words</h1>
+                <ul>
+                    <xsl:apply-templates/>
+                </ul>
+            </body>
+        </html>
+    </xsl:template>
+
+    <xsl:template match="word">
+        <li><xsl:value-of select="."/></li>
+    </xsl:template>
+
+</xsl:stylesheet>
+
+~~~
+
+XSLT模板文件位于 WEB-INF/xsl目录的war文件中，并以 xslt 文件扩展名结尾。
+
+
+
+最终结果：
+
+~~~html
+<html>
+    <head>
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Hello!</title>
+    </head>
+    <body>
+        <h1>My First Words</h1>
+        <ul>
+            <li>Hello</li>
+            <li>Spring</li>
+            <li>Framework</li>
+        </ul>
+    </body>
+</html>
+
+~~~
+
+
+
+## 11.MvcConfig
+
+### Enable MvcConfig
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig {
+}
+
+~~~
+
+
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven/>
+
+</beans>
+
+~~~
+
+启用这个配置，Spring就自动装配了MVC所需的基础Bean类型。
+
+
+
+### API Config
+
+**实现WebMvcConfigurer接口配置：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    // Implement configuration methods...
+}
+
+~~~
+
+
+
+SpringMVC XML协议：https://schema.spring.io/mvc/spring-mvc.xsd
+
+
+
+### TypeConversion
+
+默认情况下，会安装各种数字和日期类型的格式化程序，并支持通过`@NumberFormat`和`@DateTimeFormat`在属性上进行自定义。
+
+
+
+**自定义格式化和转换方式**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        // ...
+    }
+}
+
+~~~
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven conversion-service="conversionService"/>
+
+    <bean id="conversionService"
+            class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <bean class="org.example.MyConverter"/>
+            </set>
+        </property>
+        <property name="formatters">
+            <set>
+                <bean class="org.example.MyFormatter"/>
+                <bean class="org.example.MyAnnotationFormatterFactory"/>
+            </set>
+        </property>
+        <property name="formatterRegistrars">
+            <set>
+                <bean class="org.example.MyFormatterRegistrar"/>
+            </set>
+        </property>
+    </bean>
+
+</beans>
+
+~~~
+
+
+
+默认情况下，Spring MVC在解析和格式化日期值时考虑请求的`Locale`。这适用于将日期表示为带有“input”表单字段的字符串的表单。然而，对于“日期”和“时间”表单字段，浏览器使用HTML规范中定义的固定格式。对于这种情况，日期和时间格式可以自定义如下：
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setUseIsoFormat(true);
+        registrar.registerFormatters(registry);
+    }
+}
+
+~~~
+
+
+
+### Validation
+
+默认情况下，如果`Bean Validation`存在于`classpath`上（例如，`Hibernate Validator`）， 则 `LocalValidatorFactoryBean`将注册为全局校验器 ，以便与`@Valid`一起使用。 在控制器方法参数上校验 。
+
+**自定义全局Validator方式：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public Validator getValidator() {
+        // 
+    }
+}
+
+~~~
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven validator="globalValidator"/>
+
+</beans>
+
+~~~
+
+
+
+**controller单独注册Validator：**
+
+~~~java
+@Controller
+public class MyController {
+
+    @InitBinder
+    protected void initBinder(WebDataBinder binder) {
+        binder.addValidators(new FooValidator());
+    }
+}
+
+~~~
+
+**如果需要在某处注入`LocalValidatorFactoryBean`，创建一个 bean并用`@Primary`标记它，以避免与 MVC 配置中声明的 bean 发生冲突。**
+
+
+
+### Interceptors
+
+**注册拦截器：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LocaleChangeInterceptor());
+        registry.addInterceptor(new ThemeChangeInterceptor()).addPathPatterns("/**").excludePathPatterns("/admin/**");
+        registry.addInterceptor(new SecurityInterceptor()).addPathPatterns("/secure/*");
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:interceptors>
+    <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"/>
+    <mvc:interceptor>
+        <mvc:mapping path="/**"/>
+        <mvc:exclude-mapping path="/admin/**"/>
+        <bean class="org.springframework.web.servlet.theme.ThemeChangeInterceptor"/>
+    </mvc:interceptor>
+    <mvc:interceptor>
+        <mvc:mapping path="/secure/*"/>
+        <bean class="org.example.SecurityInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+
+~~~
+
+
+
+### Content Types
+
+可以配置SpringMVC如何确认请求的媒体类型，例如，从Accept请求头、URL扩展路径、查询参数等。
+
+默认情况下，首先检查URL路径扩展—将`json、xml、rss和atom`注册为已知扩展（取决于类路径依赖项）。然后检查`Accept`请求头。
+
+如果需要使用基于URL的路径解析，参考前面提到的`后缀匹配`和`后缀匹配RFD`
+
+
+
+**下面的配置是设置路径匹配策略：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.mediaType("json", MediaType.APPLICATION_JSON);
+        configurer.mediaType("xml", MediaType.APPLICATION_XML);
+    }
+}
+
+~~~
+
+~~~java
+<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager"/>
+
+<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+    <property name="mediaTypes">
+        <value>
+            json=application/json
+            xml=application/xml
+        </value>
+    </property>
+</bean>
+
+~~~
+
+
+
+### Message Converters
+
+两种方式覆盖默认的HttpMessageConverter：
+
+1. 实现WebMvcConfigurer.configureMessageConverters(..)方法；
+2. 实现WebMvcConfigurer.extendMessageConverters(..)方法；
+
+
+
+**替换默认的转换方式：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfiguration implements WebMvcConfigurer {
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // 指定时间转换格式
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
+                .indentOutput(true)
+                .dateFormat(new SimpleDateFormat("yyyy-MM-dd"))
+                .modulesToInstall(new ParameterNamesModule());
+        // DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES 默认关闭
+        // MapperFeature.DEFAULT_VIEW_INCLUSION 默认关闭
+        converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
+        converters.add(new MappingJackson2XmlHttpMessageConverter(builder.createXmlMapper(true).build()));
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:annotation-driven>
+    <mvc:message-converters>
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <property name="objectMapper" ref="objectMapper"/>
+        </bean>
+        <bean class="org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter">
+            <property name="objectMapper" ref="xmlMapper"/>
+        </bean>
+    </mvc:message-converters>
+</mvc:annotation-driven>
+
+<bean id="objectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean"
+      p:indentOutput="true"
+      p:simpleDateFormat="yyyy-MM-dd"
+      p:modulesToInstall="com.fasterxml.jackson.module.paramnames.ParameterNamesModule"/>
+
+<bean id="xmlMapper" parent="objectMapper" p:createXmlMapper="true"/>
+
+~~~
+
+
+
+classpath检测到以下依赖，自动注册：
+
+| 模块名                     | 地址                                                    | 作用                                              |
+| -------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
+| jackson-datatype-joda      | https://github.com/FasterXML/jackson-datatype-joda      | 支持Joda-Time类型                                 |
+| jackson-datatype-jsr310    | https://github.com/FasterXML/jackson-datatype-jsr310    | 支持Java8的Date和Time API                         |
+| jackson-datatype-jdk8      | https://github.com/FasterXML/jackson-datatype-jdk8      | 支持Java8的Optional                               |
+| jackson-module-kotlin      | https://github.com/FasterXML/jackson-module-kotlin      | 支持Kotlin类和数据类                              |
+| jackson-datatype-money     | https://github.com/zalando/jackson-datatype-money       | 支持javax.money类型(非官方)                       |
+| jackson-datatype-hibernate | https://github.com/FasterXML/jackson-datatype-hibernate | 支持Hibernate特定的类型和属性（包括延迟加载方面） |
+
+
+
+### View Controllers
+
+这是定义`ParameterizableViewController`的快捷方式，该控制器在调用时会立即转发到视图。您可以在静态情况下使用它，即在视图生成响应之前没有要执行的 Java 控制器逻辑。
+
+**将/请求转发到home视图：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/").setViewName("home");
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:view-controller path="/" view-name="home"/>
+
+~~~
+
+如果@RequestMapping方法被映射到任何HTTP方法的URL，那么视图控制器就不能用来处理相同的URL。这是因为URL与带注释的控制器的匹配被认为是端点所有权的足够强的指示，因此可以向客户端发送405 （METHOD_NOT_ALLOWED请求方式不允许）、415 （UNSUPPORTED_MEDIA_TYPE不支持的媒体类型）或类似的响应。
+
+
+
+### View Resolvers
+
+**配置示例通过使用JSP和Jackson作为JSON渲染的默认View ：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.enableContentNegotiation(new MappingJackson2JsonView());
+        registry.jsp();
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:view-resolvers>
+    <mvc:content-negotiation>
+        <mvc:default-views>
+            <bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+        </mvc:default-views>
+    </mvc:content-negotiation>
+    <mvc:jsp/>
+</mvc:view-resolvers>
+
+~~~
+
+
+
+### Static Resources
+
+在下一个示例中，给定一个以/resources开头的请求，相对路径用于查找和提供相对于web应用程序根目录下的`/public`或`/static`下的类路径上的静态资源。这些资源的有效期为一年，以确保最大限度地利用浏览器缓存并减少浏览器发出的HTTP请求。Last-Modified标头也会被求值，如果存在，则返回304状态码。
+
+
+
+**配置静态资源映射：**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**")
+            .addResourceLocations("/public", "classpath:/static/")
+            .setCachePeriod(31556926);
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:resources mapping="/resources/**"
+    location="/public, classpath:/static/"
+    cache-period="31556926" />
+
+~~~
+
+
+
+**配置VersionResourceResolver，缓存用**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("/public/")
+                .resourceChain(true)
+                .addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:resources mapping="/resources/**" location="/public/">
+    <mvc:resource-chain resource-cache="true">
+        <mvc:resolvers>
+            <mvc:version-resolver>
+                <mvc:content-version-strategy patterns="/**"/>
+            </mvc:version-resolver>
+        </mvc:resolvers>
+    </mvc:resource-chain>
+</mvc:resources>
+
+~~~
+
+
+
+### Default Servlet
+
+Spring MVC允许将`DispatcherServlet`映射到/（从而覆盖容器默认Servlet的映射），同时仍然允许静态资源请求由容器的默认Servlet处理。它配置了一个`DefaultServletHttpRequestHandler`，其URL映射为/**，相对于其他URL映射具有最低的优先级。
+
+此处理程序将所有请求转发给默认`Servlet`。因此，它必须保持在所有其他URL`HandlerMappings`的最后一个顺序。如果使用\<mvc:annotation-driven>，如果设置了自定义`HandlerMapping`实例，请确保将其order属性设置为低于`DefaultServletHttpRequestHandler`的值，即`Integer.MAX_VALUE`。
+
+
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:default-servlet-handler/>
+
+~~~
+
+
+
+覆盖`/`Servlet映射的注意事项是，默认Servlet的`RequestDispatcher`必须按名称而不是按路径检索。`DefaultServletHttpRequestHandler`尝试在启动时自动检测容器的默认Servlet，使用大多数主要Servlet容器（包括Tomcat、Jetty、GlassFish、JBoss、Resin、WebLogic和WebSphere）的已知名称列表。如果默认Servlet已经使用不同的名称自定义配置，或者如果使用不同的Servlet容器而默认Servlet名称未知，则必须显式提供默认Servlet的名称，如下例所示：
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable("myCustomDefaultServlet");
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:default-servlet-handler default-servlet-name="myCustomDefaultServlet"/>
+
+~~~
+
+
+
+### Path Matching
+
+**PathMatchConfigurer自定义路径和URL处理**
+
+~~~java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer
+            .setUseTrailingSlashMatch(false)
+            .setUseRegisteredSuffixPatternMatch(true)
+            .setPathMatcher(antPathMatcher())
+            .setUrlPathHelper(urlPathHelper())
+            .addPathPrefix("/api", HandlerTypePredicate.forAnnotation(RestController.class));
+    }
+
+    @Bean
+    public UrlPathHelper urlPathHelper() {
+        //...
+    }
+
+    @Bean
+    public PathMatcher antPathMatcher() {
+        //...
+    }
+}
+
+~~~
+
+~~~xml
+<mvc:annotation-driven>
+    <mvc:path-matching
+        trailing-slash="false"
+        registered-suffixes-only="true"
+        path-helper="pathHelper"
+        path-matcher="pathMatcher"/>
+</mvc:annotation-driven>
+
+<bean id="pathHelper" class="org.example.app.MyPathHelper"/>
+<bean id="pathMatcher" class="org.example.app.MyPathMatcher"/>
+
+~~~
+
+
+
+### Advanced Java Config
+
+`@EnableWebMvc`导入DelegatingWebMvcConfiguration，SpringBoot通过自动导入`WebMvcEndpointChildContextConfiguration`使用`@EnableWebMvc`注解，作用：
+
+1. 为SpringMVC应用程序提供默认Spring配置；
+2. 检测并委托WebMvcConfigurer实现来定制该配置。
+
+
+
+**删除@EnableWebMvc注解，继承DelegatingWebMvcConfiguration自定义配置：**
+
+~~~java
+@Configuration
+public class WebConfig extends DelegatingWebMvcConfiguration {
+
+}
+
+~~~
+
+
+
+### Advanced XML Config
+
+MVC 命名空间没有高级模式。如果你需要在 Bean 上自定义一个属性，否则你无法更改该属性，你可以使用 Spring `ApplicationContext`的`BeanPostProcessor`生命周期钩子，如下例所示：
+
+~~~java
+@Component
+public class MyPostProcessor implements BeanPostProcessor {
+
+    public Object postProcessBeforeInitialization(Object bean, String name) throws BeansException {
+        // ...
+    }
+}
+
+~~~
+
+要将`MyPostProcessor`声明为Bean，要么在XML中显式声明，要么通过\<component-scan/\> 声明来检测它。
+
+
+
+
+
+## 12.HTTP/2
+
+需要 Servlet 4 容器来支持 HTTP/2。
+
+https://github.com/spring-projects/spring-framework/wiki/HTTP-2-support
+
+
+
+## RestClient
+
+
+
+### RestTemplate
+
+`RestTemplate`是执行HTTP请求的同步客户端。它是原始的SpringREST客户端，并在HTTP客户端库上公开了一个简单的模板方法 API。
+
+从5.0开始，RestTemplate处于维护模式，以后只进行小的改动和修复Bug。
+
+
+
+### WebClient
+
+`WebClient`是一个非阻塞的反应式客户端，用于执行 HTTP 请求。5.0引入，用于替代RestTemplate。
+
+与RestTemplate相比，WebClient支持以下内容：
+
+1. 非阻塞的IO。
+2. Reactive Streams back pressure.
+3. 高并发和更少硬件资源(High concurrency with fewer hardware resources.)。
+4. 函数式接口。
+5. 同步和异步交互。
+6. Streaming up to or streaming down from a server.
+
+
+
+## 测试
+
+
+
+MVC测试：https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/testing.html#spring-mvc-test-framework
+
+
+
+## 其它Web框架
+
+1. JSF：https://www.oracle.com/technetwork/java/javaee/javaserverfaces-139869.html
+2. Struts：https://struts.apache.org/
+3. Tapestry：https://tapestry.apache.org/
