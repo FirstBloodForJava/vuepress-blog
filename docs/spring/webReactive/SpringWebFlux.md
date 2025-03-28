@@ -123,9 +123,163 @@ Spring MVC和Spring WebFlux都支持带注释的控制器，但是在并发模�
 - Reactor和RxJava提供了线程池抽象（称为调度器），与用于将处理切换到不同线程池的publishOn操作符一起使用。调度器的名称暗示了特定的并发策略—例如，“并行parallel”（用于线程数量有限的cpu绑定工作）或“弹性elastic”（用于线程数量大量的I/O绑定工作）。如果看到这样的线程，则意味着某些代码正在使用特定的线程池Scheduler策略。
 - 数据访问库和其他第三方依赖也可以创建和使用它们自己的线程。
 
-**Configuring：**Spring框架不支持启动和停止服务器。要为服务器配置线程模型，需要使用特定于服务器的配置API，或者，如果使用Spring Boot，请检查每个服务器的Spring Boot配置选项。您可以直接配置WebClient。
+**Configuring：**Spring框架不支持启动和停止服务器。要为服务器配置线程模型，需要使用特定于服务器的配置API，或者使用Spring Boot，请检查每个服务器的Spring Boot配置选项。您可以直接配置WebClient。
 
 
 
 ## 2.Reactive Core
 
+
+
+**HttpHandler**：HTTP请求处理的基本协议，包括非阻塞I/O和响应式流回压，以及反应器Netty、Undertow、Tomcat、Jetty和任何Servlet 3.1+容器的适配器。
+
+**WebHandler API**：用于请求处理的通用web API，在此基础上构建具体的编程模型，如带注释的控制器和功能端点。
+
+对于客户端，有一个基本的`ClientHttpConnector`契约，用于执行具有非阻塞I/O和响应式流回压的HTTP请求，以及用于Reactor Netty和响应式Jetty HttpClient的适配器。应用程序中使用的高级WebClient建立在这个基本契约之上。
+
+对于客户机和服务器，用于HTTP请求和响应内容的序列化和反序列化的编解码器(codecs)。
+
+
+
+### HttpHandler
+
+HttpHandler是一个简单的抽象，用一个方法来处理请求和响应。它是有意最小化的，其主要和唯一的目的是对不同的HTTP服务器API进行最小的抽象。
+
+| Server name      | Server API                                                   | Reactive支持                                                 |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Netty            | Netty API                                                    | [Reactor Netty](https://github.com/reactor/reactor-netty)    |
+| Undertow         | Undertow API                                                 | spring-web: Undertow to Reactive Streams bridge              |
+| Tomcat           | 非阻塞的Servlet 3.1; Tomcat API to read and write ByteBuffers vs byte[] | spring-web: Servlet 3.1 non-blocking I/O to Reactive Streams bridge |
+| Jetty            | 非阻塞的Servlet 3.1; Jetty API to write ByteBuffers vs byte[] | spring-web: Servlet 3.1 non-blocking I/O to Reactive Streams bridge |
+| Servlet 3.1 容器 | 非阻塞的Servlet 3.1                                          | spring-web: Servlet 3.1 non-blocking I/O to Reactive Streams bridge |
+
+Server的依赖：
+
+| Server name   | Group id                | Artifact name               |
+| ------------- | ----------------------- | --------------------------- |
+| Reactor Netty | io.projectreactor.netty | reactor-netty               |
+| Undertow      | io.undertow             | undertow-core               |
+| Tomcat        | org.apache.tomcat.embed | tomcat-embed-core           |
+| Jetty         | org.eclipse.jetty       | jetty-server, jetty-servlet |
+
+HttpHandler适配器和Server API的代码示例：
+
+::: tabs
+
+@tab Reactor Netty
+
+~~~java
+HttpHandler handler = ...
+ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(handler);
+HttpServer.create().host(host).port(port).handle(adapter).bind().block();
+
+~~~
+
+@tab Undertow
+
+~~~java
+HttpHandler handler = ...
+UndertowHttpHandlerAdapter adapter = new UndertowHttpHandlerAdapter(handler);
+Undertow server = Undertow.builder().addHttpListener(port, host).setHandler(adapter).build();
+server.start();
+
+~~~
+
+@tab Tomcat
+
+~~~java
+HttpHandler handler = ...
+Servlet servlet = new TomcatHttpHandlerAdapter(handler);
+
+Tomcat server = new Tomcat();
+File base = new File(System.getProperty("java.io.tmpdir"));
+Context rootContext = server.addContext("", base.getAbsolutePath());
+Tomcat.addServlet(rootContext, "main", servlet);
+rootContext.addServletMappingDecoded("/", "main");
+server.setHost(host);
+server.setPort(port);
+server.start();
+
+~~~
+
+@tab Jetty
+
+~~~java
+HttpHandler handler = ...
+Servlet servlet = new JettyHttpHandlerAdapter(handler);
+
+Server server = new Server();
+ServletContextHandler contextHandler = new ServletContextHandler(server, "");
+contextHandler.addServlet(new ServletHolder(servlet), "/");
+contextHandler.start();
+
+ServerConnector connector = new ServerConnector(server);
+connector.setHost(host);
+connector.setPort(port);
+server.addConnector(connector);
+server.start();
+
+~~~
+
+@tab Servlet 3.1+容器
+
+作为war包部署到Servlet3.1+容器，在WAR中扩展和包含AbstractReactiveWebInitializer。这个类用ServletHttpHandlerAdapter包装了一个HttpHandler，并将其注册为Servlet。
+
+:::
+
+
+
+### WebHandler API
+
+`org.springframework.web.server`包建立在`HttpHandler`抽象之上，提供一个通用的web API，通过多个`WebExceptionHandler`、多个`WebFilter`和一个`WebHandler`组件组成的链来处理请求。这个链可以通过`WebHttpHandlerBuilder`简单地指向一个自动检测组件的Spring`ApplicationContext`，通过向构建器注册组件来组合在一起。
+
+WebHandler API旨在提供更广泛的web应用程序中常用的功能集：
+
+- 具有属性的用户Session。
+- 请求属性。
+- 解析请求的`Locale`或`Principal`。
+- 访问已解析和缓存的表单数据。
+- multipart data(二进制)数据。
+- 等
+
+`WebHttpHandlerBuilder`可以在Spring`ApplicationContext`中自动检测的组件：
+
+| Bean名称                   | Bean类型                   | 数量 | 作用                                                         |
+| -------------------------- | -------------------------- | ---- | ------------------------------------------------------------ |
+| 任何                       | WebExceptionHandler        | 0-N  | 为来自WebFilter链和目标WebHandler异常提供处理                |
+| 任何                       | WebFilter                  | 0-N  | 对目标WebHandler应用拦截                                     |
+| webHandler                 | WebHandler                 | 1    | 处理请求                                                     |
+| webSessionManager          | WebSessionManager          | 0-1  | 通过ServerWebExchange上的方法公开的WebSession实例的管理器。默认DefaultWebSessionManager |
+| serverCodecConfigurer      | ServerCodecConfigurer      | 0-1  | 为了访问HttpMessageReader实例，以解析表单数据和多部分数据，然后通过ServerWebExchange上的方法公开。默认为ServerCodecConfigurer.create()。 |
+| localeContextResolver      | LocaleContextResolver      | 0-1  | 通过ServerWebExchange上的一个方法公开LocaleContext的解析器。默认AcceptHeaderLocaleContextResolver。 |
+| forwardedHeaderTransformer | ForwardedHeaderTransformer | 0-1  | 用于处理转发的类型标头，要么提取并删除它们，要么仅删除它们。默认情况下不使用 |
+
+
+
+::: tabs
+
+@tab Form Data
+
+~~~java
+// ServerWebExchange 提供获取表单数据的方法
+Mono<MultiValueMap<String, String>> getFormData();
+
+~~~
+
+`DefaultServerWebExchange`使用配置的`HttpMessageReader`将表单数据(`application/x-www-form-urlencoded`)解析为`MultiValueMap`。默认情况下，将`FormHttpMessageReader`配置为供`ServerCodecConfigurer`bean使用。
+
+@tab Multipart Data
+
+~~~java
+// ServerWebExchange 提供获取Multipart Data的方法
+Mono<MultiValueMap<String, Part>> getMultipartData();
+
+~~~
+
+`DefaultServerWebExchange`使用配置的HttpMessageReader\<MultiValueMap\<String, Part\>\>将`multipart/form-data`内容解析为`MultiValueMap`。目前，[Synchronoss NIO Multipart](https://github.com/synchronoss/nio-multipart)是唯一支持的第三方库，也是我们所知道的唯一能够对多部分请求进行非阻塞解析的库。它是通过`ServerCodecConfigurer` bean启用的。
+
+要以流方式解析多部分数据，你可以使用HttpMessageReader\<Part\>返回的Flux\<Part\>。例如，在带注释的控制器中，使用@RequestPart意味着通过名称对各个部分进行类似Map的访问，因此需要完整地解析多部分数据。相反，你可以使用@RequestBody将内容解码为Flux\<Part\>，而不需要收集到`MultiValueMap`。
+
+
+
+:::
