@@ -257,6 +257,10 @@ export default defineUserConfig({
               {
                 text: 'Spring AOP代理',
                 link: 'spring-core-AOP'
+              },
+              {
+                text: '数据缓冲区和编解码器',
+                link: 'DateBufferAndCodecs'
               }
             ]
           },
