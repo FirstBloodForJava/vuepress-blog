@@ -298,6 +298,10 @@ export default defineUserConfig({
                 {
                   text: 'SpringWebFlux',
                   link: 'SpringWebFlux',
+                },
+                {
+                  text: '响应式客户端',
+                  link: 'WebClient'
                 }
             ]
           }
