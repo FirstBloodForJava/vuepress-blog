@@ -283,3 +283,780 @@ Mono<MultiValueMap<String, Part>> getMultipartData();
 
 
 :::
+
+
+
+当请求通过代理（如负载平衡器）时，主机、端口和方案可能会发生变化。从客户机的角度来看，创建指向正确的主机、端口和模式的链接是一个挑战。
+
+[RFC7329](https://tools.ietf.org/html/rfc7239)定义了代理可以使用原始信息的Forwarded请求头，也有其它非标准头：X-Forwarded-Host、X-Forwarded-Port、X-Forwarded-Proto、X-Forwarded-Prefix、X-Forwarded-Ssl。
+
+`ForwardedHeaderTransformer`是一个组件，它根据转发的请求头修改请求的主机、端口和方案，然后删除这些报头。如果将其声明为名称为`forwardedHeaderTransformer`的bean，它将被检测并使用。
+
+对于转发的标头有一些安全方面的考虑，因为应用程序无法知道标头是由代理添加的，还是由恶意客户端添加的。这就是为什么应该将信任边界上的代理配置为删除来自外部的不受信任的转发流量。可以配置`ForwardedHeaderTransformer`的`removeOnly=true`，在这种情况下，它会删除但不使用标头。
+
+**在5.1中，`ForwardedHeaderFilter`已弃用，并被`ForwardedHeaderTransformer`所取代，因此可以在创建交换之前更早地处理转发的报头。如果无论如何都配置了过滤器，则将其从过滤器列表中取出，而使用ForwardedHeaderTransformer。**
+
+
+
+### Filters
+
+在`WebHandler API`中，可以使用`WebFilter`在过滤器和目标WebHandler处理链的其余部分之前和之后应用拦截式逻辑。当使用WebFlux配置时，注册WebFilter很简单，只需将其声明为Spring bean，并（可选地）通过在bean声明中使用`@Order`或实现`Ordered`来表示优先级。
+
+
+
+CORS过滤器与Spring Security一起使用时，必须在Spring Security的过滤器链之前生效。
+
+
+
+### Exceptions
+
+在WebHandler API中，可以使用`WebExceptionHandler`来处理来自WebFilter实例链和目标WebHandler的异常。当使用WebFlux配置时，注册一个WebExceptionHandler非常简单，只需将其声明为一个Spring bean，并（可选地）通过在bean声明中使用`@Order`或实现`Ordered`来表示优先级。
+
+
+
+| WebExceptionHandler                   | 作用                                                         |
+| ------------------------------------- | ------------------------------------------------------------ |
+| ResponseStatusExceptionHandler        | 通过设置对异常的HTTP状态码的响应，提供对ResponseStatusException类型异常的处理。 |
+| WebFluxResponseStatusExceptionHandler | ResponseStatusExceptionHandler的扩展，也可以确定任何异常上的@ResponseStatus注释的HTTP状态代码。 |
+
+
+
+### Codecs
+
+`spring-web`和`spring-core`模块支持通过无阻塞的I/O和响应式流回压(Reactive Streams back pressure.)，将字节内容序列化(serializing)和反序列化(deserializing)到更高级别的对象。下面描述了这种支持：
+
+- Encoder(org.springframework.core.codec)和Decoder是独立于HTTP对内容进行编码和解码的低级抽象。
+- HttpMessageReader和HttpMessageWriter是编码和解码HTTP消息内容的抽象。
+- Encoder可以用`EncoderHttpMessageWriter`包装以适应它在web应用程序中的使用，而Decoder可以用`DecoderHttpMessageReader`包装。
+- `DataBuffer`抽象了不同的字节缓冲区表示(例如Netty `ByteBuf`， `java.nio.ByteBuffer`等)，是所有编解码器的工作原理。
+
+https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#databuffers
+
+
+
+`spring-core`模块提供了`byte[]`、`ByteBuffer`、`DataBuffer`、`Resource`和`String`编码器和解码器实现。`spring-web`模块提供`Jackson JSON`、`Jackson Smile`、`JAXB2`、`Protocol Buffers`和其他编码器和解码器，以及用于表单数据、多部分内容、服务器发送事件等的web-only HTTP消息读取器和写入器实现。
+
+`ClientCodecConfigurer`和`ServerCodecConfigurer`通常用于配置和定制要在应用程序中使用的编解码器。
+
+
+
+
+
+::: tabs
+
+@tab Jackson JSON
+
+当Jackson库存在时，JSON和二进制JSON(Smile)都被支持。
+
+**Jackson2Decoder的工作原理如下：**
+
+- Jackson的异步、非阻塞解析器用于将字节块流聚合到`TokenBuffer`中，每个字节块表示一个JSON对象。
+
+- 每个`TokenBuffer`被传递给Jackson的`ObjectMapper`来创建一个更高级的对象。
+
+- 当解码到单值(single-value)发布者(例如Mono)时，有一个TokenBuffer。
+
+- 当解码到多值(multi-value)发布者(例如Flux)时，只要接收到足够的字节，每个TokenBuffer就会传递给`ObjectMapper`。输入内容可以是JSON数组，如果内容类型是application/stream+ JSON，也可以是[行分隔的JSON](https://en.wikipedia.org/wiki/JSON_streaming)。
+
+**Jackson2Encoder的工作原理如下：**
+
+- 对于单值发布者（例如Mono），只需通过ObjectMapper序列化它。
+
+- 对于使用application/json的多值(multi-value)发布者，默认情况下使用Flux.collectToList()收集值，然后序列化结果集合。
+
+- 对于具有流媒体类型(如`application/stream+json`或`application/stream+x-jackson-smile`)的多值发布者，使用行分隔的json格式分别对每个值进行编码、写入和刷新。
+
+- 对于SSE，每个事件调用`Jackson2Encoder`，并刷新输出以确保无延迟地交付。
+
+默认情况下，`Jackson2Encoder`和`Jackson2Decoder`都不支持String类型的元素。相反，默认假设是字符串或字符串序列表示序列化的JSON内容，由`CharSequenceEncoder`呈现。如果你需要从Flux\<String\>呈现一个JSON数组，使用Flux.collectToList()并编码一个Mono\<List\<String\>\>。
+
+
+
+@tab Form Data
+
+`FormHttpMessageReader`和`FormHttpMessageWriter`支持解码和编码`application/x-www-form-urlencoded`内容。
+
+在服务器端，表单内容经常需要从多个地方访问，`ServerWebExchange`提供了一个专用的`getFormData()`方法，该方法通过`FormHttpMessageReader`解析内容，然后缓存结果以供重复访问。
+
+一旦使用了`getFormData()`，就不能再从请求体中读取原始内容。出于这个原因，应用程序应该一致地通过`ServerWebExchange`访问缓存的表单数据，而不是从原始请求体中读取。
+
+
+
+@tab Multipart
+
+`MultipartHttpMessageReader`和`MultipartHttpMessageWriter`支持解码和编码`multipart/form-data`内容。反过来，`MultipartHttpMessageReader`将实际解析委托给另一个`HttpMessageReader`到Flux\<Part\>，然后简单地将这些部分收集到`MultiValueMap`中。目前实际的解析使用的是[Synchronoss NIO Multipart](https://github.com/synchronoss/nio-multipart)。
+
+在可能需要从多个地方访问多部分表单内容的服务器端，`ServerWebExchange`提供了一个专用的`getMultipartData()`方法，该方法通过`MultipartHttpMessageReader`解析内容，然后缓存结果以供重复访问。
+
+一旦使用了`getMultipartData()`，就不能再从请求体中读取原始内容。出于这个原因，应用程序必须始终如一地使用`getMultipartData()`来重复地、类似于映射的访问部件，或者依赖于`SynchronossPartHttpMessageReader`来一次性访问Flux\<Part\>。
+
+
+
+@tab Limits
+
+可以对缓冲部分或全部输入流的`Decoder`和`HttpMessageReader`实现进行配置，限制要在`内存中缓冲的最大字节数`。在某些情况下，发生缓冲是因为输入被聚合并表示为单个对象—例如，具有`@RequestBody`的控制器方法 `byte[]`、`x-www-form-urlencoded`数据等。在分割输入流，例如，分隔的文本、JSON对象流等时，流也可以发生缓冲。对于这些流情况，限制适用于流中与一个对象相关联的字节数。
+
+要配置缓冲区大小，您可以检查给定的`Decoder`或`HttpMessageReader`是否公开了`maxInMemorySize`属性，如果是，则Javadoc将具有有关默认值的详细信息。在服务器端，`ServerCodecConfigurer`提供了一个设置所有编解码器的地方，请参阅HTTP消息编解码器。在客户端，可以在`WebClient.Builder`中更改所有编解码器的限制。
+
+对于多部分解析，`maxInMemorySize`属性限制了非文件部分的大小。对于文件部分，它决定了该部分写入磁盘的阈值。对于写入磁盘的文件部分，有一个额外的`maxDiskUsagePerPart`属性来限制每个部分的磁盘空间量。还有一个`maxParts`属性用于限制多部件请求中的部件总数。要在WebFlux中配置这三个，需要向`ServerCodecConfigurer`提供一个预先配置好的`MultipartHttpMessageReader`实例。
+
+
+
+@tab Streaming
+
+当流式传输到HTTP响应时(例如，`text/event-stream`, `application/stream+json`)，定期发送数据是很重要的，以便可靠地检测断开连接的客户端，越早越好。这样的发送可以是一个注释，空SSE事件或任何其他“无操作”数据，可以有效地充当心跳。
+
+
+
+@tab DataBuffer
+
+`DataBuffer`是WebFlux中字节缓冲区的表示形式。要理解的关键点是，在一些服务器(如Netty)上，字节缓冲区是池化的，并对引用进行计数，并且必须在使用后释放，以避免内存泄漏。
+
+WebFlux应用程序通常不需要关心这些问题，除非它们直接使用或产生数据缓冲区，而不是依赖于编解码器来与更高级的对象进行转换，或者除非它们选择创建自定义编解码器。对于这种情况，请Spring-core数据缓冲区和编解码器中的信息，特别是关于使用数据缓冲区的部分。
+
+:::
+
+
+
+### Logging
+
+在Spring WebFlux中，`DEBUG`级别的日志被设计成紧凑、最小和可阅读的。它侧重于反复有用的高价值信息，而不是仅在调试特定问题时有用的其他信息。
+
+`TRACE`级别的日志记录通常遵循与`DEBUG`相同的原则，但可以用于调试任何问题。此外，一些日志消息可能在TRACE和DEBUG中显示不同级别的详细信息。
+
+良好的日志记录来自使用日志的经验。
+
+::: tabs
+
+
+
+@tab Log Id
+
+在WebFlux中，`单个请求`可以在`多个线程`中执行，线程ID对于关联属于特定请求的日志消息是没有用的。这就是为什么WebFlux日志消息在默认情况下会以特定于请求的ID作为前缀。
+
+在服务器端，日志ID存储在`ServerWebExchange`属性`LOG_ID_ATTRIBUTE`中，而基于该ID的完全格式化的前缀可以从`ServerWebExchange.getLogPrefix()`中获得。在`WebClient`端，日志ID存储在`ClientRequest`属性`LOG_ID_ATTRIBUTE`中，而一个完全格式化的前缀可以从`ClientRequest.logPrefix()`中获得。
+
+
+
+@tab Sensitive Data
+
+DEBUG和TRACE日志记录可以记录敏感信息。这就是为什么表单参数和头在默认情况下是屏蔽的，必须显式地完全启用它们的日志记录。
+
+**服务端如何配置记录详情：**
+
+~~~java
+@Configuration
+@EnableWebFlux
+class MyConfig implements WebFluxConfigurer {
+
+    @Override
+    public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
+        configurer.defaultCodecs().enableLoggingRequestDetails(true);
+    }
+}
+~~~
+
+**客户端如何配置记录详情：**
+
+
+~~~java
+Consumer<ClientCodecConfigurer> consumer = configurer ->
+        configurer.defaultCodecs().enableLoggingRequestDetails(true);
+
+WebClient webClient = WebClient.builder()
+        .exchangeStrategies(strategies -> strategies.codecs(consumer))
+        .build();
+
+~~~
+
+
+
+@tab Custom codecs
+
+应用程序可以注册自定义编解码器，以支持额外的媒体类型，或者默认编解码器不支持的特定行为。
+
+配置一些选项在默认编解码器上强制执行。自定义编解码器可能希望有机会与这些首选项保持一致，例如强制缓冲限制或记录敏感数据。
+
+~~~java
+WebClient webClient = WebClient.builder()
+        .codecs(configurer -> {
+                CustomDecoder decoder = new CustomDecoder();
+                configurer.customCodecs().registerWithDefaultConfig(decoder);
+        })
+        .build();
+
+~~~
+
+
+
+:::
+
+
+
+## 3.DispatcherHandler
+
+与Spring MVC类似，Spring WebFlux是围绕`前端控制器模式`设计的，其中中央`WebHandler` 、`DispatcherHandler`为请求处理提供共享算法，而实际工作则由可配置的委托组件执行。这个模型是灵活的，并且支持不同的工作流。
+
+`DispatcherHandler`从Spring配置中发现它需要的委托组件。它本身也被设计成一个Spring bean，并实现了`ApplicationContextAware`来访问它运行的上下文。如果`DispatcherHandler`是用`webHandler`的bean名称声明的，那么它又会被`WebHttpHandlerBuilder`发现，后者将请求处理链组合在一起，如WebHandler API中所述。
+
+WebFlux应用中的Spring配置通常包括：
+
+- bean名为`webHandler`的`DispatcherHandler`。
+
+- `WebFilter`和`WebExceptionHandler` bean
+
+- DispatcherHandler特殊bean
+
+- 其它配置
+
+WebHttpHandlerBuilder构建HttpHandler(可以和Server适配器一起使用)：
+
+~~~java
+ApplicationContext context = ...
+HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build();
+
+~~~
+
+
+
+### Special Bean Types
+
+`DispatcherHandler`委托特殊的bean处理请求并呈现适当的响应。所谓“特殊bean”，我们指的是实现WebFlux框架抽象的spring管理对象实例。框架通常带有内置默认抽象实现，但可以自定义它们的属性、扩展它们或替换它们。
+
+下表列出了DispatcherHandler检测到的特殊bean：
+
+| Bean类型             | 作用                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| HandlerMapping       | 将请求映射到处理程序。映射基于一些标准，其细节因HandlerMapping实现而异——带注释的controller、简单的URL模式映射等。<br/>HandlerMapping的主要实现是`RequestMappingHandlerMapping`，用于@RequestMapping注释方法，`RouterFunctionMapping`用于功能性端点路由，`SimpleUrlHandlerMapping`用于显式注册URI路径模式和WebHandler实例。 |
+| HandlerAdapter       | 帮助`DispatcherHandler`调用映射到请求的处理程序，而不管实际如何调用该处理程序。例如，调用带注释的controller需要解析注释。HandlerAdapter的主要目的是保护DispatcherHandler不受这些细节的影响。 |
+| HandlerResultHandler | 处理程序调用的结果并最终确定响应。                           |
+
+
+
+### Processing
+
+DispatcherHandler按以下方式处理请求：
+
+- 要求每个`HandlerMapping`找到一个匹配的处理程序，并使用第一个匹配。
+- 如果找到处理程序，则通过适当的`HandlerAdapter`执行该处理程序，该处理程序将执行的返回值作为`HandlerResult`公开。
+- `HandlerResult`被给定给一个适当的`HandlerResultHandler`，通过直接写入响应或使用视图来呈现来完成处理。
+
+
+
+### Result Handling
+
+通过`HandlerAdapter`调用处理程序的返回值被包装成`HandlerResult`以及一些额外的上下文，并传递给声明支持它的第一个`HandlerResultHandler`。下表显示了可用的`HandlerResultHandler`实现，它们都在WebFlux配置中声明：
+
+| HandlerResultHandler实现    | 处理之                                                       | 默认Order值       |
+| --------------------------- | ------------------------------------------------------------ | ----------------- |
+| ResponseEntityResultHandler | ResponseEntity，通常来自@Controller                          | 0                 |
+| ServerResponseResultHandler | ServerResponse，通常来自函数式端点                           | 0                 |
+| ResponseBodyResultHandler   | 处理来自@ResponseBody方法或@RestController类的返回值         | 100               |
+| ViewResolutionResultHandler | CharSequence、View、Model、Map、Rendering或任何其他对象都被视为模型属性。 | Integer.MAX_VALUE |
+
+
+
+### Exceptions
+
+从`HandlerAdapter`返回的`HandlerResult`公开一个函数，用于基于某些特定于处理程序的机制进行错误处理。在下列情况下调用这个错误函数：
+
+- 处理程序调用失败，例如来自@Controller类的方法。
+
+- 通过`HandlerResultHandler`处理程序返回值失败。
+
+只要在处理程序返回的响应类型产生任何数据项之前出现错误信号，`error`函数就可以更改响应(例如，更改错误状态码)。
+
+这就是支持`@Controller`类中的`@ExceptionHandler`方法的方式。相比之下，在Spring MVC中对相同的支持是建立在`HandlerExceptionResolver`之上的。这通常应该无关紧要。然而，在WebFlux中，不能使用`@ControllerAdvice`来处理在确认`handler`之前发生的异常。
+
+
+
+**为Controller配置全局异常方式同SpringMVC。**
+
+
+
+
+
+### View Resolution
+
+视图解析支持使用HTML模板和模型向浏览器呈现，而无需将您绑定到特定的视图技术。在Spring WebFlux中，视图解析是通过一个专用的`HandlerResultHandler`来支持的，这个1HandlerResultHandler1使用ViewResolver实例来映射字符串(表示逻辑视图名称)到视图实例。然后使用View来呈现响应。
+
+
+
+**处理：**
+
+传递给`ViewResolutionResultHandler`的`HandlerResult`包含来自处理程序的返回值和包含在请求处理期间添加的属性的模型。返回值按以下方式处理：
+
+- String，CharSequence：通过配置的ViewResolver实现列表解析为视图的逻辑视图名称。
+- void：根据请求路径选择默认视图名称，减去开头和结尾的斜杠，并将其解析为view。当没有提供视图名称（例如，返回模型属性）或异步返回值（例如，Mono完成为空）时也会发生同样的情况。
+- Rendering：用于视图解析场景的API。使用代码完成功能探索IDE中的选项。
+- Model、Map：要为请求添加到模型中的额外模型属性。
+- 任何其他返回值(简单类型除外，由`BeanUtils.isSimpleProperty`决定)被视为要添加到模型中的模型属性。除非存在处理程序方法@ModelAttribute注释，否则属性名根据约定从类名派生而来。
+
+模型可以包含异步的、响应的类型（例如，来自Reactor或RxJava）。在呈现之前，`AbstractView`将这些模型属性解析为具体的值并更新模型。单值响应类型被解析为单个值或无值（如果为空），而多值响应类型（例如Flux\<T\>）被收集并解析为List\<T\>。
+
+配置视图解析就像在Spring配置中添加`ViewResolutionResultHandler` bean一样简单。WebFlux Config为视图解析提供了一个专用的配置API。
+
+
+
+**Redirecting：**
+
+视图名称中的特殊`redirect:`前缀允许您执行重定向。`UrlBasedViewResolver`(及其子类)将此识别为需要重定向的指令。视图名称的其余部分是重定向URL。
+
+最终效果与控制器返回`RedirectView`或`Rendering.redirectTo("abc").build()`相同，但现在控制器本身可以根据逻辑视图名称进行操作。视图名（如redirect:/some/resource）是相对于当前应用程序的，而`redirect:https://example.com/arbitrary/path`，重定向到绝对URL。
+
+
+
+**Content Negotiation：**
+
+`ViewResolutionResultHandler`支持内容协商。它将请求媒体类型与每个选定视图所支持的媒体类型进行比较。使用支持所请求媒体类型的第一个视图。
+
+为了支持像JSON和XML这样的媒体类型，Spring WebFlux提供了`HttpMessageWriterView`，这是一个通过`HttpMessageWriter`呈现的特殊视图。通常，你会通过WebFlux配置将它们配置为默认视图。如果默认视图与所请求的媒体类型匹配，则始终选择和使用默认视图。
+
+
+
+## 4.Annotated Controllers
+
+参考SpringMVC 注解控制
+
+
+
+## 5.Functional Endpoints
+
+参考SpringMVC Functional接口
+
+
+
+## 6.URI Links
+
+参考SpringMVC URL
+
+
+
+## 7.CORS
+
+
+
+**WebFluxConfigurer配置全局跨域**
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+
+        registry.addMapping("/api/**")
+            .allowedOrigins("https://domain2.com")
+            .allowedMethods("PUT", "DELETE")
+            .allowedHeaders("header1", "header2", "header3")
+            .exposedHeaders("header1", "header2")
+            .allowCredentials(true).maxAge(3600);
+
+        // Add more mappings...
+    }
+}
+
+~~~
+
+
+
+**配置跨域过滤器：**
+
+~~~java
+@Bean
+CorsWebFilter corsFilter() {
+
+    CorsConfiguration config = new CorsConfiguration();
+
+    // Possibly...
+    // config.applyPermitDefaultValues()
+
+    config.setAllowCredentials(true);
+    config.addAllowedOrigin("https://domain1.com");
+    config.addAllowedHeader("*");
+    config.addAllowedMethod("*");
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+
+    return new CorsWebFilter(source);
+}
+
+~~~
+
+
+
+## 8.Web Security
+
+
+
+## 9.View Technologies
+
+
+
+## 10.HTTP Caching
+
+
+
+## 11.WebFlux配置
+
+WebFlux Java配置声明了用带注释的控制器或功能端点处理请求所需的组件，并提供了一个API来定制配置。这意味着您不需要了解由Java配置创建的底层bean。然而，如果你想了解它们，你可以在`WebFluxConfigurationSupport`中看到它们。
+
+
+
+### 开启WebFlux配置
+
+@EnableWebFlux注解。
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig {
+}
+
+~~~
+
+
+
+### WebFlux API配置
+
+实现`WebFluxConfigurer`自定义配置。
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    // 实现的接口
+}
+
+~~~
+
+
+
+### Conversion, formatting
+
+默认情况下，支持各种数字和日期类型的格式化程序，并支持通过字段上的`@NumberFormat`和`@DateTimeFormat`进行自定义。
+
+注册自定义格式化程序和转换器：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        // ...
+    }
+
+}
+
+~~~
+
+默认情况下，Spring WebFlux在解析和格式化日期值时考虑请求的Locale。这适用于将日期表示为带有“input”表单字段的字符串的表单。然而，对于“日期”和“时间”表单字段，浏览器使用HTML规范中定义的固定格式。对于这种情况，日期和时间格式可以自定义如下：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setUseIsoFormat(true);
+        registrar.registerFormatters(registry);
+    }
+}
+
+~~~
+
+
+
+###  Validation
+
+默认情况下，如果类路径上存在Bean Validation(例如，Hibernate验证器)，`LocalValidatorFactoryBean`将被注册为全局验证器，以便与@Controller方法参数上的@Valid和@Validated一起使用。
+
+在你的Java配置中，你可以自定义全局Validator实例，如下面的例子所示：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public Validator getValidator(); {
+        // ...
+    }
+
+}
+
+~~~
+
+单个controller注册：
+
+~~~java
+@Controller
+public class MyController {
+
+    @InitBinder
+    protected void initBinder(WebDataBinder binder) {
+        binder.addValidators(new FooValidator());
+    }
+
+}
+
+~~~
+
+
+
+### Content Type Resolvers
+
+可以配置Spring WebFlux如何从请求中为@Controller实例确定所请求的媒体类型。默认情况下，只检查`Accept`报头，但您也可以启用基于查询参数的策略。
+
+下面的例子展示了如何定制所请求的内容类型解析：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void configureContentTypeResolver(RequestedContentTypeResolverBuilder builder) {
+        // ...
+    }
+}
+
+~~~
+
+
+
+### HTTP message codecs
+
+自定义读取和写入请求体和响应体的：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
+        configurer.defaultCodecs().maxInMemorySize(512 * 1024);
+    }
+}
+
+~~~
+
+`ServerCodecConfigurer`提供了一组默认的读取器和写入器。可以使用它来添加更多的阅读器和写入器，定制默认的阅读器和写入器，或者完全替换默认的阅读器和写入器。
+
+对于Jackson JSON和XML，可以考虑使用`Jackson2ObjectMapperBuilder`，默认使用以下属性：
+
+- DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES禁用。
+- MapperFeature.DEFAULT_VIEW_INCLUSION禁用。
+
+classpath检测到以下依赖，自动注册：
+
+| 模块名                  | 地址                                                 | 作用                      |
+| ----------------------- | ---------------------------------------------------- | ------------------------- |
+| jackson-datatype-joda   | https://github.com/FasterXML/jackson-datatype-joda   | 支持Joda-Time类型         |
+| jackson-datatype-jsr310 | https://github.com/FasterXML/jackson-datatype-jsr310 | 支持Java8的Date和Time API |
+| jackson-datatype-jdk8   | https://github.com/FasterXML/jackson-datatype-jdk8   | 支持Java8的Optional       |
+| jackson-module-kotlin   | https://github.com/FasterXML/jackson-module-kotlin   | 支持Kotlin类和数据类      |
+
+
+
+### View Resolvers
+
+配置视图解析方法：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        // ...
+    }
+}
+
+~~~
+
+
+
+::: tabs
+
+@tab Freemarker
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.freeMarker();
+    }
+
+    // Configure Freemarker...
+
+    @Bean
+    public FreeMarkerConfigurer freeMarkerConfigurer() {
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setTemplateLoaderPath("classpath:/templates");
+        return configurer;
+    }
+}
+
+~~~
+
+
+
+@tab ViewResolver实现
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        ViewResolver resolver = ... ;
+        registry.viewResolver(resolver);
+    }
+}
+
+~~~
+
+@tab 视图配置 Content Negotiation
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        registry.freeMarker();
+
+        Jackson2JsonEncoder encoder = new Jackson2JsonEncoder();
+        registry.defaultViews(new HttpMessageWriterView(encoder));
+    }
+
+    // ...
+}
+
+~~~
+
+
+
+:::
+
+
+
+### Static Resources
+
+此选项提供了一种方便的方式，可以从基于资源的位置列表中提供静态资源。
+
+在下一个示例中，给定一个以`/resources`开头的请求，相对路径用于查找和提供相对于类路径上的`/static`的静态资源。资源的有效期为一年，以确保最大限度地使用浏览器缓存并减少浏览器发出的HTTP请求。`Last-Modified`标头也会被求值，如果存在，则返回304状态码。示例如下：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**")
+            .addResourceLocations("/public", "classpath:/static/")
+            .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS));
+    }
+
+}
+
+~~~
+
+资源处理程序还支持`ResourceResolver`实现链和`ResourceTransformer`实现链，这些实现链可用于创建用于处理优化资源的工具链。
+
+您可以根据从内容、固定的应用程序版本或其他信息计算出的MD5哈希值，使用`VersionResourceResolver`来处理受版本控制的资源url。`ContentVersionStrategy` （MD5哈希）是一个很好的选择，但有一些明显的例外（例如与模块加载器一起使用的JavaScript资源）。
+
+下面的例子展示了如何在Java配置中使用VersionResourceResolver：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("/public/")
+                .resourceChain(true)
+                .addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+    }
+
+}
+
+~~~
+
+您可以使用`ResourceUrlProvider`重写url，并应用完整的解析器和转换器链(例如，插入版本)。WebFlux的配置提供了一个ResourceUrlProvider，这样它就可以被注入到其他配置中。
+
+与Spring MVC不同的是，目前在WebFlux中，没有办法透明地重写静态资源url，因为没有视图技术可以利用解析器和转换器的非阻塞链。当只提供本地资源时，解决方法是直接使用ResourceUrlProvider(例如，通过自定义元素)和block。
+
+注意，当同时使用`EncodedResourceResolver`(例如，Gzip， Brotli编码)和`VersionedResourceResolver`时，它们必须按此顺序注册，以确保基于内容的版本始终基于未编码的文件可靠地计算。
+
+Webjar也可以通过`WebJarsResourceResolver`来支持，它会自动注册，当org.webjars:webjars-locator-core库存在。解析器可以重写url以包含jar的版本，也可以匹配没有版本的传入url——例如，从`/jquery/jquery.min.js`到`/jquery/1.2.0/jquery.min.js`。
+
+
+
+### Path Matching
+
+可以自定义与路径匹配相关的选项：
+
+~~~java
+@Configuration
+@EnableWebFlux
+public class WebConfig implements WebFluxConfigurer {
+
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer
+            .setUseCaseSensitiveMatch(true)
+            .setUseTrailingSlashMatch(false)
+            .addPathPrefix("/api",
+                    HandlerTypePredicate.forAnnotation(RestController.class));
+    }
+}
+
+~~~
+
+Spring WebFlux依赖于请求路径的解析表示RequestPath来访问解码后的路径段值，删除了分号内容(即路径或矩阵变量)。这意味着，与Spring MVC不同，不需要指示是否解码请求路径，也不需要指示是否为了路径匹配的目的而删除分号内容。
+
+Spring WebFlux也不支持后缀模式匹配，不像在Spring MVC中，我们也建议不要依赖它。
+
+
+
+### Advanced Configuration Mode
+
+@EnableWebFlux注解导入了DelegatingWebFluxConfiguration，作用：
+
+- 为WebFlux应用程序提供默认的Spring配置
+- 检测并委托`WebFluxConfigurer`实现来定制该配置。
+
+对于高级模式，你可以删除@EnableWebFlux并直接从`DelegatingWebFluxConfiguration`扩展，而不是实现`WebFluxConfigurer`，如下例所示：
+
+~~~java
+@Configuration
+public class WebConfig extends DelegatingWebFluxConfiguration {
+
+    // ...
+}
+
+~~~
+
+您可以在WebConfig中保留现有的方法，但是您现在也可以覆盖基类中的bean声明，并且仍然可以在类路径中使用任意数量的其他WebMvcConfigurer实现。
