@@ -164,6 +164,10 @@ export default defineUserConfig({
           {
             text: '网络模型',
             link: 'networkModel'
+          },
+          {
+            text: 'JavaIO',
+            link: 'IO'
           }
           
         ]
