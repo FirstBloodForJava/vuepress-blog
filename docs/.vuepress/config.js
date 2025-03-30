@@ -160,7 +160,11 @@ export default defineUserConfig({
             text: 'Java注解',
             link: 'Java注解',
           },
-          "javaUtil.md"
+          "javaUtil.md",
+          {
+            text: '网络模型',
+            link: 'networkModel'
+          }
           
         ]
       },
