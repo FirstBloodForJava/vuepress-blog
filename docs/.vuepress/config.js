@@ -168,6 +168,10 @@ export default defineUserConfig({
           {
             text: 'JavaIO',
             link: 'IO'
+          },
+          {
+            text: 'Netty',
+            link: 'Netty'
           }
           
         ]
