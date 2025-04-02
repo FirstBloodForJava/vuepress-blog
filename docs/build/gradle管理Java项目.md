@@ -126,6 +126,50 @@ dependencies {
 
 
 
+### 全局依赖管理定义
+
+参考reactor项目文档：https://projectreactor.io/docs/netty/release/reference/getting-started.html
+
+~~~gradle
+dependencies {
+    // import a BOM
+    implementation platform('io.projectreactor:reactor-bom:2024.0.4') 
+
+    // define dependencies without versions
+    implementation 'io.projectreactor.netty:reactor-netty-core' 
+    implementation 'io.projectreactor.netty:reactor-netty-http'
+}
+
+~~~
+
+~~~xml
+<dependencyManagement> 
+    <dependencies>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-bom</artifactId>
+            <version>2024.0.4</version> 
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+<dependencies>
+    <dependency>
+        <groupId>io.projectreactor.netty</groupId>
+        <artifactId>reactor-netty-core</artifactId> 
+        
+    </dependency>
+</dependencies>
+<dependencies>
+    <dependency>
+        <groupId>io.projectreactor.netty</groupId>
+        <artifactId>reactor-netty-http</artifactId>
+    </dependency>
+</dependencies>
+
+~~~
+
 
 
 
