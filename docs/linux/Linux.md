@@ -1058,13 +1058,23 @@ du [option].. [path]
 -H ：以 M=1000K 取代 M=1024K 的进位方式；
 -T ：显示文件系统类型, 连同该 partition 的 filesystem 名称 (例如 ext3) 也列出；
 -i ：不用硬盘容量，而以 inode 的数量来显示
+-s ：目录下的总大小
 ~~~
 
 ~~~bash
+# 以MB单位查询/目录下，各个目录的总大小
 du -sm /*
+
+# 查询指定目录下一级目录的磁盘占用情况
+du -h --max-depth=1 /www/log/
+
 ~~~
 
+![image-20250402110904273](http://47.101.155.205/image-20250402110904273.png)
 
+**gateway使用nacos注册中心，会在/home/[user]/logs/nacos目录产生naming.log.yyyy-MM-dd日志。**
+
+![image-20250402142256138](http://47.101.155.205/image-20250402142256138.png)
 
 ##### 磁盘挂载和卸载
 
