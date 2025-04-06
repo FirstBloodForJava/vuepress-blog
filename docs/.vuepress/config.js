@@ -147,14 +147,14 @@ export default defineUserConfig({
         children: [
           'JavaSE.md',
           'JavaWeb.md',
+          {
+            text: 'Java多线程使用',
+            link: 'Java多线程使用',
+          },
           'JUC.md',
           {
             text: 'EnumSet集合',
             link: 'EnumSet集合',
-          },
-          {
-            text: 'Java多线程使用',
-            link: 'Java多线程使用',
           },
           {
             text: 'Java注解',
