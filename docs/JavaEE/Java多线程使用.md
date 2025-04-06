@@ -55,7 +55,7 @@ wait()和wait(0)执行的效果一样，表示释放当前锁定对象的锁，�
 Thread实例方法。
 
 1. 不是中断自己，checkAccess()可能抛出SecurityException异常；
-2. 中断的线程调用了Object.wait()或Thread的join()或sleep()方法，则该线程会抛出InterruptedException异常，线程的中断状态将会清除；
+2. 中断的线程调用了Object.wait()或Thread的join()或sleep()方法，则该线程会抛出`InterruptedException`异常，线程的中断状态将会清除；
 3. 如果IO操作InterruptibleChannel是阻塞，则通道关闭，线程的中断状态将会被设置，并且线程收到ClosedByInterruptException异常；
 4. 如果线程在Selector被阻塞，线程中断状态将被设置，它将立即从选择操作返回，可能带有非零值，就像调用了Selector的wakeup()一样；
 5. 如果没有以上的操作，线程的中断状态将会被设置(初始对象调用isInterrupted()结果为false，执行后为true)，如果没有以上操作，为true时再次执行，则isInterrupted()结果为true。
@@ -523,9 +523,7 @@ public Iterator<E> iterator() {
 
 #### ConcurrentHashMap
 
-和Hashtable集合一样的功能，但是它在并发情况下是安全的。
-
-其通过synchronized方法来实现线程的安全操作。
+通过CAS机制和自旋锁实现线程安全，性能比HahsTable和SynchronizedMap要高。
 
 
 
@@ -537,291 +535,85 @@ public Iterator<E> iterator() {
 
 
 
-## 队列
 
-### Queue队列
 
-Queue继承了Collection接口，表示一种有序的集合，大部分遵循典型的FIFO(First-In-First-Out先进先出)规则。
+## JMM
 
-对于集合的增、删、取都提供了两种方式：一种是失败抛出异常；另外一种是返回一个特定的元素(null/false)。
+JMM模型定义的内存分为工作内存和主内存，工作内存是从主内存拷贝的副本，属于线程私有。当线程启动时，从主内存中拷贝副本到工作内存，执行相关指令操作，最后写回主内存。
 
-对于Queue的实现，会出现有界队列，出现插入元素失败的情况。
+- 原子性
+- 可见性
+- 指令重排
 
-**添加的元素不能为null**
-
-![image-20241013132218024](http://47.101.155.205/image-20241013132218024.png)
-
-
-
-#### ConcurrentLinkedQueue(线程安全)
-
-通过CAS(比较并交换)实现并发线程安全。
-
-
-
-
-
-
-
-
-
-
-
-### Deque队列
-
-支持在两个端插入和去除元素的线性集合。
-
-和Queue，提供了两种方式操作元素。
-
-![image-20241013162933516](http://47.101.155.205/image-20241013162933516.png)
-
-继承Queue的等效方法：
-
-![image-20241013163138225](http://47.101.155.205/image-20241013163138225.png)
-
-LIFO(后进先出)栈等效方法：
-
-![image-20241013163521715](http://47.101.155.205/image-20241013163521715.png)
-
-
-
-#### ConcurrentLinkedDeque(线程安全)
-
-通过CAS(比较并交换)实现并发线程安全。
-
-
-
-
-
-### BlockingQueue
-
-顾名思义阻塞队列，当达到队列的容量时，同一个操作，不同的方法有以下效果：
-
-![image-20241013180027527](http://47.101.155.205/image-20241013180027527.png)
-
-
-
-#### ArrayBlockingQueue
-
-基于数组实现的有界阻塞队列，遵循先进先出原则。基于ReentrantLock实现线程安全和控制公平策略。
-
-定是否启用公平性。若为 `true`，等待时间最长的线程优先处理。默认为 `false`，非公平策略通常性能更高。
-
-
-
-#### ConcurrentLinkedQeque
-
-基于链表实现的无界的线程安全的Queue。
-
-
-
-
-
-
-
-#### DelayQueue
-
-是一个无界的阻塞队列，队列的功能基于PriorityQueue(优先队列)实现。队列中的元素需要实现Delayed接口，一个是延期时间另外一个是重写compareTo()方法。
-
-元素只有getDelay()返回的值小于等于0时才会被取出。
-
-线程安全：Lock锁实现。
-
-
-
-
-
-
-
-#### LinkedBlockingQueue
-
-一个阻塞有界的FIFO队列。
-
-默认的队列容量是Integer.MAX_VALUE。
-
-线程安全：基于Lock锁实现。
-
-
-
-
-
-#### LinkedTransferQueue
-
-无界阻塞队列，实现了TransferQuque接口。它既可以像普通的队列那样用于存取元素，还提供了一种叫做元素传递的机制，即生产者可以将元素直接传递给等待中的消费者，而不需要将元素放入队列中等待。
-
-LinkedTransferQueue 提供了 transfer(E e) 方法，该方法允许生产者直接将元素传递给消费者。如果当前没有消费者等待接收元素，调用 transfer() 的线程会被阻塞，直到有消费者获取该元素。这种机制可以避免队列中不必要的积压，提高效率。
-
-消费组不处理，生产者阻塞。
-
-
-
-#### PriorityBlockingQueue
-
-无界优先级阻塞队列。
-
-线程安全：基于lock锁实现。
-
-
-
-#### SynchronousQueue
-
-无缓冲阻塞队列，它的特点在于没有容量，即它不能存储任何元素。每一个插入操作都必须等待相应的移除操作，否则会阻塞，因此它是一种用于直接交换数据的队列。
-
-两种模式：
-
-1. 公平模式（FIFO）：插入和移除的操作按顺序（FIFO）进行，线程按照其调用顺序排队。
-2. 非公平模式：线程不按顺序，可以以随机顺序被调度（默认）。
-
-
-
-### BlockingDueue
-
-双端队列，当队列满了添加元素或队列空的获取元素，调用不同的方法会有不同的效果：
-
-![image-20241109165413947](http://47.101.155.205/image-20241109165413947.png)
-
-由于存在返回特定的元素，会返回null，所以队列中的元素不能为null。
-
-![image-20241109165849706](http://47.101.155.205/image-20241109165849706.png)
-
-
-
-#### ConcurrentLinkedDeque
-
-基于链表实现的无界的线程安全的Deque。
-
-
-
-#### LinkedBlockingDeque
-
-一个阻塞有界的双端队列。
-
-默认的队列容量是Integer.MAX_VALUE。
-
-线程安全：基于Lock锁实现。
-
-
-
-## Executor
-
-执行Runnable任务的执行器。
+javap -c .class文件
 
 ~~~java
-package java.util.concurrent;
-
-public interface Executor {
-
-    // 自定义Runnable任务怎么执行
-    void execute(Runnable command);
-}
+public static void add();
+    Code:
+       0: getstatic     #2                  // Field i:I
+       3: iconst_1
+       4: iadd
+       5: putstatic     #2                  // Field i:I
+       8: return
 
 ~~~
 
 
 
-### ThreadPoolExecutor
+### volatile
 
-线程池：在多线程应用中，频繁创建和销毁线程会带来大量的系统开销，线程池通过复用线程资源和合理管理线程数量来提高效率。
-
-线程池能解决的问题：
-
-1. 线程创建和销毁的高开销：通过复用已创建的线程，避免频繁创建和销毁的开销问题；
-2. 资源管理与控制：避免创建大量的线程，导致资源耗尽，特别是CPU和内容有限的情况；
-3. 任务调度和管理：线程池为任务提供队列，当线程池线程数量达到上限时，新任务会进入队列排队等待处理；
-4. 防止系统过载：线程池中的等待队列和拒绝策略，可以帮助管理任务的浏览。
-
-ThreadPoolExecutor核心配置：
-
-1. corePoolSize：线程池中活跃的线程数，除非allowCoreThreadTimeOut为true，即时线程空闲也不会关闭；
-2. maximumPoolSize：线程池中运行最大的线程数量(队列满了才会创建)；
-3. keepAliveTime：当存活线程数大于核心线程数，多余线程终止前等待新任务的最大时间；
-4. unit：keepAliveTime的时间单位；
-5. workQueue：在执行任务之前保存任务的队列，此队列仅保存通过execute方法执行的任务；
-6. threadFactory：创建新线程的工厂；
-7. handler：达到队列容量和线程处理上限(阻塞)的处理策略；
-
-![image-20241109195233014](http://47.101.155.205/image-20241109195233014.png)
+- 保证可见性
+- 不保证原子性
+- 禁止指令重排（有序性）
 
 
 
-#### RejectedExecutionHandler
+### synchronized
 
-1. AbortPolicy：直接抛出异常；
-2. DiscardPolicy：任务直接放弃；
-3. DiscardOldestPolicy：从队列中移除一个任务；
-4. CallerRunsPolicy：线程池满了，队列满了，直接调用Runnable的run方法，不开线程。
+- 可见性
+
+　　1）线程解锁前，必须把共享变量的最新值刷新到主内存中
+
+　　2）线程加锁时，将清空工作内存中共享变量的值，从而使用共享变量时需要从主内存中重新获取最新的值
+
+- 原子性
+
+原子操作是指不会被线程调度机制打断的操作；这种操作一旦开始，就一直运行到结束。synchronized底层由于采用了字节码指令monitorenter和monitorexit来隐式地使用这lock和unlock两个操作，使得其操作具有原子性。
+
+- 有序性
+
+synchronized有序性表现在as-if-serial语义，但as-if-serial语义不能确保多线程情况下的禁止指令重排。如单例中的双重检验锁写法
 
 
+
+对象创建的过程：
+
+- 再堆中分配内存；
+- 调用构造器创建实例；
+- 将引用指向实例的内存
 
 
 
 
 
-### 第三种创建线程的方式
-
-~~~java
-public class App {
-
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-
-        FutureTask task = new FutureTask(new Callable<String>(){
-             public String call(){
-                return "123";
-            }
-        });
-
-        Thread thread = new Thread(task);
-        thread.start();
-
-        System.out.println(task.get());
-    }
-}
-
-~~~
-
-
-
-#### FutureTask
-
-实现了Future和Runnable接口，实现Future提供获取异步计算结果的功能，以及取消(cancel)任务的功能。
-
-通过Thread启动调用run方法，FutureTask重写了Run方法的逻辑，实现了计算完成存储计算结果。
-
-重写的run方法。
-
-**Future被一个线程使用后，不能在被其它线程使用，因为可能不会执行里面的Callable的call方法。**
-
-![image-20241110164231095](http://47.101.155.205/image-20241110164231095.png)
-
-
-
-get获取异步结果
-
-![image-20241110164730797](http://47.101.155.205/image-20241110164730797.png)
 
 
 
 
 
-### ScheduledThreadPoolExecutor
-
-基于ThreadPoolExecutor的扩展。
-
-ScheduledExecutorService的实现，扩展延迟执行功能。
-
-![image-20241109213506276](http://47.101.155.205/image-20241109213506276.png)
-
-
-
-schedule(Runnable command, long delay, TimeUnit unit)：延迟时间执行command;
-
-scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)：initialDelay首次执行延迟时间，period后续每次间隔时间，固定速率执行command(任务开始即计时)；
-
-scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit)：固定延迟执行任务(上一个任务完成才开始执行任务)。
 
 
 
 ## 锁
+
+1. synchronized锁：synchronized是Java中内置的一种锁机制，它可以用于同步方法和同步块，保证线程访问共享资源时的互斥性。
+2. ReentrantLock锁：ReentrantLock是Java中的一种可重入锁，它与synchronized类似(如果一个线程已经获取了ReentrantLock锁，并且还没有释放它，那么它可以继续获取该锁，而不会因为自己已经持有该锁而被阻塞。)，但是更加灵活和可控，可以用于更复杂的锁场景。
+3. ReadWriteLock锁：ReadWriteLock是Java中提供的一种读写锁，它允许多个线程同时读取共享资源，但只允许一个线程进行写操作。
+4. StampedLock锁：StampedLock是Java中的一种乐观锁，它可以在不进行加锁的情况下读取和写入共享资源，从而提高了并发性能。
+5. Semaphore锁：Semaphore是Java中的一种信号量锁，它可以控制同时访问共享资源的线程数量，从而实现限流和流量控制。
+6. Condition锁：Condition是Java中的一种条件锁，它可以用于线程间的通信和协调，例如等待某个条件满足后再进行执行。
+
+
 
 ### synchronized和Lock
 
@@ -831,12 +623,59 @@ synchronized是Java的关键字，属于JVM级别的同步机制。可以作用�
 
 Lock：是java.util.concurrent.locks包中的接口，提供了更细粒度的锁控制。Lock锁需要显示的获取和释放锁。Lock常用的实现类有ReentrantLock。
 
+**lock锁的方法，锁住，不影响synchronized锁住的调用，两者互不干预。**
+
 synchronized和Lock直接的区别：
 
 1. 性能：synchronized早期性能较差，从 Java 6 开始进行了优化（偏向锁、轻量级锁），在大多数简单同步场景中性能接近甚至优于Lock；
 2. 可中断性：Lock锁支持中断等待锁的线程，线程等待synchronized块的锁时不可中断；
-3. 公平性：Lock(ReentrantLock)支持设置为公平锁，会影响性能，synchronized不支持；
-4. 等待通知机制：synchronized可以使用wait()、notify()和notifyAll()进行条件等待，但条件控制较少。Lock 提供了Condition对象，可以更灵活地控制线程等待和唤醒的条件，支持多个等待队列。
+3. 公平性：Lock(`ReentrantLock`)支持设置为公平锁，会影响性能，synchronized不支持；
+4. 等待通知机制：synchronized内置了wait、notify、notifyAll等方法，实现线程之间的等待唤醒机制，但条件控制较少。`ReentrantLock`借助`Condition`对象来实现。Lock锁锁住的了的对象，没有解锁，其他线程无法访问，可以使用`Lock.newCondition().await()`释放锁，让其他线程访问，但是这个线程需要有lock锁(如果释放锁之后才唤醒线程，会出现IllegalMonitorStateException异常)，要在lock.unlock()之前调用lock.newCondition().signal()来唤醒，否则出现异常。
+
+
+
+中断性：
+
+~~~java
+//如果等待锁的线程在等待锁的过程中已经获取了锁，并且没有释放锁的话，那么中断请求是不会中断已经持有锁的线程的，因为 ReentrantLock 是支持嵌套获取锁的。只有当等待锁的线程还没有获取到锁，正在等待时，才能通过中断请求来中断等待锁的线程。
+public class InterruptTest {
+
+    public static void main(String[] args) {
+        ReentrantLock lock = new ReentrantLock();
+
+        Thread waitingThread = new Thread(() -> {
+            try {
+                lock.lockInterruptibly();
+                // !Thread.currentThread().isInterrupted()
+                while (true){
+
+                }
+            } catch (InterruptedException e) {
+                System.out.println(Thread.currentThread().getName() + " => Thread interrupted.");
+                //lock.unlock();
+            }
+        },"T1");
+        waitingThread.start();
+
+        try {
+            Thread.sleep(1000);
+            System.out.println("1");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+		// 线程获取到锁不会被中断
+        waitingThread.interrupt();
+
+        lock.lock();
+
+        System.out.println("2");
+
+    }
+}
+
+~~~
+
+
 
 
 
@@ -958,383 +797,3 @@ try {
 
 
 
-## 同步器
-
-### CountDownLatch
-
-计数器开关：让调用CountDownLatch(n).awati()方法的线程等待(线程状态WAITING)，直到CountDownLatch.countDown()执行n次，计数器为0，线程开始执行。
-
-通过调用LockSupport.park(this);让线程进入WAITING状态。
-
-
-
-~~~java
-class Driver { 
-	void main() throws InterruptedException { 
-		CountDownLatch startSignal = new CountDownLatch(1);
-		CountDownLatch doneSignal = new CountDownLatch(N);
-		for (int i = 0; i < N; ++i) {
-			new Thread(new Worker(startSignal, doneSignal)).start();
-		}
-		
-		doSomethingElse();
-		// 唤醒startSignal等待的线程
-		startSignal.countDown();
-		// 等待doneSignal被唤醒
-		doneSignal.await();
-		// 唤醒之后执行其它操作
-		doSomethingElse();
-		
-	}  
-}
-class Worker implements Runnable {
-	private final CountDownLatch startSignal;
-	private final CountDownLatch doneSignal;
-	Worker(CountDownLatch startSignal, CountDownLatch doneSignal) {
-		this.startSignal = startSignal;
-		this.doneSignal = doneSignal;
-	}
-	
-	public void run() {
-		try {
-			// 等待被唤醒
-			startSignal.await();
-			doWork();
-			// 计数-1,缓存doneSignal等待的线程
-			doneSignal.countDown();
-		} catch (InterruptedException ex) {
-		
-		} 
-	}      
-	void doWork() { 
-		// ...
-	}  
-}
-
-~~~
-
-
-
-### CyclicBarrier
-
-循环使用计数器：计数器执行到临界点，如果CyclicBarrier的Runnable不为空，则调用一次Runnable的run方法，重置计数器值为初始值，唤醒其它等待线程。
-
-![image-20241113111103315](http://47.101.155.205/image-20241113111103315.png)
-
-await()：计数器减1，如果计数器为0执行可用的run方法，重置计数器；不为0，则释放锁等待。
-
-
-
-### Semaphore
-
-计数信号量：一个信号量维护了一些许可证，acquire()方法每次会消耗一个许可证，如果没有获取到则会阻塞线程；release()添加一个许可证，并唤醒阻塞的线程。
-
-支持公平性：体现在如果有等待获取凭证的线程，应该是先等待的先获取凭证。
-
-![image-20241113135147124](http://47.101.155.205/image-20241113135147124.png)
-
-
-
-acquire：获取一个可用凭证，没有获取到则阻塞(实际线程状态时WAITING)。
-
-acquire(int)：获取指定的可用凭证数量，没有获取到则阻塞(实际线程状态时WAITING)。
-
-![image-20241113132216496](http://47.101.155.205/image-20241113132216496.png)
-
-
-
-tryAcquire()：获取一个可用的的凭证，成功返回true，失败返回false(不阻塞)。
-
-tryAcquire(int)：获取指定数量的可用凭证，成功返回true，失败返回false(不阻塞)。
-
-![image-20241113133115035](http://47.101.155.205/image-20241113133115035.png)
-
-release()：添加一个可用的凭证，避免凭证数量的溢出。
-
-release(int)：添加指定数量的可用凭证。
-
-![image-20241113134003493](http://47.101.155.205/image-20241113134003493.png)
-
-
-
-### Phaser
-
-Phaser最终指定的构造方法是：Phaser(Phaser parent, int parties)，最终会有4种情况，parent代表不为空的Phaser对象，int代表大于0的int值。
-
-1. Phaser(null, 0)：
-2. Phaser(null, int )：
-3. Phaser(parent, 0)：
-4. Phaser(parent, int)：
-
-parties的上限是65535，2^16-1。
-
-toString()方法：[phase = 1 parties = 2 arrived = 0]，phase表示Phaser管理线程的循环次数，parties表示管理的线程数量，arrived表示到达的数量。
-
-phase的值位负数时，表示Phaser不管理线程了（调用arriveAndDeregister至parties为0），后续在调用register()也不会管理。
-
-
-
-#### Phaser(null, 0)
-
-初始化Phaser，指定需要协同管理的线程数量0，管理的数量不能超过65535(2^16-1)。
-
-![image-20241113165925488](http://47.101.155.205/image-20241113165925488.png)
-
-register()：将需要协同管理的线程线程数量增加1，如果当前的Phaser对象已经开始管理线程了，调用该方法的线程会等待，可能知道管理的线程都到达才会被释放掉。
-
-![image-20241113173110233](http://47.101.155.205/image-20241113173110233.png)
-
-
-
-arriveAndAwaitAdvance()：线程到达，等待需要到达线程到一定数量，则把等待的线程唤醒执行。
-
-![image-20241114143831518](http://47.101.155.205/image-20241114143831518.png)
-
-![image-20241114144843029](http://47.101.155.205/image-20241114144843029.png)
-
-
-
-arriveAndDeregister()：与register()作用相反，减少参与的线程调用方，如果Phaser管理的线程数量是1，调用该方法，则后续就不管理线程了。
-
-![image-20241115142532866](http://47.101.155.205/image-20241115142532866.png)
-
-~~~java
-// arriveAndDeregister()方法的parties=0的执行过程
-// 393 unrrived = 1
-n = 0 & 0xffff0000L(((2 << 16)-1) << 16) = 0;
-nextUnarrived = 0 >>> 16 = 0;
-// 397 nextUnarrived = 0
-n |= 1L << 63(-2^63=Long.MIN_VALUE) = Long.MIN_VALUE;
-// 403
-nexePhase = 1 & Integer.MAX_VALUE = 1;
-n |= 1 << 32 = -9223372032559808512(64-1,33-1);
-// 405 state = n, 
-(int) (state >>> 32)高位符号是1,表示负数;
-
-~~~
-
-
-
-
-
-#### Phaser(parent, 0)
-
-![image-20241115134331547](http://47.101.155.205/image-20241115134331547.png)
-
-构建子Phaser，可以只指定parent，默认parties为0，这个子Phaser不能直接使用，会抛出IllegalStateException异常，但是可以子Phaser对象调用register()方法为子Phaser增加1个parties，同时为父Phaser增加1个parties。
-
-![image-20241118154815524](http://47.101.155.205/image-20241118154815524.png)
-
-子Phaser调用arriveAndAwaitAdvance()，如果子Phaser所有线程都到达等待，例如子parties=2，需要两个线程调用子Phaser对象register方法2次，这个时候由于有父Phaser存在，调用parent.arriveAndAwaitAdvance()等待父Phaser所管理的线程都到达。如果这时再调用子Phaser的arriveAndAwaitAdvance方法，则会抛出IllegalStateException异常。
-
-![image-20241118145852540](http://47.101.155.205/image-20241118145852540.png)
-
-##### 父Pahser.parties=0
-
-
-
-父Phaser的对象parties表示父对象需要其它线程管理的数量，如果定义父parties为0，则可以通过这个来管理所有指向父Phaser的子Phaser执行情况。
-
-下面3个Phaser执行一个父Phaser对象，可以通过arriveAndAwaitAdvance方法执行后，控制3个线程之间都会执行相同的次数。
-
-~~~java
-Phaser parent = new Phaser(0);
-Phaser phaser1 = new Phaser(parent, 1);
-Phaser phaser2 = new Phaser(parent, 1);
-Phaser phaser3 = new Phaser(parent, 1);
-new Thread(()->{
-    phaser1.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser2.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser3.arriveAndAwaitAdvance();
-    // ...
-}).start;
-
-~~~
-
-如果子Phaser的parties的值大于1，则是一组线程之间都会执行相同的次数。
-
-下面的例子则表示7个线程都到达后，才都允许arriveAndAwaitAdvance后面的代码一次。
-
-~~~java
-Phaser parent = new Phaser(0);
-Phaser phaser1 = new Phaser(parent, 2);
-Phaser phaser2 = new Phaser(parent, 3);
-Phaser phaser3 = new Phaser(parent, 2);
-new Thread(()->{
-    phaser1.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser1.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser2.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser2.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser2.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser3.arriveAndAwaitAdvance();
-    // ...
-}).start;
-new Thread(()->{
-    phaser3.arriveAndAwaitAdvance();
-    // ...
-}).start;
-
-~~~
-
-
-
-##### 父Pahser.parties>0
-
-指定父Phaser管理的线程和子Phaser管理之间的执行关系，下面的例子，表示2个父Phaser的线程和3个子Phaser管理的3个线程之间都只会同时执行一次，而且它们执行速率在于最慢的一个线程的处理耗时时间。假设下面的可执行代码时间忽略不计(或者一样长)，则这里执行间隔时间是(5+n)s。
-
-批次打印时间应该是：
-
-1. 1000 + ?
-2. 6000 + ?
-3. 1100 + ?
-4. ...
-
-~~~java
-Phaser parent = new Phaser(2);
-Phaser phaser1 = new Phaser(parent, 1);
-Phaser phaser2 = new Phaser(parent, 1);
-Phaser phaser3 = new Phaser(parent, 1);
-new Thread(()->{
-    while(true) {
-        phaser1.arriveAndAwaitAdvance();
-    	try {
-			Thread.sleep(5000);
-    	} catch (InterruptedException e) {
-        	throw new RuntimeException(e);
-    	}
-    }
-    // ...
-}, "s1").start;
-new Thread(()->{
-    while(true) {
-        phaser2.arriveAndAwaitAdvance();
-    	// ...
-    }
-}, "s2").start;
-new Thread(()->{
-    while(true) {
-        phaser3.arriveAndAwaitAdvance();
-    	// ...
-    }
-}, "s3").start;
-
-new Thread(()->{
-    long start = System.currentTimeMillis();
-    while(true) {
-        parent.arriveAndAwaitAdvance();
-    	try {
-			Thread.sleep(1000);
-    	} catch (InterruptedException e) {
-        	throw new RuntimeException(e);
-    	}
-        
-	    // ...
-        System.out.println(Thread.currentThread().getName() + "耗时: " + (System.currentTimeMillis() - start));
-    }
-}, "p1").start;
-
-new Thread(()->{
-     while(true) {
-        parent.arriveAndAwaitAdvance();
-	    // ...
-    }
-}, "p2").start;
-
-~~~
-
-
-
-
-
-
-
-## CAS
-
-CAS(compare and swap 比较并交换)，java.util.concurrent.atomic(原子的)包下的类，如AtomicInteger、AtomicLong等的线程安全操作，就是基于CAS操作。
-
-CAS的核心思想：
-
-1. 比较：比较某个内存位置的当前值是否等于预期值；
-2. 交换：如果等于预期值，则将该内存位置的值更新为新值；
-3. 返回结果：是否成功。
-
-CAS的局限性：
-
-1. ABA问题：如果某个变量从A变成B，然后又变成了A，CAS无法识别这种变化，可能导致误判。解决方案使引入版本号。
-2. 自旋消耗CPU，当多个线程竞争激烈时，CAS操作可能反复失败，浪费CPU资源。
-3. 只能更新一个变量。
-
-
-
-~~~java
-private static final Unsafe unsafe = sun.misc.Unsafe.getUnsafe();
-// 获取修改属性value的字段偏移量，staticFieldOffset方法获取静态属性字段偏移量
-private static final long valueOffset = unsafe.objectFieldOffset
-                (AtomicLong.class.getDeclaredField("value"));
-// var1: 要作用哪个对象,原子类中通常时this
-// var2: 作用属性的偏移量,也就是valueOffset
-// var3: 预期值,原子类使用unsafe.getIntVolatile(var1, var2)获取当前的预期值
-// var4: 要更新的值
-// return 返回是否更新成功
-boolean flag = unsage.compareAndSwapInt(var1, var2, var3, var4);
-
-~~~
-
-![image-20241119104958818](http://47.101.155.205/image-20241119104958818.png)
-
-
-
-### AtomicReference
-
-实现对泛型对象的CAS操作。
-
-![image-20241119105524339](http://47.101.155.205/image-20241119105524339.png)
-
-
-
-### AtomicStampedReference
-
-解决ABA问题，同时提供对泛型对象的CAS操作。
-
-添加版本号的原理是：封装一个对象，作为要修改的值，该对象有两个属性，一个是要修改的值，一个是管理值的版本号。
-
-原理是用对象作为CAS交换的目标。
-
-![image-20241119112557628](http://47.101.155.205/image-20241119112557628.png)
-
-![image-20241119112836075](http://47.101.155.205/image-20241119112836075.png)
-
-
-
-## Fork/Join
-
-### ForkJoinPool
-
-![image-20241119134736614](http://47.101.155.205/image-20241119134736614.png)
-
-
-
-
-
-## CompletableFuture
