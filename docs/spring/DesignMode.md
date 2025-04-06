@@ -201,3 +201,201 @@ public class CglibProxyDemo {
 
 ~~~
 
+
+
+## 单例模式
+
+### 饿汉式单例
+
+~~~java
+//饿汉式单例
+public class Hungry {
+
+    private Hungry(){
+        System.out.println("Hungry对象创建");
+    }
+
+    private static Hungry hungry = new Hungry();
+
+    public static Hungry getInstance(){
+        return hungry;
+    }
+}
+~~~
+
+### 懒汉式单例(单线程)
+
+~~~java
+//懒汉式单例
+public class Lazy {
+
+    private Lazy(){
+        System.out.println("Lazy对象创建");
+    }
+
+    private static Lazy lazy = null;
+
+    public static Lazy getInstance(){
+        if(lazy == null){
+            lazy = new Lazy();
+        }
+        retrun lazy;
+    }
+}
+~~~
+
+### 懒汉式单例(多线程)
+
+~~~java
+public class Lazy {
+
+    private Lazy(){
+        System.out.println("Lazy对象创建");
+    }
+
+    private static Lazy lazy = null;
+
+    public static Lazy getInstance(){
+        if(lazy == null){
+            synchronized(Lazy.class){
+                //判断的原因是，多线程环境下，加入两个线程都进入了if代码块，可是a线程先拿到锁，这个时候对象已经创建好了
+                if(lazy == null){
+                    lazy = new Lazy();
+                }
+            }
+        }
+        retrun lazy;
+    }
+}
+//对象创建的过程：1、再堆中分配内存；2、调用构造器创建实例；3、将引用指向实例的内存
+//因为指令重排的原因
+~~~
+
+
+
+### DCL懒汉式+volatile
+
+~~~java
+public class Lazy {
+
+    private Lazy(){
+        System.out.println("Lazy对象创建");
+    }
+
+    private static volatile Lazy lazy = null;
+
+    public static Lazy getInstance(){
+        if(lazy == null){
+            synchronized(Lazy.class){
+                //情况1:判断的原因是，多线程环境下，加入两个线程都进入了if代码块，可是a线程先拿到锁，这个时候对象已经创建好了
+                //情况2:加入这个时候有第三个线程来拿lazy对象，这个时候a线程因为，指令重排，lazy对象不为null，可是实例化过程还没有构造完成，导致出现异常。这个时候就是volatile发挥作用了。
+                if(lazy == null){
+                    lazy = new Lazy();
+                }
+            }
+        }
+        retrun lazy;
+    }
+}
+~~~
+
+
+
+### 内部类单例
+
+~~~java
+public class SingleInner{
+    private SingleInner(){
+        if(SingleHolder.single != null){
+            throw new RuntimeException("不要用反射破坏单例");
+        }
+    }
+    
+    private static class SingleHolder(){
+    	private static SingleInner single = new SingleInner();    
+    }
+    
+    public static SingleInner getInstance(){
+        return SingleHolder.single;
+    }
+    
+}
+~~~
+
+
+
+
+
+~~~java
+public static void test03();
+    Code:
+       0: iconst_0
+       1: istore_0
+       2: iload_0
+       3: bipush        100
+       5: if_icmpge     29
+       8: new           #3                  // class java/lang/Thread
+      11: dup
+      12: invokedynamic #8,  0              // InvokeDynamic #2:run:()Ljava/lang/Runnable;
+      17: invokespecial #5                  // Method java/lang/Thread."<init>":(Ljava/lang/Runnable;)V
+      20: invokevirtual #6                  // Method java/lang/Thread.start:()V
+      23: iinc          0, 1
+      26: goto          2
+      29: return
+~~~
+
+~~~java
+public static void test05();
+    Code:
+       0: iconst_0
+       1: istore_0
+       2: iload_0
+       3: bipush        100
+       5: if_icmpge     29
+       8: new           #3                  // class java/lang/Thread
+      11: dup
+      12: invokedynamic #10,  0             // InvokeDynamic #4:run:()Ljava/lang/Runnable;
+      17: invokespecial #5                  // Method java/lang/Thread."<init>":(Ljava/lang/Runnable;)V
+      20: invokevirtual #6                  // Method java/lang/Thread.start:()V
+      23: iinc          0, 1
+      26: goto          2
+      29: return
+~~~
+
+### 枚举单例
+
+javap -p .class java自带的反编译命令
+
+~~~java
+public enum SingleEnum {
+    SINGLE("张三",11);
+
+    private String name;
+    private int age;
+
+    SingleEnum(String name,int age){
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public SingleEnum getInstance(){
+        return SINGLE;
+    }
+}
+~~~
