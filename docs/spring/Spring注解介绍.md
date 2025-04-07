@@ -1336,6 +1336,119 @@ public @interface ConditionalOnExpression {
 
 
 
+#### @AutoConfigureOrder
+
+Spring注解`@Order`的变体，允许自动配置类之间的顺序，不影响传递给`AnnotationConfigApplicationContext.register(Class...)`的配置类的顺序。
+
+~~~java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD })
+@Documented
+public @interface AutoConfigureOrder {
+
+	int DEFAULT_ORDER = 0;
+
+    // 
+	int value() default DEFAULT_ORDER;
+
+}
+
+~~~
+
+
+
+#### @AutoConfigureAfter
+
+在指定的自动配置类之后自动配置。
+
+~~~java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+@Documented
+public @interface AutoConfigureAfter {
+
+	Class<?>[] value() default {};
+
+	String[] name() default {};
+
+}
+
+~~~
+
+
+
+#### @AutoConfigureBefore
+
+在指定的自动配置类之前自动配置。
+
+~~~java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+@Documented
+public @interface AutoConfigureBefore {
+
+	
+	Class<?>[] value() default {};
+
+	String[] name() default {};
+
+}
+
+~~~
+
+
+
+
+
+#### @EnableAutoConfiguration
+
+启用SpringBoot的自动配置机制
+
+~~~java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@AutoConfigurationPackage
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+
+	String ENABLED_OVERRIDE_PROPERTY = "spring.boot.enableautoconfiguration";
+
+	
+	Class<?>[] exclude() default {};
+
+	
+	String[] excludeName() default {};
+
+}
+
+~~~
+
+
+
+#### @ConditionalOnMissingFilterBean
+
+检测直接注册的Bean或通过`FilterRegistrationBean`注册的Bean。不存在才匹配。
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@ConditionalOnMissingBean(parameterizedContainer = FilterRegistrationBean.class)
+public @interface ConditionalOnMissingFilterBean {
+
+	@AliasFor(annotation = ConditionalOnMissingBean.class)
+	Class<? extends Filter>[] value() default {};
+
+}
+
+~~~
+
+
+
+
+
 ### spring-boot-actuator-autoconfigure
 
 #### ManagementContextConfiguration
