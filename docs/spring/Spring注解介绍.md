@@ -940,6 +940,8 @@ public @interface ConfigurationProperties {
 
 #### @EnableConfigurationProperties
 
+激活`@ConfigurationProperties`注解类，注入配置，交由spring管理。
+
 ~~~java
 package org.springframework.boot.context.properties;
 
@@ -1264,7 +1266,40 @@ public @interface ConditionalOnResource {
 
 
 
-#### @ConditionalOnWebApplication和@ConditionalOnNotWebApplication
+#### @ConditionalOnWebApplication
+
+~~~java
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(OnWebApplicationCondition.class)
+public @interface ConditionalOnWebApplication {
+
+	Type type() default Type.ANY;
+
+	enum Type {
+
+		ANY,
+
+		SERVLET,
+
+		REACTIVE
+
+	}
+
+}
+
+~~~
+
+校验Spring的当前上下文是否符合当前指定的类型。决定权`@Conditional`注解指定`OnWebApplicationCondition`类上重写的`getMatchOutcome`方法。
+
+1. class类是否存在。
+2. Spring环境情况。
+3. Spring应用上下文情况。
+
+
+
+#### @ConditionalOnNotWebApplication
 
 
 
@@ -1300,6 +1335,25 @@ public @interface ConditionalOnExpression {
 ~~~
 
 
+
+### spring-boot-actuator-autoconfigure
+
+#### ManagementContextConfiguration
+
+`META-INF/spring.factories`文件中`org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration`指定的class需要使用该注解。为`Actuator`管理端点提供环境。
+
+~~~java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Configuration
+public @interface ManagementContextConfiguration {
+
+	ManagementContextType value() default ManagementContextType.ANY;
+
+}
+
+~~~
 
 
 
