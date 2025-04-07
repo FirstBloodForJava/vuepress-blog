@@ -462,9 +462,9 @@ task buildJar1 (type: GradleBuild, dependsOn: [build, clean]) {
 
 https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#using-boot-starter
 
-spring官方提供的starter遵循命名规则spring-boot-starter-[name]，name都具有一定的含义。
+spring官方提供的starter遵循命名规则`spring-boot-starter-[name]`，name都具有一定的含义。
 
-也可以自定义starter，第三方的starter一般遵循[name]-spring-boot-starter命名规则。
+也可以自定义starter，第三方的starter一般遵循`[name]-spring-boot-starter`命名规则。
 
 自定义starter文档：https://docs.spring.io/spring-boot/docs/2.2.7.RELEASE/reference/htmlsingle/#boot-features-custom-starter
 
@@ -473,18 +473,18 @@ spring官方提供的starter遵循命名规则spring-boot-starter-[name]，name�
 starter分为三类：
 
 1. 应用类型starter：如spring-boot-starter-web。
-2. 功能类型starter：spring-boot-starter-actuator。
-3. 嵌入型starter：spring-boot-starter-jetty、spring-boot-starter-undertow；spring-boot-starter-log4j2、spring-boot-starter-logging；spring-boot-starter-reactor-netty。
+2. 功能(监控)类型starter：`spring-boot-starter-actuator`。
+3. 技术型starter：`spring-boot-starter-jetty`、`spring-boot-starter-undertow`；`spring-boot-starter-log4j2`、`spring-boot-starter-logging`；`spring-boot-starter-reactor-netty`。
 
 
 
-### 编码
+### 编写代码建议
 
-每个类都定义包名，缺省的包名，会让@ComponentScan, @ConfigurationPropertiesScan, @EntityScan,  @SpringBootApplication扫描所有的类。
+每个类都定义包名，缺省的包名，会让`@ComponentScan`, `@ConfigurationPropertiesScan`,` @EntityScan`,  `@SpringBootApplication`扫描所有的类。
 
-@SpringBootApplication注解通过被使用在启动类上，他会自动扫描当前包下的所路径。
+`@SpringBootApplication`注解通过被使用在启动类上，他会自动扫描当前包下的所路径。
 
-不使用@SpringBootApplication主机，可以使用@EnableAutoConfiguration和@ComponentScan注解进行替换。
+不使用`@SpringBootApplication`注解，可以使用`@EnableAutoConfiguration`和`@ComponentScan`注解进行替换。
 
 
 
@@ -1756,11 +1756,11 @@ spring.mvc.message-codes-resolver-format=postfix_error_code，格式为objectNam
 
 **静态资源**
 
-静态资源默认从classpath下的/META-INF/resources/、/resources/、/static/、/public/下加载，可以通过注入WebMvcConfigurer Bean重写addResourceHandlers调整资源目录，也可以通过spring.resources.static-locations配置修改目录，默认会在后面补'/'。
+静态资源默认从classpath下的`/META-INF/resources/`、`/resources/`、`/static/`、`/public/`下加载，可以通过注入WebMvcConfigurer Bean重写addResourceHandlers调整资源目录，也可以通过`spring.resources.static-locations`配置修改目录，默认会在后面补`'/'`。
 
 访问静态资源的默认路径是/**，spring.mvc.static-path-pattern配置修改访问静态资源的路径。
 
-spring.mvc.static-path-pattern=/resources/**，表示resources/开头的路径才会去访问静态资源。
+`spring.mvc.static-path-pattern=/resources/**`，表示resources/开头的路径才会去访问静态资源。
 
 
 
@@ -2024,17 +2024,19 @@ Spring WebFlux提供了WebFilter接口实现过滤器的效果。
 
 作用是什么？
 
+应该是另外一直Web接口写法。
+
 
 
 #### 嵌入式容器
 
 servlet容器可以定义过滤器监听器，并作为Bean注册在Spring中。
 
-过滤器可以通过注解@Order或实现接口Ordered来控制指向的顺序，注解通过@Bean注入不能设置。
+过滤器可以通过注解`@Order`或实现接口`Ordered`来控制指向的顺序，注解通过@Bean注入不能设置。
 
-通过FilterRegistrationBean注入Bean是另外的方式控制顺序。
+通过`FilterRegistrationBean`注入Bean是另外的方式控制顺序。
 
-顺序的值要小于等于OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER。
+顺序的值要小于等于`OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER`。
 
 @ServletComponentScan注解可以扫描@WebServlet, @WebFilter, @WebListener注解的类。
 
