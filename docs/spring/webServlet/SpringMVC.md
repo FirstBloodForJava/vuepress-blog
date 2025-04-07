@@ -496,7 +496,7 @@ Servlet的API的ServletRequest.getParameter()方法只支持访问POST请求的�
 
 
 
-#### FowardedHeaderFilter
+#### ForwardedHeaderFilter
 
 [RFC7329](https://tools.ietf.org/html/rfc7239)定义了代理可以使用原始信息的Forwarded请求头，也有其它非标准头：X-Forwarded-Host、X-Forwarded-Port、X-Forwarded-Proto、X-Forwarded-Prefix、X-Forwarded-Ssl。
 
