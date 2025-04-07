@@ -581,13 +581,13 @@ spring.devtools.restart.trigger-file=.reloadtrigger
 
 失败原因分析处理：
 
-spring-boot模块中的META-INF/spring.factories文件中定义了org.springframework.boot.diagnostics.FailureAnalyzer=class名称，实现对SpringBoot启动失败分析。
+spring-boot模块中的`META-INF/spring.factories`文件中定义了`org.springframework.boot.diagnostics.FailureAnalyzer=class`名称，实现对SpringBoot启动失败分析。
 
 启动日志记录
 
-org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener注册监听时间，根据日志级别大于自动配置的情况。
+org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener注册监听时间，根据日志级别打印自动配置的情况。
 
-实现了ApplicationContextInitializer接口，通过spring-boot-autoconfigure模块META-INF/spring.factories自动注入，org.springframework.context.ApplicationContextInitializer=class。
+实现了ApplicationContextInitializer接口，通过spring-boot-autoconfigure模块META-INF/spring.factories自动注入，`org.springframework.context.ApplicationContextInitializer=class`。
 
 
 
@@ -2737,7 +2737,14 @@ starter依赖包中应该存在以下内容：
 
 
 
-META-INF/目录下添加spring.factories文件，可以定义自动扫描的类。
+`META-INF/spring.factories`文件，可以定义自动扫描的类。
+
+- `org.springframework.boot.autoconfigure.EnableAutoConfiguration=`指定自动配置类。
+- `org.springframework.context.ApplicationListener=`应用事件监听器，监听Spring事件。
+- `org.springframework.context.ApplicationContextInitializer=`应用上下文初始化器，用于在上下文准备阶段进行自定义。
+- `org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration=`为管理上下文定义特定的配置。
+- `**org.springframework.boot.env.EnvironmentPostProcessor**=`环境后处理器，用于在环境准备阶段修改配置。
+- `org.springframework.boot.diagnostics.FailureAnalyzer=`启动失败分析器，打印启动失败的信息。
 
 inject.properties
 
