@@ -212,9 +212,17 @@ gradlew.bat build 	# windows
 # 多模块项目,查询子project的依赖信息
 .\gradlew.bat :<project>:dependencies
 
+# 输出指定环境(compileClasspath)依赖信息
+.\gradlew.bat :<project>:dependencies --configuration compileClasspath
+
+# 输出指定环境(compileClasspath)依赖信息到文件
+.\gradlew.bat :<project>:dependencies --configuration compileClasspath > dependencies.txt
+
 ~~~
 
-
+- \\-：表示同级目录最后一个。
+- ->：表示实际使用的版本。
+- (*)：表示前面已经输出过该依赖。
 
 ![image-20250111112910025](http://47.101.155.205/image-20250111112910025.png)
 
