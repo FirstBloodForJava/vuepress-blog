@@ -2,7 +2,7 @@
 
 
 
-## Tomcat自动配置
+## Servlet自动配置
 
 - DispatcherServletAutoConfiguration
 - ServletWebServerFactoryAutoConfiguration
@@ -172,16 +172,81 @@ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration
 
 #### 1.Bean
 
-1. Web过滤器：`spring.mvc.hiddenmethod.filter.enabled`默认false。将POST请求，在携带`_method`请求参数的情况下，转换http请求方式。
-2. 
+Bean不存在才匹配。
+
+1. 注入Web过滤器`OrderedHiddenHttpMethodFilter(-10000)`：`spring.mvc.hiddenmethod.filter.enabled`默认false。将POST请求，在携带`_method`请求参数的情况下，转换http请求方式。
+2. Web过滤器`OrderedFormContentFilter(-9900)`：`spring.mvc.formcontent.filter.enable`默认开启，将`PUT/PATCH/DELETE`请求的表达数据解析到Servlet 请求参数中。
+
+![image-20250408193201029](http://47.101.155.205/image-20250408193201029.png)
+
+
+
+#### 2.WebMvcAutoConfigurationAdapter
+
+`WebMvcConfigurer`接口实现。
+
+Import `EnableWebMvcConfiguration`
+
+重写了接口的部分方法：
+
+- configureMessageConverters：
+- configureAsyncSupport：
+- configurePathMatch：
+- configureContentNegotiation：
+- getMessageCodesResolver
+- addFormatters
+- addResourceHandlers
 
 
 
 
 
-### 5HttpEncodingAutoConfiguration
+注入Bean(不存在才注入)：
+
+1. InternalResourceViewResolver：配置视图前缀后缀`spring.mvc.view.prefix/spring.mvc.view.suffix`。
+2. BeanNameViewResolver：存在`View` Bean匹配。
+3. ContentNegotiatingViewResolver：视图解析分发器。
+4. LocaleResolver：`spring.mvc.locale`配置才有效。
+5. 过滤器`RequestContextListener(-105)`：使用`ThreadLocal`缓存请求上下文。
+
+
+
+#### 3.EnableWebMvcConfiguration
+
+`EnableWebMvcConfiguration`实现`DelegatingWebMvcConfiguration`，相当于`@EnableWebMvc`作用。
+
+注入Bean：
+
+1. `RequestMappingHandlerAdapter`：
+2. `RequestMappingHandlerMapping`：
+3. `WelcomePageHandlerMapping`：
+4. `FormattingConversionService`：
+5. `Validator`：
+6. `ContentNegotiationManager`：
+
+
+
+#### 4.ResourceChainCustomizerConfiguration
+
+要一定条件才匹配。
+
+注入`ResourceChainResourceHandlerRegistrationCustomizer` Bean。
+
+
+
+### 5.HttpEncodingAutoConfiguration
 
 org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration
+
+获取`spring.http.encoding`字符编码相关配置。
+
+注入`CharacterEncodingFilter(Integer.MIN_VALUE)`过滤器：默认使用`UTF-8`字符编码，请求使用强制编码，响应不使用。
+
+注入`LocaleCharsetMappingsCustomizer`：根据`spring.http.encoding.mapping`配置，实现不同区域使用不同的字符编码。
+
+
+
+
 
 
 
@@ -191,3 +256,37 @@ org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration
 
 
 
+导入`MultipartProperties(spring.servlet.multipart)`配置。
+
+
+
+注入`MultipartConfigElement` Bean：
+
+- 匹配条件：`MultipartConfigElement`和`CommonsMultipartResolver`Bean都不存在。
+- 使用`MultipartProperties`配置文件上传功能：写入磁盘大小阈值、存储文件的目录、多媒体表单的最大大小(默认10MB)、上传文件的最大大小(默认1MB)。
+
+
+
+注入`StandardServletMultipartResolver`：
+
+- 匹配条件：`MultipartResolver` Bean 不存在。
+- 创建`StandardServletMultipartResolver` Bean，配置`spring.servlet.multipart.resolveLazily`，是否在文件或参数访问multipart请求时延迟解析。
+
+
+
+## embedded自动配置
+
+org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration
+
+使用嵌入式容器的顺序：
+
+1. Tomcat：
+2. Jetty：
+3. Undertow：
+4. 使用嵌入式reactor netty：
+
+创建`TomcatWebServerFactoryCustomizer`实例，是WebServerFactoryCustomizer\<ConfigurableTomcatWebServerFactory\>抽象类实现。
+
+
+
+通过导入`BeanPostProcessorsRegistrar(ImportBeanDefinitionRegistrar)`，注册`WebServerFactoryCustomizerBeanPostProcessor(BeanPostProcessor)`重写了`postProcessBeforeInitialization`方法，在`WebServerFactory` Bean创建后，调用`TomcatWebServerFactoryCustomizer`重写的`customize`方法。
