@@ -628,6 +628,9 @@ public @interface Conditional {
 1. 在任何类上直接或间接的结合@Component或@Configuration注解使用；
 2. 作为元注解在注解上使用；
 3. 结合@Bean注解在方法上使用。
+4. 注解指定的类上的注解`@Order`可以决定匹配条件的指向顺序。
+
+
 
 
 
