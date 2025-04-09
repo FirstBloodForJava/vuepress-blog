@@ -41,7 +41,7 @@ org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoCo
 
 
 
-如果是tomcat Servlet，则还创建`TomcatServletWebServerFactoryCustomizer` Bean。
+如果是tomcat Servlet，则还创建`TomcatServletWebServerFactoryCustomizer` Bean。**匹配条件是WebServerFactory对象的父类。**
 
 ![image-20250407211430258](http://47.101.155.205/image-20250407211430258.png)
 
@@ -290,3 +290,35 @@ org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCust
 
 
 通过导入`BeanPostProcessorsRegistrar(ImportBeanDefinitionRegistrar)`，注册`WebServerFactoryCustomizerBeanPostProcessor(BeanPostProcessor)`重写了`postProcessBeforeInitialization`方法，在`WebServerFactory` Bean创建后，调用`TomcatWebServerFactoryCustomizer`重写的`customize`方法。
+
+
+
+## 容器如何启动？
+
+ServletWeb应用，创建`ServletWebServerApplicationContext`上下文对象，调用`refresh()`。方法中调用`onRefresh()`创建Tomcat 容器。获取上下文`ServletWebServerFactory` Bean，用来创建SpringBoot定义的`WebServer`对象。
+
+
+
+**临时目录创建**：临时根目录通过`TempDirectory.location()`获取，前缀默认使用`tomcat`，后缀使用配置端口，中间值使用`SecureRandom.nextLong()`获取随机数。
+
+Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
+
+
+
+**Tomcat Servlet容器配置：**
+
+1. 创建连接器：默认使用`org.apache.coyote.http11.Http11NioProtocol`，属性`protocol`可配置该连接器类型。
+2. 创建在临时目录中创建工作目录，并设置连接器。
+3. 连接器设置`Server`绑定的地址；使用`TomcatProtocolHandlerCustomizer`实例对`ProtocolHandler`自定义(默认没有)；连接器设置默认URL编码(默认UTF-8)；设置延迟初始容器socket(避免ApplicationContext初始化慢的情况)；是否设置`ssl`连接(其中有判断使用使用http2协议)；是否设置自定义`TomcatConnectorCustomizer`连接器压缩；对连接器进行自定义。
+   1. `AbstractProtocol`设置最大工作线程数(默认200)，配置方式：`server.tomcat.maxThreads`；
+   2. `AbstractProtocol`设置最小工作线程数(默认10)，配置方式：`server.tomcat.minSpareThreads`；
+   3. `AbstractHttp11Protocol`设置http请求头最大容量(默认8KB)，配置方式：`server.tomcat.maxHttpHeaderSize`；
+   4. `AbstractHttp11Protocol`设置http请求体最大容量(默认2MB)，配置方式：`server.tomcat.maxSwallowSize`；
+   5. `Connector`设置http表单最大容量(默认2MB)，配置方式：`server.tomcat.maxHttpFormPostSize`；
+   6. `AbstractProtocol`设置最大连接数(默认8192)，配置方式：`server.tomcat.maxConnections`；
+   7. `AbstractProtocol`设置当线程都在使用时，传入连接请求的最大队列长度(默认100)，配置方式：`server.tomcat.acceptCount`；
+   8. `AbstractProtocol`设置将保留在缓存中并在后续请求中重用的空闲处理器的最大数量(默认200)。设为-1，表示缓存是无限的，理论大小等于最大连接数。配置方式：`server.tomcat.processorCache`；
+4. 再次将连接器绑定到tomcat，为什么这样做？
+5. Tomcat 服务设置默认引擎；设置延迟`server.tomcat.backgroundProcessorDelay`默认10s；
+6. 
+
