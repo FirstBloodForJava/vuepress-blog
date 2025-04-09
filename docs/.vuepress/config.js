@@ -232,7 +232,8 @@ export default defineUserConfig({
           {
             text: 'tcp',
             link: 'TCP'
-          }
+          },
+          'Redis.md'
         ]
       },
       // mq
