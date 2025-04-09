@@ -307,6 +307,8 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 **Tomcat Servlet容器配置：**
 
+`TomcatServletWebServerFactory.getWebServer()`
+
 1. 创建连接器：默认使用`org.apache.coyote.http11.Http11NioProtocol`，属性`protocol`可配置该连接器类型。
 2. 创建在临时目录中创建工作目录，并设置连接器。
 3. 连接器设置`Server`绑定的地址；使用`TomcatProtocolHandlerCustomizer`实例对`ProtocolHandler`自定义(默认没有)；连接器设置默认URL编码(默认UTF-8)；设置延迟初始容器socket(避免ApplicationContext初始化慢的情况)；是否设置`ssl`连接(其中有判断使用使用http2协议)；是否设置自定义`TomcatConnectorCustomizer`连接器压缩；对连接器进行自定义。
@@ -320,5 +322,39 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
    8. `AbstractProtocol`设置将保留在缓存中并在后续请求中重用的空闲处理器的最大数量(默认200)。设为-1，表示缓存是无限的，理论大小等于最大连接数。配置方式：`server.tomcat.processorCache`；
 4. 再次将连接器绑定到tomcat，为什么这样做？
 5. Tomcat 服务设置默认引擎；设置延迟`server.tomcat.backgroundProcessorDelay`默认10s；
-6. 
+6. 如果有配置其它连接器，则在tomcat上添加连接器；
+7. 一些固定设置；
+8. 重写`postProcessContext`方法调用；
+
+`TomcatServletWebServerFactory.getTomcatWebServer(Tomcat tomcat)`：
+
+1. 创建`TomcatWebServer`对象，打印`Tomcat initialized with port(s)`+端口+协议日志；
+2. 是否重写设置引擎名称，格式Tomcat-i；
+3. 删除服务连接器，以免协议绑定在服务启动时发生。为什么？
+4. Tocat启动。调用`StandardServer`父类`start()`方法。触发之前注册的监听器。
+   1. 创建一个优先级为1，核心线程数2的`ScheduledThreadPoolExecutor`，线程名称前缀`Catalina-utility-`；
+   2. 注册缓存，作用？
+   3. 注册`MBeanFactory` ，作用？
+   4. 注册`naming resources`，和Server一样，也有状态；
+   5. 初始化定义Service，和Server一样，也有状态；
+   6. 启动Serive，打印日志`Starting service` + 服务名，启动引擎。
+5. 启动之后，由于Tomcat所有线程都是守护线程，创建一个阻塞非守护线程，用来关闭Server，线程名`container-i`；
+
+
+
+**finishRefresh()**调用`startWebServer()`启动Tomcat容器。最后发布`ServletWebServerInitializedEvent`事件。
+
+
+
+### 处理请求线程池创建
+
+队列使用`TaskQueue`，继承`LinkedBlockingQueue`，队列类型为`Runnable`，创建队列的容量默认是最大。
+
+使用tomcat自定义的`TaskThreadFactory`线程工厂，线程名称前缀`http-nio-port`，线程优先级5，默认都是守护线程。
+
+线程池`ThreadPoolExecutor`，继承`java.util.concurrent.ThreadPoolExecutor`。初始化默认就激活了最小数量(核心线程数)的线程。
+
+
+
+
 
