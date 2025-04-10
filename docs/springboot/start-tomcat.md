@@ -330,7 +330,7 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 1. 创建`TomcatWebServer`对象，打印`Tomcat initialized with port(s)`+端口+协议日志；
 2. 是否重写设置引擎名称，格式Tomcat-i；
-3. 删除服务连接器，以免协议绑定在服务启动时发生。为什么？
+3. 删除服务连接器，以免协议绑定在服务启动时发生。**为什么？**
 4. Tocat启动。调用`StandardServer`父类`start()`方法。触发之前注册的监听器。
    1. 创建一个优先级为1，核心线程数2的`ScheduledThreadPoolExecutor`，线程名称前缀`Catalina-utility-`；
    2. 注册缓存，作用？
@@ -350,11 +350,62 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 队列使用`TaskQueue`，继承`LinkedBlockingQueue`，队列类型为`Runnable`，创建队列的容量默认是最大。
 
-使用tomcat自定义的`TaskThreadFactory`线程工厂，线程名称前缀`http-nio-port`，线程优先级5，默认都是守护线程。
+使用tomcat自定义的`TaskThreadFactory`线程工厂，线程名称前缀`http-nio-[port]-exec`，线程优先级5，默认都是守护线程。
 
-线程池`ThreadPoolExecutor`，继承`java.util.concurrent.ThreadPoolExecutor`。初始化默认就激活了最小数量(核心线程数)的线程。
-
-
+线程池`ThreadPoolExecutor`，继承`java.util.concurrent.ThreadPoolExecutor`。初始化默认就激活了最小数量(核心线程数)的线程。拒绝策略，抛出`RejectedExecutionException`异常。
 
 
 
+
+
+**Tomcat线程池execute(Runnable command)执行逻辑：**
+
+线程池的逻辑没有大改，而是通过重写自定义`TaskQueue`阻塞队列的`offer`方法，来改变线程池的逻辑。
+
+重写了线程池`afterExecute`，在任务执行完毕后调用。作用是：当前线程使用数量计数减一，判断是否需要停止当前线程。**TaskQueue队列的poll方法也调用了是否关闭线程的方法，take方法相同。**
+
+**正在处理的请求的线程超过核心线程数，开始激活其它线程处理请求。**
+
+![image-20250410193337369](http://47.101.155.205/image-20250410193337369.png)
+
+
+
+### 影响tomcat处理请求配置
+
+~~~properties
+# tomcat最大连接数
+server.tomcat.maxConnections=100
+# 请求的最大队列长度
+server.tomcat.acceptCount=100
+# 最大工作线程
+server.tomcat.maxThreads=300
+# 最小工作线程
+server.tomcat.minSpareThreads=10
+
+~~~
+
+**使用jmeter发起300个请求，每个请求睡眠3s。100个请求耗时3s，100个请求耗时大于3s小于6s，100个请求失败。**
+
+**没有超过6s，可能是jmeter发起请求时有部分耗时。**
+
+**说明tomcat处理请求的并发数量由最大连接数和队列长度决定。超过最大连接数的数量会先进入等待队列(TCP连接以及建立)，待前面请求处理完成(释放连接)，再分发到工作线程处理请求。**
+
+![image-20250410203715184](http://47.101.155.205/image-20250410203715184.png)
+
+![image-20250410203841146](http://47.101.155.205/image-20250410203841146.png)
+
+![image-20250410210201475](http://47.101.155.205/image-20250410210201475.png)
+
+
+
+### Tomcat线程模型
+
+![image-20250410212000843](http://47.101.155.205/image-20250410212000843.png)
+
+
+
+`Acceptor`线程接收新连接，注册到`Poller`线程的`Selector`中。
+
+`Poller`线程负责监听Socket事件(通过`Selector`)，检测到就绪事件后封装成Runnable分发给工作线程。
+
+![image-20250410213126229](http://47.101.155.205/image-20250410213126229.png)
