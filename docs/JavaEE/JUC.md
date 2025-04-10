@@ -818,8 +818,8 @@ private Runnable getTask() {
 		}
         
         int wc = workerCountOf(c);
-        //allowCoreThreadTimeOut是否允许核心线程超时退出，在设置保持存活时间和allowCoreThreadTimeOut为true时
-        //会关闭核心线程 que
+        //allowCoreThreadTimeOut 是否允许核心线程超时退出，默认false，不退出
+        // wc表示当前存活的线程数量
         boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
         
         if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
@@ -829,7 +829,9 @@ private Runnable getTask() {
 		}
         
 		try {
-            //关键代码在这里，没有设置线程超时时间，会用take取队列中的元素，会一直阻塞。
+            //关键代码在这里
+            // timed 为true，要避免获取队列中元素超时的情况(因为超过这个时间会关闭线程)
+            // 其它会用take取队列中的元素，会一直阻塞。
         	Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
 			if (r != null)
             	return r;
