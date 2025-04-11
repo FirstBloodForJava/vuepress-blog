@@ -23,11 +23,13 @@ org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoCo
 
 使用`@Import`注册`ImportBeanDefinitionRegistrar(ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar)`，注册`ServletWebServerFactory`，用于创建`WebServer`的工厂。Servlet容器加载顺序：
 
-1. Tomcat
-2. Jetty
-3. Undertow
+1. Tomcat：`TomcatServletWebServerFactory`，往工厂添加定义器：`TomcatConnectorCustomizer`、`TomcatContextCustomizer`、`TomcatProtocolHandlerCustomizer`。
+2. Jetty：`JettyServletWebServerFactory`，往工厂添加自定义器：`JettyServerCustomizer`。
+3. Undertow：`UndertowServletWebServerFactory`，玩工厂添加自定义器：`UndertowDeploymentInfoCustomizer`、`UndertowBuilderCustomizer`。
 
-导入`ImportBeanDefinitionRegistrar`作用？
+**导入`ImportBeanDefinitionRegistrar`作用？**
+
+通过注册`WebServerFactoryCustomizerBeanPostProcessor`Bean后置处理器，在创建Server容器之前，根据配置对ServerFactory工厂进行配置。
 
 
 
@@ -285,6 +287,8 @@ org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCust
 3. Undertow：
 4. 使用嵌入式reactor netty：
 
+**Tomcat容器存在：**
+
 创建`TomcatWebServerFactoryCustomizer`实例，是WebServerFactoryCustomizer\<ConfigurableTomcatWebServerFactory\>抽象类实现。
 
 
@@ -293,7 +297,17 @@ org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCust
 
 
 
-## Tomcat容器如何启动？
+**Undertow容器存在：**
+
+创建`UndertowWebServerFactoryCustomizer`实例，是WebServerFactoryCustomizer\<ConfigurableUndertowWebServerFactory\>的实现。对Undertow容器根据配置进行自定义操作。原理同Tomcat容器。
+
+
+
+
+
+
+
+## Tomcat容器启动
 
 ServletWeb应用，创建`ServletWebServerApplicationContext`上下文对象，调用`refresh()`。方法中调用`onRefresh()`创建Tomcat 容器。获取上下文`ServletWebServerFactory` Bean，用来创建SpringBoot定义的`WebServer`对象。
 
@@ -409,3 +423,8 @@ server.tomcat.minSpareThreads=10
 `Poller`线程负责监听Socket事件(通过`Selector`)，检测到就绪事件后封装成Runnable分发给工作线程。
 
 ![image-20250410213126229](http://47.101.155.205/image-20250410213126229.png)
+
+
+
+## Undertow容器启动过程
+
