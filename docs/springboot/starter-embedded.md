@@ -1,4 +1,4 @@
-# Tomcat
+# 嵌入式容器starter
 
 
 
@@ -293,7 +293,7 @@ org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCust
 
 
 
-## 容器如何启动？
+## Tomcat容器如何启动？
 
 ServletWeb应用，创建`ServletWebServerApplicationContext`上下文对象，调用`refresh()`。方法中调用`onRefresh()`创建Tomcat 容器。获取上下文`ServletWebServerFactory` Bean，用来创建SpringBoot定义的`WebServer`对象。
 
