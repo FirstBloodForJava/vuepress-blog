@@ -333,6 +333,10 @@ export default defineUserConfig({
           {
             text: 'SpringBoot-2.2.7.RELEASE介绍',
             link: 'SpringBoot-2.2.7.RELEASE'
+          },
+          {
+            text: '嵌入式容器starter',
+            link: 'starter-embedded'
           }
         ]
       },
