@@ -23,9 +23,9 @@ org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoCo
 
 使用`@Import`注册`ImportBeanDefinitionRegistrar(ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar)`，注册`ServletWebServerFactory`，用于创建`WebServer`的工厂。Servlet容器加载顺序：
 
-1. Tomcat：`TomcatServletWebServerFactory`，往工厂添加定义器：`TomcatConnectorCustomizer`、`TomcatContextCustomizer`、`TomcatProtocolHandlerCustomizer`。
+1. Tomcat：`TomcatServletWebServerFactory`，往工厂添加定义器：`TomcatConnectorCustomizer`、`TomcatContextCustomizer`、`TomcatProtocolHandlerCustomizer`。可用在创建或启动容器对容器进行自定义的操作
 2. Jetty：`JettyServletWebServerFactory`，往工厂添加自定义器：`JettyServerCustomizer`。
-3. Undertow：`UndertowServletWebServerFactory`，玩工厂添加自定义器：`UndertowDeploymentInfoCustomizer`、`UndertowBuilderCustomizer`。
+3. Undertow：往`UndertowServletWebServerFactory`工厂添加自定义器：`UndertowDeploymentInfoCustomizer`、`UndertowBuilderCustomizer`：对`Builder`进行自定义，从而达到对Undertow容器进行自定义操作。
 
 **导入`ImportBeanDefinitionRegistrar`作用？**
 
@@ -38,6 +38,20 @@ org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoCo
 创建`ServletWebServerFactoryCustomizer` Bean，获取ServerProperties(server.)配置类信息。
 
 设计`PropertyMapper`替换了if-else写法，设置工厂的配置。
+
+对ServerFacotry工厂进行**公共**初始化配置。
+
+1. 端口
+2. 绑定地址
+3. Servlet上下文地址
+4. 应用名称
+5. Session配置
+6. 是否ssl协议配置
+7. 是否配置Servlet JSP
+8. 是否压缩配置
+9. 是否http2协议配置
+10. `server.serverHeader`配置
+11. Servlet上下文初始化参数`server.servlet`
 
 ![image-20250407210032896](http://47.101.155.205/image-20250407210032896.png)
 
@@ -427,4 +441,238 @@ server.tomcat.minSpareThreads=10
 
 
 ## Undertow容器启动过程
+
+### 1.配置ServerFactory工厂
+
+通用`ServletWebServerFactoryCustomizer`配置。
+
+UndertowWebServerFactoryCustomizer
+
+![image-20250411204056905](http://47.101.155.205/image-20250411204056905.png)
+
+![image-20250411204239303](http://47.101.155.205/image-20250411204239303.png)
+
+1. server配置，配置请求头最大大小(`server.maxHttpHeaderSize=8KB`)，连接超时时间(`server.connectionTimeout=null`)；通过往工厂添加自定义器`UndertowBuilderCustomizer`对象设置配置。
+2. `server.undertow`配置
+   1. `bufferSize=null`，每个缓存区的大小，默认来自JVM可以最大内存；
+   2. `ioThreads=null`，I/O工作线程线程数，默认是可用处理器数量`Runtime.getRuntime().availableProcessors()`；
+   3. `workerThreads=null`，工作中线程数，默认是I/O线程8倍；
+   4. `directBuffers=null`，是否在Java堆外分配缓冲区。默认来自JVM可以最大内存；
+   5. `maxHttpPostSize=-1`，Http Post请求最大大小，-1表示无限制；通过`UndertowBuilderCustomizer`设置；
+   6. `maxParameters=1000`，查询参数或路径参数最大数量，为了避免基于哈希冲突的Dos攻击；
+   7. `maxHeaders=200`，请求头最大数量，为了避免基于哈希冲突的Dos攻击；
+   8. `maxCookies=200`，Cookie最大数量，为了避免基于哈希冲突的Dos攻击；
+   9. `allowEncodedSlash=false`，服务器是否应该解码百分比编码斜杠字符。由于不同的服务器对斜杠的解释不同，启用编码斜杠可能会带来安全隐患。只有在遗留应用程序需要它时才启用它。
+   10. `decodeUrl=true`，是否对URL进行解码。当禁用时，URL中的百分比编码字符将保持原样。
+   11. `urlCharset=UTF-8`，解码使用的字符集；
+   12. `alwaysSetKeepAlive=true`，是否在所有响应头中添加`Connection=keep-alive`；
+   13. `noRequestTimeout=null`，连接超过此时间没有请求，则关闭连接；
+   14. `options.server=map`，key要遵循`UndertowOptions`类中静态属性名称`Option`规则。
+   15. `options.socket=map`，
+3. `server.undertow.accesslog`配置
+   1. `enabled=false`，是否开启访问日志；
+   2. `dir=logs`，访问日志目录；
+   3. `pattern=common`，日志格式；
+   4. `prefix=access_log.`，日志文件前缀；
+   5. `suffix=log`，日志文件后缀；
+   6. `rotate=true`，是否启用日志轮换；
+4. `server.forwardHeadersStrategy=null`，配置根据请求头转发策略；是否使用`x-forward-`头转发请求策略，默认false；
+
+
+
+### 2.根据ServerFactory创建Server
+
+![image-20250411210309520](http://47.101.155.205/image-20250411210309520.png)
+
+![image-20250411210240459](http://47.101.155.205/image-20250411210240459.png)
+
+![image-20250411205238518](http://47.101.155.205/image-20250411205238518.png)
+
+1. 容器的一些固定设置+SpringMVC打通；
+2. 容器的Bulder固定设置；在这个过程中，对Builder执行自定义的`UndertowBuilderCustomizer`操作；`addHttpListener`添加一个Server监听器，供启动Server使用；
+3. 创建`UndertowServletWebServer` Server对象；
+
+
+
+**获取默认I/O线程，及缓冲区配置的地方**
+
+![image-20250411212041842](http://47.101.155.205/image-20250411212041842.png)
+
+
+
+### 3.启动容器
+
+![image-20250411210739993](http://47.101.155.205/image-20250411210739993.png)
+
+![image-20250411211121573](http://47.101.155.205/image-20250411211121573.png)
+
+![image-20250413134827936](http://47.101.155.205/image-20250413134827936.png)
+
+![image-20250413135817087](http://47.101.155.205/image-20250413135817087.png)
+
+**Undertow.start()**
+
+1. 获取Undertow容器版本；
+2. 先通过`ServiceLoader.load(XnioProvider.class, classLoader)`创建Xnio对象。再创建`NioXnioWorker`对象：
+   1. 创建工作线程池`TaskPool`，重写`terminated()`方法。默认情况下，核心线程数就等于最大线程数、使用无界阻塞队列、使用AbortPolicy拒绝策略、线程工厂使用`AccessController.doPrivileged(.)`创建线程对象，线程组为null，线程空闲时间60s，是否守护线程可配置，默认线程名称**XNIO-i task-i(XNIO-i是默认自动生成前缀，名称可配置)**。
+   2. 创建工作I/O线程集合，`WorkerThread`线程集合。线程名称：**XNIO-i  I/O-j(j从1开始，累加)**
+   3. 创建工作Accept线程，`WorkerThread`线程。线程名称：**XNIO-i Accept**。
+   4. 注册MBean。
+   5. `NioXnioWorker`调用`start()`。启动I/O线程和Accept线程。
+3. 默认的Socket配置设置，以及自定义的Socket配置设置：
+   1. `Options.WORKER_IO_THREADS`配置I/O工作线程数量。
+   2. `Options.TCP_NODELAY`配置是否禁用Nagle算法；开启会有延迟。
+   3. `Options.REUSE_ADDRESSES`是否复用绑定的ip地址。
+   4. `Options.BALANCING_TOKENS`连接平衡配置，默认没有用。
+   5. `Options.BALANCING_CONNECTIONS`连接平衡配置，默认没有用。
+   6. `Options.BACKLOG`连接满了的队列上限；
+   7. 其它自定义配置，可覆盖前面的配置。
+4. 默认的Server配置设置，以及自定义Server配置设置：
+   1. `UndertowOptions.NO_REQUEST_TIMEOUT`连接空闲时间，新建TCP连接，超过时间未发送请求头数据关闭连接。
+   2. 其它自定义配置，可覆盖前面的配置。
+5. 根据配置的`byteBufferPool`设置缓冲区大小，默认情况见`2`中说明。
+6. 注册监听。
+
+
+
+
+
+**使用服务发现机制创建加载实现：xnio实例NioXnio**
+
+![image-20250413144337108](http://47.101.155.205/image-20250413144337108.png)
+
+**`NioXnioWorker`构造方法执行情况：**
+
+![image-20250413141905794](http://47.101.155.205/image-20250413141905794.png)
+
+
+
+通过`Class.getResourceAsStream("path")`获取jar包中的properties文件(获取Undertow容器版本)：
+
+~~~java
+public class Version {
+    private static final String versionString;
+    private static final String SERVER_NAME = "Undertow";
+    private static final String fullVersionString;
+
+    static {
+        String version = "Unknown";
+        try (InputStream versionPropsStream = Version.class.getResourceAsStream("version.properties")){
+            Properties props = new Properties();
+            props.load(versionPropsStream);
+            version = props.getProperty("undertow.version");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        versionString = version;
+        fullVersionString = SERVER_NAME + " - "+ versionString;
+    }
+
+    public static String getVersionString() {
+        return versionString;
+    }
+
+    public static String getFullVersionString() {
+        return fullVersionString;
+    }
+}
+
+~~~
+
+
+
+
+
+### 4.线程模型
+
+![image-20250411215838406](http://47.101.155.205/image-20250411215838406.png)
+
+**在16核的Windows机器上，没有任何Undertow相关配置。**
+
+启动之后，线程情况：1个`XNIO-1 Accept`线程，16个`XNIO-1 I/O-`I/O线程，没有创建工作线程。
+
+通过jmeter发起300并发请求，`XNIO-1 task-`工作线程数量128，没有请求失败，最长请求时间没有超过9s（可能是建立TCP连接需要耗时，导致没有到9s）。
+
+![image-20250411215922678](http://47.101.155.205/image-20250411215922678.png)
+
+**同时处理请求的数量受工作线程限制。**
+
+
+
+**Undertow创建工作线程(Worker)的配置：**
+
+![image-20250413123724964](http://47.101.155.205/image-20250413123724964.png)
+
+
+
+### 5.自定义容器配置
+
+通过注入`UndertowBuilderCustomizer` Bean对`Undertow.Builder`对象自定义配置。
+
+
+
+~~~java
+import io.undertow.Undertow;
+import io.undertow.UndertowOptions;
+import org.springframework.boot.web.embedded.undertow.UndertowBuilderCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.xnio.Options;
+
+@Configuration
+public class CustomUndertowConfig {
+
+    @Bean
+    public UndertowBuilderCustomizer myUndertowCustom() {
+        return new CustomBuild();
+    }
+
+    static class CustomBuild implements UndertowBuilderCustomizer {
+
+        @Override
+        public void customize(Undertow.Builder builder) {
+
+            // worker
+            // 覆盖io线程数量配置
+            builder.setWorkerOption(Options.WORKER_IO_THREADS, 4);
+
+            // 修改线程名称前缀
+            builder.setWorkerOption(Options.WORKER_NAME, "Undertow");
+
+            // 修改工作线程数
+            builder.setWorkerOption(Options.WORKER_TASK_MAX_THREADS, 200);
+            builder.setWorkerOption(Options.WORKER_TASK_CORE_THREADS, 200);
+
+            // Socket
+            // 配置连接阈值 失败数量不稳定
+            builder.setSocketOption(Options.CONNECTION_HIGH_WATER, 200);
+            builder.setSocketOption(Options.CONNECTION_LOW_WATER, 100);
+
+            //
+            builder.setSocketOption(UndertowOptions.QUEUED_FRAMES_HIGH_WATER_MARK, 300);
+            builder.setSocketOption(UndertowOptions.QUEUED_FRAMES_HIGH_WATER_MARK, 200);
+
+            // 配置连接队列
+            builder.setSocketOption(Options.BACKLOG, 100);
+
+            // 配置读写超时时间
+            builder.setSocketOption(Options.READ_TIMEOUT, 10000);
+            builder.setSocketOption(Options.WRITE_TIMEOUT, 10000);
+
+            builder.setSocketOption(UndertowOptions.REQUEST_PARSE_TIMEOUT, 1000);
+
+            // Server
+
+            // TCP连接建立后，第一个HTTP请求到达前的空闲等待时间
+            builder.setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT, 30 * 1000);
+            // 两个连续请求之间的空闲时间(Keep-Alive连接) 超过关闭连接
+            builder.setServerOption(UndertowOptions.IDLE_TIMEOUT, 30 * 1000);
+
+            // 并发请求配置
+            //builder.setServerOption(UndertowOptions.MAX_CONCURRENT_REQUESTS_PER_CONNECTION, 5);
+        }
+    }
+}
+
+~~~
 
