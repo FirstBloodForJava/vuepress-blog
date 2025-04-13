@@ -10,7 +10,7 @@
 
 迁移指南：https://github.com/micrometer-metrics/tracing/wiki/Spring-Cloud-Sleuth-3.1-Migration-Guide
 
-spring-cloud-starter-sleuth的版本与spring-boot的版本有差异可能导致不能启动。
+`spring-cloud-starter-sleuth`的版本与`spring-boot`的版本有差异可能导致不能启动。
 
 
 
