@@ -4,7 +4,7 @@
 
 ## sleuth简介
 
-官网文档地址：https://docs.spring.io/spring-cloud-sleuth/docs/3.1.10-SNAPSHOT/reference/htmlsingle/
+
 
 该项目的核心功能迁移到Micrometer tracing：https://micrometer.io/docs/tracing
 
@@ -12,7 +12,9 @@
 
 `spring-cloud-starter-sleuth`的版本与`spring-boot`的版本有差异可能导致不能启动。
 
+Spring文档：https://docs.spring.io/spring-cloud-sleuth/docs/2.2.7.RELEASE/reference/html/
 
+最新文档地址：https://docs.spring.io/spring-cloud-sleuth/docs/3.1.10-SNAPSHOT/reference/htmlsingle/
 
 
 
