@@ -322,6 +322,10 @@ export default defineUserConfig({
                   link: 'WebClient'
                 }
             ]
+          },
+          {
+            text: "日志框架",
+            link: "logFramework"
           }
         ]
       },
