@@ -6,8 +6,6 @@ Log4J 2：https://logging.apache.org/log4j/2.x/
 
 Logback：https://logback.qos.ch/
 
-Logback MDC：https://logback.qos.ch/manual/mdc.html
-
 
 
 ## SLF4J
@@ -378,25 +376,38 @@ log4j2.xml配置：
 
 ## spring-boot-starter-logging
 
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-logging</artifactId>
+    <version>2.2.7.RELEASE</version>
+    <scope>compile</scope>
+</dependency>
+
+~~~
+
+`spring-boot-starter-logging`使用SLF4J为抽象层，Logback作为实现。
+
 ![image-20250415171916969](http://47.101.155.205/image-20250415171916969.png)
 
 
 
 ~~~xml
+<!-- SLF4J的logback实现 -->
 <dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
     <version>1.2.3</version>
     <scope>compile</scope>
 </dependency>
-
+<!-- Log4j2 API 调用桥接到 SLF4J -->
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-to-slf4j</artifactId>
     <version>2.12.1</version>
     <scope>compile</scope>
 </dependency>
-
+<!-- JUL API 调用桥接到 SLF4J -->
 <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>jul-to-slf4j</artifactId>
@@ -408,6 +419,61 @@ log4j2.xml配置：
     <groupId>org.springframework</groupId>
     <artifactId>spring-jcl</artifactId>
     <version>5.2.6.RELEASE</version>
+    <scope>compile</scope>
+</dependency>
+
+~~~
+
+
+
+`spring-jcl`提供对Jcl API支持，底层根据存在的class判断使用哪个日志框架来封装成Jcl API。
+
+![image-20250415192452244](http://47.101.155.205/image-20250415192452244.png)
+
+
+
+## spring-boot-starter-log4j2
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-log4j2</artifactId>
+    <version>2.2.7.RELEASE</version>
+    <scope>compile</scope>
+</dependency>
+
+~~~
+
+spring-boot-starter-log4j2 使用slf4j为抽象，log4j2作为实现。
+
+![image-20250415195038776](http://47.101.155.205/image-20250415195038776.png)
+
+~~~xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-slf4j-impl</artifactId>
+    <version>2.12.1</version>
+    <scope>compile</scope>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.12.1</version>
+    <scope>compile</scope>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-jul</artifactId>
+    <version>2.12.1</version>
+    <scope>compile</scope>
+</dependency>
+
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>jul-to-slf4j</artifactId>
+    <version>1.7.30</version>
     <scope>compile</scope>
 </dependency>
 
@@ -431,4 +497,401 @@ java -jar slf4j-migrator-2.0.16.jar
 ![image-20250415124547707](http://47.101.155.205/image-20250415124547707.png)
 
 
+
+
+
+## MDC
+
+MDC(Mapped Diagnostic Context)使用应用程序提供的键值对，供日志框架将其插入到日志消息中。
+
+SFL4J支持MDC。如果底层日志框架支持MDC功能，那么SLF4J则委托给底层框架。log4j和logback提供MDC功能。java.util.logging没有提供该功能。
+
+Logback MDC：https://logback.qos.ch/manual/mdc.html
+
+
+
+### 简单使用MDC
+
+~~~java
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.Loader;
+import ch.qos.logback.core.util.StatusPrinter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import java.net.URL;
+
+public class SimpleMDC {
+
+    static public void main(String[] args) throws Exception {
+
+        // logback.xml文件会自动加载
+        MDC.put("key", "MDC");
+
+        Logger logger = LoggerFactory.getLogger(SimpleMDC.class);
+
+        MDC.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        logger.info("Hello World");
+
+        MDC.put("key", "nextMDC");
+        MDC.put("timestamp", String.valueOf(System.currentTimeMillis()));
+
+        logger.info("next Hello World!");
+    }
+
+    /**
+     * 配置 xml
+     */
+    private static void configureViaXML_File() {
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        try {
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(lc);
+            lc.reset();
+            URL url = Loader.getResourceBySelfClassLoader("logback.xml");
+            configurator.doConfigure(url);
+        } catch (JoranException je) {
+            StatusPrinter.print(lc);
+        }
+    }
+
+    /**
+     * 代码配置日志格式
+     */
+    private static void programmaticConfiguration() {
+        // 代码配置
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        loggerContext.reset();
+        PatternLayoutEncoder layout = new PatternLayoutEncoder();
+        layout.setContext(loggerContext);
+        layout.setPattern("%X{key} %X{timestamp} [%t] - %m%n");
+        layout.start();
+
+        ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
+        appender.setContext(loggerContext);
+        appender.setEncoder(layout);
+        appender.start();
+        // 强制转换成 Logger，添加追加器
+        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("root");
+        root.addAppender(appender);
+    }
+
+}
+
+~~~
+
+logback.xml配置：
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%X{key} %X{timestamp} [%t] - %m%n</Pattern>
+        </layout>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
+
+~~~
+
+
+
+### 高级使用MDC
+
+服务端：
+
+~~~xml
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface NumberCruncher extends Remote {
+    int[] factor(int number) throws RemoteException;
+}
+
+~~~
+
+~~~java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.Vector;
+
+public class NumberCruncherServer extends UnicastRemoteObject
+        implements NumberCruncher {
+
+    private static final long serialVersionUID = 1L;
+
+    static Logger logger = LoggerFactory.getLogger(NumberCruncherServer.class);
+
+    public NumberCruncherServer() throws RemoteException {
+    }
+
+    public int[] factor(int number) throws RemoteException {
+        // MDC 设置client 端口号
+        try {
+            MDC.put("client", NumberCruncherServer.getClientHost());
+        } catch (java.rmi.server.ServerNotActiveException e) {
+            logger.warn("Caught unexpected ServerNotActiveException.", e);
+        }
+
+        // 请求参数
+        MDC.put("number", String.valueOf(number));
+
+        logger.info("Beginning to factor.");
+
+        if (number <= 0) {
+            throw new IllegalArgumentException(number +
+                    " is not a positive integer.");
+        } else if (number == 1) {
+            return new int[]{1};
+        }
+
+        Vector<Integer> factors = new Vector<Integer>();
+        int n = number;
+
+        for (int i = 2; (i <= n) && ((i * i) <= number); i++) {
+
+            logger.debug("Trying " + i + " as a factor.");
+
+            if ((n % i) == 0) {
+                logger.info("Found factor " + i);
+                factors.addElement(new Integer(i));
+
+                do {
+                    n /= i;
+                } while ((n % i) == 0);
+            }
+
+            // sleep 100 ms
+            delay(100);
+        }
+
+        if (n != 1) {
+            logger.info("Found factor " + n);
+            factors.addElement(new Integer(n));
+        }
+
+        int[] result = new int[factors.size()];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = factors.elementAt(i);
+        }
+
+        // clean up
+        MDC.remove("client");
+        MDC.remove("number");
+
+        return result;
+    }
+
+    static void usage(String msg) {
+        System.err.println(msg);
+        System.err.println("Usage: java chapters.mdc.NumberCruncherServer configFile\n" +
+                "   where configFile is a logback configuration file.");
+        System.exit(1);
+    }
+
+    public static void delay(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            usage("Wrong number of arguments.");
+        }
+
+        NumberCruncherServer ncs;
+
+        // 设置logback.xml
+
+        try {
+            ncs = new NumberCruncherServer();
+            logger.info("Creating registry.");
+
+            Registry registry = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
+            registry.rebind("Factor", ncs);
+            logger.info("NumberCruncherServer bound and ready.");
+        } catch (Exception e) {
+            logger.error("Could not bind NumberCruncherServer.", e);
+
+        }
+    }
+}
+
+~~~
+
+logback.xml配置：
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <layout>
+      <Pattern>%-4r [%thread] %-5level C:%X{client} N:%X{number} - %msg%n</Pattern>
+    </layout>	    
+  </appender>
+  
+  <root level="debug">
+    <appender-ref ref="CONSOLE"/>
+  </root>  
+</configuration>
+
+~~~
+
+
+
+客户端：
+
+~~~java
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+
+public class NumberCruncherClient {
+
+    // args[0] = localhost
+    public static void main(String[] args) {
+
+        String host;
+        if (args.length == 1) {
+            host = args[0];
+        } else {
+            host = "localhost";
+        }
+
+        try {
+            String url = "rmi://" + host + "/Factor";
+            NumberCruncher nc = (NumberCruncher) Naming.lookup(url);
+            loop(nc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void loop(NumberCruncher nc) {
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        int i = 0;
+
+        while (true) {
+            System.out.print("Enter a number to factor, '-1' to quit: ");
+
+            try {
+                i = Integer.parseInt(in.readLine());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (i == -1) {
+                System.out.print("Exiting loop.");
+                // 退出
+                return;
+            } else {
+                try {
+                    System.out.println("Will attempt to factor " + i);
+
+                    int[] factors = nc.factor(i);
+                    System.out.print("The factors of " + i + " are");
+
+                    for (int k = 0; k < factors.length; k++) {
+                        System.out.print(" " + factors[k]);
+                    }
+
+                    System.out.println(".");
+                } catch (RemoteException e) {
+                    System.err.println("Could not factor " + i);
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+~~~
+
+
+
+### Web过滤器使用MDC
+
+~~~java
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.Principal;
+
+public class UserServletFilter implements Filter {
+
+    private final String USER_KEY = "username";
+
+    public void destroy() {
+    }
+
+    public void doFilter(ServletRequest request, ServletResponse response,
+                         FilterChain chain) throws IOException, ServletException {
+
+        boolean successfulRegistration = false;
+
+        HttpServletRequest req = (HttpServletRequest) request;
+        // 获取已验证用户名称
+        Principal principal = req.getUserPrincipal();
+
+        if (principal != null) {
+            String username = principal.getName();
+            // 将 username 注册到MDC中
+            successfulRegistration = registerUsername(username);
+        }
+
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            // 释放MDC
+            if (successfulRegistration) {
+                MDC.remove(USER_KEY);
+            }
+        }
+    }
+
+    public void init(FilterConfig arg0) throws ServletException {
+    }
+
+    private boolean registerUsername(String username) {
+        if (username != null && username.trim().length() > 0) {
+            MDC.put(USER_KEY, username);
+            return true;
+        }
+        return false;
+    }
+}
+
+~~~
+
+
+
+### 多线程使用MDC
+
+
+
+在主线程调用线程任务之前先调用`MDC.getCopyOfContextMap()`；任务执行时将主线程的拷贝设置到当前线程`MDC.setContextMap()`，进行关联。
+
+
+
+### MDCInsertingServletFilter
 
