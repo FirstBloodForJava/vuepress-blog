@@ -609,7 +609,7 @@ logback.xml配置：
 
 ### 高级使用MDC
 
-服务端：
+RMI中，Server端使用MDC
 
 ~~~xml
 import java.rmi.Remote;
@@ -622,15 +622,6 @@ public interface NumberCruncher extends Remote {
 ~~~
 
 ~~~java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.Vector;
-
 public class NumberCruncherServer extends UnicastRemoteObject
         implements NumberCruncher {
 
@@ -642,7 +633,7 @@ public class NumberCruncherServer extends UnicastRemoteObject
     }
 
     public int[] factor(int number) throws RemoteException {
-        // MDC 设置client 端口号
+        // MDC 设置client 主机
         try {
             MDC.put("client", NumberCruncherServer.getClientHost());
         } catch (java.rmi.server.ServerNotActiveException e) {
@@ -652,44 +643,32 @@ public class NumberCruncherServer extends UnicastRemoteObject
         // 请求参数
         MDC.put("number", String.valueOf(number));
 
-        logger.info("Beginning to factor.");
+        logger.info("开始计算因数");
 
         if (number <= 0) {
-            throw new IllegalArgumentException(number +
-                    " is not a positive integer.");
+            throw new IllegalArgumentException(number + "不能是负数");
         } else if (number == 1) {
             return new int[]{1};
         }
 
-        Vector<Integer> factors = new Vector<Integer>();
+        List<Integer> list = new ArrayList<>();
         int n = number;
 
-        for (int i = 2; (i <= n) && ((i * i) <= number); i++) {
-
-            logger.debug("Trying " + i + " as a factor.");
+        for (int i = 2; i <= n; i++) {
 
             if ((n % i) == 0) {
-                logger.info("Found factor " + i);
-                factors.addElement(new Integer(i));
-
-                do {
-                    n /= i;
-                } while ((n % i) == 0);
+                logger.info("找到因数r " + i);
+                list.add(i);
             }
 
             // sleep 100 ms
             delay(100);
         }
 
-        if (n != 1) {
-            logger.info("Found factor " + n);
-            factors.addElement(new Integer(n));
-        }
-
-        int[] result = new int[factors.size()];
+        int[] result = new int[list.size()];
 
         for (int i = 0; i < result.length; i++) {
-            result[i] = factors.elementAt(i);
+            result[i] = list.get(i);
         }
 
         // clean up
@@ -699,12 +678,7 @@ public class NumberCruncherServer extends UnicastRemoteObject
         return result;
     }
 
-    static void usage(String msg) {
-        System.err.println(msg);
-        System.err.println("Usage: java chapters.mdc.NumberCruncherServer configFile\n" +
-                "   where configFile is a logback configuration file.");
-        System.exit(1);
-    }
+
 
     public static void delay(int millis) {
         try {
@@ -714,9 +688,6 @@ public class NumberCruncherServer extends UnicastRemoteObject
     }
 
     public static void main(String[] args) {
-        if (args.length != 1) {
-            usage("Wrong number of arguments.");
-        }
 
         NumberCruncherServer ncs;
 
@@ -743,15 +714,16 @@ logback.xml配置：
 ~~~xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
-  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <layout>
-      <Pattern>%-4r [%thread] %-5level C:%X{client} N:%X{number} - %msg%n</Pattern>
-    </layout>	    
-  </appender>
-  
-  <root level="debug">
-    <appender-ref ref="CONSOLE"/>
-  </root>  
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{client},%X{number}] [%t] [%-5level] - %m%n</Pattern>
+        </layout>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="CONSOLE"/>
+    </root>
 </configuration>
 
 ~~~
@@ -792,7 +764,7 @@ public class NumberCruncherClient {
         int i = 0;
 
         while (true) {
-            System.out.print("Enter a number to factor, '-1' to quit: ");
+            System.out.print("输入要计算因数的数, '-1'表示退出: ");
 
             try {
                 i = Integer.parseInt(in.readLine());
@@ -801,15 +773,15 @@ public class NumberCruncherClient {
             }
 
             if (i == -1) {
-                System.out.print("Exiting loop.");
+                System.out.print("退出循环");
                 // 退出
                 return;
             } else {
                 try {
-                    System.out.println("Will attempt to factor " + i);
+                    System.out.println("要计算的数" + i);
 
                     int[] factors = nc.factor(i);
-                    System.out.print("The factors of " + i + " are");
+                    System.out.print(i + "的因数有: ");
 
                     for (int k = 0; k < factors.length; k++) {
                         System.out.print(" " + factors[k]);
@@ -817,7 +789,7 @@ public class NumberCruncherClient {
 
                     System.out.println(".");
                 } catch (RemoteException e) {
-                    System.err.println("Could not factor " + i);
+                    System.err.println("不能计算因数" + i);
                     e.printStackTrace();
                 }
             }
@@ -895,3 +867,16 @@ public class UserServletFilter implements Filter {
 
 ### MDCInsertingServletFilter
 
+![image-20250416095222115](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416095222115.png)
+
+
+
+### logback实现原理
+
+MDCAdapter抽象，`ch.qos.logback.classic.util.LogbackMDCAdapter`实现。
+
+维护了两个`ThreadLocal`，通过线程缓存实现了MDC基本功能，put和get。
+
+![image-20250416111057016](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416111057016.png)
+
+![image-20250416111535552](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416111535552.png)
