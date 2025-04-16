@@ -172,3 +172,109 @@ spring.zipkin.sender.type: kafka
 
 ## 采样
 
+![image-20250416202345724](http://47.101.155.205/image-20250416202345724.png)
+
+配置设置采样频率：**配置后的对象创建也无法Debug到**
+
+~~~properties
+# 采样的概率
+spring.sleuth.sampler.probability=0.01-1
+# 每秒的速率
+spring.sleuth.sampler.rate=10
+
+# 两者只能同时生效一个
+
+~~~
+
+采样概率使用算法：http://stackoverflow.com/questions/12817946/generate-a-random-bitset-with-n-1s
+
+~~~java
+// size 默认100
+// cardinality是概率1-100
+// rnd new Random()对象
+static BitSet randomBitSet(int size, int cardinality, Random rnd) {
+    BitSet result = new BitSet(size);
+    int[] chosen = new int[cardinality];
+    int i;
+    for (i = 0; i < cardinality; ++i) {
+      chosen[i] = i;
+      result.set(i);
+    }
+    for (; i < size; ++i) {
+      int j = rnd.nextInt(i + 1);
+      if (j < cardinality) {
+        result.clear(chosen[j]);
+        result.set(i);
+        chosen[j] = i;
+      }
+    }
+    return result;
+}
+
+// 方法判断是否采样 counter=AtomicInteger
+BitSet.get(mod(counter.getAndIncrement(), 100));
+
+~~~
+
+
+
+**Http请求头`X-B3-Flags=1`会强制采样，不管配置**
+
+
+
+### 声明式采样
+
+
+~~~java
+@Autowired Tracer tracer;
+
+// 自定义的 Traced 对象
+DeclarativeSampler<Traced> sampler = DeclarativeSampler.create(Traced::sampleRate);
+
+// AOP 拦截带有Traced参数的方法
+@Around("@annotation(traced)")
+public Object traceThing(ProceedingJoinPoint pjp, Traced traced) throws Throwable {
+  // 创建采样
+  Sampler decideUsingAnnotation = DeclarativeSampler.create(traced).toSampler(traced);
+  Tracer tracer = tracer.withSampler(decideUsingAnnotation);
+
+  // This code looks the same as if there was no declarative override
+  ScopedSpan span = tracer.startScopedSpan(spanName(pjp));
+  try {
+    return pjp.proceed();
+  } catch (RuntimeException | Error e) {
+    span.error(e);
+    throw e;
+  } finally {
+    span.finish();
+  }
+}
+
+~~~
+
+
+
+### 自定义Sampler
+
+通过继承抽象类Sampler重写方法实现自定义采样功能。
+
+~~~java
+@Autowired Tracer tracer;
+@Autowired Sampler fallback;
+
+Span nextSpan(final Request input) {
+  Sampler requestBased = Sampler() {
+    @Override public boolean isSampled(long traceId) {
+      if (input.url().startsWith("/experimental")) {
+        return true;
+      } else if (input.url().startsWith("/static")) {
+        return false;
+      }
+      return fallback.isSampled(traceId);
+    }
+  };
+  return tracer.withSampler(requestBased).nextSpan();
+}
+
+~~~
+
