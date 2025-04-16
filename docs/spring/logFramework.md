@@ -867,7 +867,7 @@ public class UserServletFilter implements Filter {
 
 ### MDCInsertingServletFilter
 
-![image-20250416095222115](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416095222115.png)
+![image-20250416095222115](http://47.101.155.205/image-20250416095222115.png)
 
 
 
@@ -877,6 +877,6 @@ MDCAdapter抽象，`ch.qos.logback.classic.util.LogbackMDCAdapter`实现。
 
 维护了两个`ThreadLocal`，通过线程缓存实现了MDC基本功能，put和get。
 
-![image-20250416111057016](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416111057016.png)
+![image-20250416111057016](http://47.101.155.205/image-20250416111057016.png)
 
-![image-20250416111535552](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250416111535552.png)
+![image-20250416111535552](http://47.101.155.205/image-20250416111535552.png)
