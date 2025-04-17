@@ -52,7 +52,7 @@ mvn dependency:resolve -Dclassifier=sources
 ## 2.名词解释
 
 1. Route：网关的基本构建块。由id(String)、目的uri(URI)、集合predicate(PredicateDefinition)、集合filters(FilterDefinition)，predicate执行结果为true则route匹配。
-2. Predicate：java.util.function.Predicate<T>函数式接口。泛型为ServerWebExchange。这可以匹配http请求中的任何东西，例如请求头或参数。
+2. Predicate：java.util.function.Predicate\<T\>函数式接口。泛型为ServerWebExchange。这可以匹配http请求中的任何东西，例如请求头或参数。
 3. Filter：特定工厂建造的GatewayFilter的实现Bean。你可以在这里修改request和response在发送请求之后或之后。
 
 
@@ -2581,7 +2581,7 @@ classpath中引入DiscoveryClient的实现依赖，例如Netflix Eureka、Consul
 
 gateway会根据发现的客户端自动定义predicate和过滤器来route请求。默认使用/serviceId/**断言请求，serviceId来自DiscoveryClient的服务id。
 
-过滤器默认是RewritePath过滤器，/serviceId/?(?<remaining>.*)，替换成/${remaining}，serviceId会在发送到下游请求之前从服务端剥离。
+过滤器默认是RewritePath过滤器，/serviceId/?(?\<remaining\>.*)，替换成/${remaining}，serviceId会在发送到下游请求之前从服务端剥离。
 
 #### 12.4.1.eureka
 

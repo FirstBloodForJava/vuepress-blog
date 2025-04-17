@@ -351,7 +351,7 @@ export default defineUserConfig({
         children: [
           {
             text: '网关',
-            link: '/gateway',
+            prefix: 'gateway',
             children: [
               {
                 text: 'spring-cloud-gateway使用介绍',
