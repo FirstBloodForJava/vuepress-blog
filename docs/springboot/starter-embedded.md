@@ -676,3 +676,36 @@ public class CustomUndertowConfig {
 
 ~~~
 
+
+
+### 6.Linux查询JVM可以处理器
+
+**非容器环境(逻辑核心数)：**
+
+~~~bash
+nproc
+
+# 查询文件中processro的数量
+grep -c '^processor' /proc/cpuinfo
+
+# 显示CPU的信息
+lscpu
+
+lscpu | grep '^CPU(s):' | awk '{print $2}'
+
+~~~
+
+![image-20250417135540463](http://47.101.155.205/image-20250417135540463.png)
+
+**容器化环境：**
+
+~~~bash
+# 查询容器时间配额, -1表示未限制(同非容器处理器数量)
+cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us
+
+# CPU 时间周期(默认100000，0.1秒)
+cat /sys/fs/cgroup/cpu/cpu.cfs_period_us
+
+~~~
+
+**容器可以处理器数量 = 容器配额时间 / 时间周期**
