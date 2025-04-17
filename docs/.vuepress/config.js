@@ -349,7 +349,16 @@ export default defineUserConfig({
         text: 'springcloud',
         prefix: '/springcloud',
         children: [
-          
+          {
+            text: '网关',
+            link: '/gateway',
+            children: [
+              {
+                text: 'spring-cloud-gateway使用介绍',
+                link: 'spring-cloud-gateway'
+              }
+            ]
+          }
         ]
       },
       // database 数据库
