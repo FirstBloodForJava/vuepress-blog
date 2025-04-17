@@ -1353,7 +1353,7 @@ docker run -d --rm -p 9000:9000 \
 
 
 
-## 3.核心概念
+## 4.核心概念
 
 ### 1.Kafka主题和分区
 
@@ -1521,6 +1521,46 @@ LEO（Log End Offset），表示Topic分区中每个副本日志中最后一条�
 
 #### 2.4.1、Broker配置
 
+Broker监听地址，支持的协议：
+
+- PLAINTEXT：明文。
+- SSL：使用 SSL/TLS 加密传输。
+- SASL_PLAINTEXT：用 SASL 认证，但传输不加密。
+- SASL_SSL：使用 SASL 认证，并且传输加密。
+
+
+
+公网配置：
+
+~~~properties
+# 配置 47为公网ip
+listeners=PLAINTEXT://0.0.0.0:9092
+advertised.listeners=PLAINTEXT://47.101.155.205:9092
+
+# 在安全组禁止的情况下，都提示连接超时。安全组关闭都能访问。
+./bin/kafka-topics.sh  --list --bootstrap-server 172.24.117.21:9092
+./bin/kafka-topics.sh  --list --bootstrap-server 47.101.155.205:9092
+
+~~~
+
+内外网分离配置：
+
+~~~properties
+listeners=INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092
+listener.security.protocol.map=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+advertised.listeners=INTERNAL://172.24.117.21:19092,EXTERNAL://47.101.155.205:9092
+inter.broker.listener.name=INTERNAL
+
+# 安全组网络禁用情况,可连接内网(ip或主机名)
+./bin/kafka-topics.sh  --list --bootstrap-server 172.24.117.21:19092
+./bin/kafka-topics.sh  --list --bootstrap-server root:19092
+# 安全组网络禁用情况,外网不通
+./bin/kafka-topics.sh  --list --bootstrap-server 47.101.155.205:9092
+
+~~~
+
+
+
 ~~~properties
 auto.create.topics.enable=true # 默认true，在服务端启用自动创建topic
 auto.leader.rebalance.enable=true # 默认true，自动leader平衡
@@ -1538,15 +1578,20 @@ early.start.listeners=String # null
 leader.imbalance.check.interval.seconds=300 # default 控制器触发分区平衡的频率
 leader.imbalance.per.broker.percentage=10 # default 不平衡的比例阈值
 
-# Broker的监听地址，支持的协议PLAINTEXT（明文）、SSL（使用 SSL/TLS 加密传输）、SASL_PLAINTEXT（使用 SASL 认证，但传输不加密）、SASL_SSL（使用 SASL 认证，并且传输加密）
-# null 和监听器相关，默认null.如果与监听器配置属性不同,监听器发布到ZooKeeper供客户端连接使用.如果没有配置,会使用listeners的值.如果listenrs配置成包含0.0.0.0,并且这个配置没有配置,这里会导致kafka-server启动失败,这个配置对与这个属性是无效的.
-advertised.listeners=String 
 # 本地监听的地址
+# 合法地址 PLAINTEXT://myhost:9092,SSL://:9091
+# CLIENT://0.0.0.0:9092,REPLICATION://localhost:9093
+# PLAINTEXT://127.0.0.1:9092,SSL://[::1]:9092
 listeners=PLAINTEXT://9092 
 # PLAINTEXT://0.0.0.0:9092,需要修改上面的属性值暴露ip,不然服务无法起来
-# listeners=PLAINTEXT://myhost:9092,启动的主机名必须是oycm才能启动
+# listeners=PLAINTEXT://myhost:9092,myhost必须是系统主机名才能启动
 
-#保留kafka日志数据的目录地址
+# 指定Kafka代理将向客户端和其他代理发布的侦听器地址。
+# 默认null.如果与监听器配置属性不同,监听器发布到ZooKeeper供客户端连接使用.如果没有配置,会使用listeners的值.
+# 如果listenrs配置成包含0.0.0.0,并且这个配置没有配置,这里会导致kafka-server启动失败,这个配置对与这个属性是无效的.
+advertised.listeners=String 
+
+# 保留kafka日志数据的目录地址
 log.dir=/tmp/kafka-logs 
 log.dirs=String # null,存储日志的列表
 
@@ -1934,9 +1979,11 @@ bin/zookeeper-shell.sh localhost
 
 
 
-~~~bash
-这样配置,bin/kafka-server-start.sh config/server.properties启动的服务器主机名需要改为oycm.sudo hostnamectl set-hostname <newhostname>可以修改主机名.下面的那一行配置是可以让其他服务器监听到kafka.
-同时bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server oycm:9092命令也需要改为oycm才能连接到.否则启动不来.
+~~~md
+这样配置,bin/kafka-server-start.sh config/server.properties启动的服务器主机名需要改为oycm
+sudo hostnamectl set-hostname <newhostname>可以修改主机名
+下面的那一行配置是可以让其他服务器监听到kafka
+同时bin/kafka-console-consumer.sh --topic org.test1 --from-beginning --bootstrap-server oycm:9092命令也需要改为oycm才能连接到
 
 ~~~
 
