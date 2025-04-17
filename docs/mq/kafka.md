@@ -1534,12 +1534,14 @@ Broker监听地址，支持的协议：
 
 ~~~properties
 # 配置 47为公网ip
-listeners=PLAINTEXT://0.0.0.0:9092
+listeners=PLAINTEXT://0.0.0.0:9092 或 PLAINTEXT://root:9092
 advertised.listeners=PLAINTEXT://47.101.155.205:9092
 
 # 在安全组禁止的情况下，都提示连接超时。安全组关闭都能访问。
 ./bin/kafka-topics.sh  --list --bootstrap-server 172.24.117.21:9092
 ./bin/kafka-topics.sh  --list --bootstrap-server 47.101.155.205:9092
+
+./bin/kafka-topics.sh  --list --bootstrap-server root:9092
 
 ~~~
 
