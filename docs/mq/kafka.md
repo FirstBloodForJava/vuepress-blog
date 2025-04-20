@@ -672,7 +672,7 @@ compression.type配置压缩方式。
 
 **消息插件回调？**
 
-
+spring-kafka有提供一个生产/应答模式，生产者发送消息后，等待消费者消费后，把消息再推到另外一个Topic，生产者从这个Topic中确认是否应答成功。
 
 ### 2.Kafka消费者API
 
@@ -687,7 +687,7 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/consumer
 
 ~~~
 
-创建KafkaConsumer(Properties properties)对象执行情况：
+创建KafkaConsumer(Properties properties)对象执行过程：
 
 1. 有配置group.instance.id，则日志上下文对象设置instanceId。
 2. 配置ConsumerInterceptor消费者拦截器，默认空。
@@ -2502,11 +2502,129 @@ max.poll.records=500
 
 
 
-### Kafka Manager
+### EFAK
+
+EFAK (Eagle For Apache Kafka, previously known as Kafka Eagle)
+
+http://download.kafka-eagle.org/
+
+https://github.com/smartloli/EFAK?tab=readme-ov-file
+
+~~~bash
+# git 拉取项目，执行打包命令
+mvn clean package -DskipTests
+
+# 压缩包文件位置
+EFAK\efak-web\target\efak-web-3.0.2-bin.tar.gz
+
+~~~
+
+安装启动：
+
+~~~bash
+tar -zxvf efak-web-3.0.2-bin.tar.gz
+
+# 配置环境变量
+vim /etc/profile
+
+/usr/local/efak-web-3.0.2
+# 添加配置
+export KE_HOME=/usr/local/efak-web-3.0.2
+export PATH=$PATH:$KE_HOME/bin
+
+source /etc/profile
+
+# 添加配置文件
+vim system-config.properties
+
+# 启动命令，没有权限则授权 chmod +x ke.sh 
+ke.sh start
+
+# 执行提示 /bin/bash^M: bad interpreter: No such file or directory
+# 使用命令替换字符
+sed -i 's/\r$//' ke.sh
+
+~~~
 
 
 
-### Kafka Tool
+system-config.properties配置：
+
+~~~properties
+spring.messages.basename=i18n/messages
+spring.messages.encoding=UTF-8
+spring.web.locale=zh_CN
+spring.web.locale-resolver=fixed
+# zookeeper 配置
+efak.zk.cluster.alias=cluster1
+cluster1.zk.list=localhost:2181
+
+# Add zookeeper acl
+cluster1.zk.acl.enable=false
+cluster1.zk.acl.schema=digest
+#cluster1.zk.acl.username=test
+#cluster1.zk.acl.password=test123
+# Kafka代理节点在线列表
+cluster1.efak.broker.size=10
+#cluster2.efak.broker.size=20
+# Zkcli limit -- Zookeeper集群允许连接的客户端数量
+# 如果启用分布式模式，取值可设置为4或8
+kafka.zk.limit.size=8
+# EFAK webui port -- web页面端口
+efak.webui.port=8048
+######################################
+# EFAK启用分布式
+######################################
+efak.distributed.enable=false
+# 节点状态
+#efak.cluster.mode.status=slave
+# 部署efak服务器地址
+efak.worknode.master.host=localhost
+efak.worknode.port=8085
+# Kafka offset storage -- 偏移量存储在Kafka集群中，如果存储在zookeeper中，则不能使用此选项
+cluster1.efak.offset.storage=kafka
+#cluster2.efak.offset.storage=kafka
+# Kafka性能监控图是否开启
+efak.metrics.charts=false
+# EFAK默认保存数据30天
+efak.metrics.retain=30
+# 如果偏移量超出范围，启用此属性—仅适用于kafka sql
+efak.sql.fix.error=false
+efak.sql.topic.records.max=5000
+# Delete kafka topic token -- 设置删除主题令牌，使管理员具有删除权限
+efak.topic.token=keadmin
+# Kafka sasl 认证
+cluster1.efak.sasl.enable=false
+cluster1.efak.sasl.protocol=SASL_PLAINTEXT
+cluster1.efak.sasl.mechanism=SCRAM-SHA-256
+cluster1.efak.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="admin-secret";
+# 如果没有设置，该值可以为空
+cluster1.efak.sasl.client.id=
+# 添加kafka集群cgroups
+cluster1.efak.sasl.cgroup.enable=false
+cluster1.efak.sasl.cgroup.topics=kafka_ads01,kafka_ads02
+cluster2.efak.sasl.enable=true
+cluster2.efak.sasl.protocol=SASL_PLAINTEXT
+cluster2.efak.sasl.mechanism=PLAIN
+cluster2.efak.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+cluster2.efak.sasl.client.id=
+cluster2.efak.sasl.cgroup.enable=false
+cluster2.efak.sasl.cgroup.topics=kafka_ads03,kafka_ads04
+# 默认使用sqlite存储数据
+# /hadoop/kafka-eagle/db 路径必须存在
+spring.datasource.url=jdbc:sqlite:/hadoop/kafka-eagle/db/ke.db
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.driver-class-name=org.sqlite.JDBC
+# (Optional) set mysql address
+#efak.driver=com.mysql.jdbc.Driver
+#efak.url=jdbc:mysql://127.0.0.1:3306/ke?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+#efak.username=root
+#efak.password=smartloli
+
+~~~
+
+
 
 
 
