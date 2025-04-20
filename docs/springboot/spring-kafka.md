@@ -1384,3 +1384,52 @@ public KafkaJaasLoginModuleInitializer jaasConfig() throws IOException {
 
 ~~~
 
+
+
+## Spring-Kafka消费者
+
+ConcurrentKafkaListenerContainerFactoryConfigurer 监听器容器工厂配置类。
+
+自动配置以下内容：**以下获取的Spring容器的对象，要求唯一或使用@Primary标注。**
+
+1. spring.kafka 配置类对象；
+2. 设置MessageConverter（消息转换器）对象类型，batch/single 获取消息。默认没有配置。
+3. 设置回复KafkaTemplate，**配置ReplyingKafkaTemplate对象，消费者方法返回不为空，导致启动失败，没有回复KafkaTemplate**。
+4. 设置KafkaAwareTransactionManager事务管理器。
+5. 设置ConsumerAwareRebalanceListener，重写平衡织入，可以访问Consumer对象。
+6. 设置ErrorHandler 错误处理器：。
+7. 设置BatchErrorHandler 批量错误处理器：。
+8. 设置AfterRollbackProcessor：。
+9. 设置RecordInterceptor消息拦截器。
+
+
+
+ConcurrentKafkaListenerContainerFactory 监听器容器工厂。用于存放ConsumerFactory 消费者工厂。
+
+![image-20250420204736973](http://47.101.155.205/image-20250420204736973.png)
+
+自动配置内容：
+
+1. 设置ConsumerFactory 消费者工厂。
+2. 对监听器工厂进行配置：
+   1. listener.concurrency 配置监听的并发数，默认不配置。
+   2. 工厂配置的MessageConverter，不为空才配置。
+   3. 工厂配置的KafkaTemplate，不为空才配置。
+   4. single/batch处理消息，配置对应配置类的错误处理器类型。
+   5. 不为空设置AfterRollbackProcessor。
+   6. 不为空设置RecordInterceptor消息拦截器。
+3. 将消费者的配置复制到监听器工厂的包装配置ContainerProperties：**不为空才设置**
+   1. listener.ackMode：消息确认模式。
+   2. listener.clientId：客户端id属性前缀。
+   3. listener.ackCount：COUNT/COUNT_TIME确认模式的消息数量。
+   4. listener.ackTime：TIME/COUNT_TIME确认模式的消息数量。
+   5. listener.pollTimeout：消费者poll的超时时间。
+   6. listener.noPollThreshold：pollTimeout * 该参数使用。
+   7. listener.idleEventInterval：发布idel 消费者没有数据的间隔时间。
+   8. listener.monitorInterval：对无响应消费者的检查时间，默认30s。
+   9. listener.missingTopicsFatal：Broker不存Topic时，是否启动失败。
+   10. 设置KafkaAwareTransactionManager。
+   11. 设置ConsumerAwareRebalanceListener。
+
+
+
