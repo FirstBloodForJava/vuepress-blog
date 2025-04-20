@@ -234,6 +234,12 @@ export default defineUserConfig({
             link: 'TCP'
           },
           'Redis.md'
+          ,
+          'Linux进阶.md',
+          {
+            text: '问题收集',
+            link: 'problem'
+          }
         ]
       },
       // mq
@@ -341,6 +347,10 @@ export default defineUserConfig({
           {
             text: '嵌入式容器starter',
             link: 'starter-embedded'
+          },
+          {
+            text: 'springboot使用Kafka',
+            link: 'spring-kafka'
           }
         ]
       },
