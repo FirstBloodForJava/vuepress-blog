@@ -86,3 +86,43 @@ kill -3 <java-pid>
 | systemd 启动                          | journalctl -u `service`    |
 
 ![image-20250210171734554](http://47.101.155.205/image-20250210171734554.png)
+
+
+
+## 调整系统交换内存
+
+创建
+
+~~~bash
+# 创建4GB大小的swap文件
+sudo fallocate -l 4G /swapfile
+
+# 设置正确的权限
+sudo chmod 600 /swapfile
+
+# 格式化为swap
+sudo mkswap /swapfile
+
+# 启用swap文件
+sudo swapon /swapfile
+
+# 交换文件是否生效
+sudo swapon --show
+
+# 指向后，系统重启也生效
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+~~~
+
+![image-20250420154249576](C:\Users\oycm\AppData\Roaming\Typora\typora-user-images\image-20250420154249576.png)
+
+
+
+安全删除swap：
+
+~~~bash
+sudo swapoff /swapfile
+sudo rm /swapfile
+
+~~~
+
