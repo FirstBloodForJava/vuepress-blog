@@ -1124,6 +1124,12 @@ root     17058  4812  0 11:00 pts/2    00:00:00 grep --color=auto nginx
 # TIME：进程使用的CPU时间，表示该进程在CPU上运行的总时间
 # CMD：启动命令的参数
 
+# 查询进程的 物理内存,虚拟内存,内存占用百分比,启动命令
+ps -p <pid> -o rss,vsz,pmem,cmd
+
+# tail -n 1 显示最后一条
+pmap -x <pid> | tail -n 1
+
 ~~~
 
 
@@ -1382,10 +1388,23 @@ ss [option]...
 
 # 查询tcp连接网络情况
 ss -ant
+# State 表示tcp连接状态
+# Recv-Q 等待应用读取的数据量(字节)
+# Send-Q 等待发送的数据量(字节)
+# Local Address:Port 本地ip+端口信息
+# Peer Address:Port 远程ip+端口信息
 
 ~~~
 
 ![ss -ant](http://47.101.155.205/image-20241024171621727.png)
+
+~~~bash
+# 查询tcp状态是 established 的连接情况
+ss -tan state established
+
+~~~
+
+![ss -tan state established](http://47.101.155.205/image-20250420144417211.png)
 
 
 
@@ -1394,6 +1413,8 @@ ss -ant
 ss -tnlp | grep <pid>
 
 ~~~
+
+
 
 
 
@@ -2217,6 +2238,8 @@ top [option]
 -n <num>：允许多少次退出
 -u <username>：某个用户的进程
 -p <pid>：某个pid进程
+
+top -p <pid>
 
 ~~~
 
