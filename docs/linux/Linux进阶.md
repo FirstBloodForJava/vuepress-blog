@@ -114,7 +114,7 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 ~~~
 
-![image-20250420154249576](C:\Users\oycm\AppData\Roaming\Typora\typora-user-images\image-20250420154249576.png)
+![image-20250420154249576](http://47.101.155.205/image-20250420154249576.png)
 
 
 
