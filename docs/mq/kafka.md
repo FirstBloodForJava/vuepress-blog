@@ -2251,23 +2251,28 @@ transactional.id=null # 事务消息
 #### 2.4.4、Consumer配置
 
 ~~~properties
-key.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
-value.deserializer=class # 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
+# 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
+key.deserializer=class 
+# # 实现了org.apache.kafka.common.serialization.Deserializer 接口的class
+value.deserializer=class 
 
-bootstrap.servers=list # kafka服务器的ip+port,host1:port1,host2:port2,... 
+# kafka服务器的ip+port,host1:port1,host2:port2,... 
+bootstrap.servers=list 
 
 # 消费者请求一次最小的响应数据单位字节,如果服务端没有足够的数据返回，则会等待至超时返回
 fetch.min.bytes=1 
-# 50MB 消费者在一次请求中返回最大的字节数。消费者消费消息的最大值不由这个决定，而是Broker配置决定
+# 默认50MB 消费者在一次请求中返回最大的字节数。消费者消费消息的最大值不由这个决定，而是Broker配置决定
 fetch.max.bytes=52428800 
 # 消费一次fetch.min.bytes没达到这个标准的阻塞时间
 fetch.max.wait.ms=500 
 
 # 表示消费者组的唯一字符串
 group.id=null 
-
-heartbeat.interval.ms=3000 # The expected time between heartbeats to the consumer coordinator when using Kafka's group management facilities.The value must be set lower than session.timeout.ms, but typically should be set no higher than 1/3 of that value.
-session.timeout.ms=45000 #45s kafka消费者与broker的超时时间,group.min.session.timeout.ms group.max.session.timeout.ms
+# The expected time between heartbeats to the consumer coordinator when using Kafka's group management facilities.The value must be set lower than session.timeout.ms, but typically should be set no higher than 1/3 of that value.
+# 当使用Kafka的组管理设施时，心跳到消费者协调器之间的预期时间。该值必须小于session.timeout.ms，但通常应设置不高于该值的1/3
+heartbeat.interval.ms=3000
+#45s kafka消费者与broker的超时时间,group.min.session.timeout.ms group.max.session.timeout.ms
+session.timeout.ms=45000 
 
 # 每个分区返回给消费者的最大消息，设置比消息小，不会影响消费message.max.bytes (broker/topic config)
 max.partition.fetch.bytes=1048576
@@ -2280,7 +2285,9 @@ ssl.truststore.certificates=null # password
 ssl.truststore.location=null # string
 ssl.truststore.password=null # password
 
-allow.auto.create.topics=true # Allow automatic topic creation on the broker when subscribing to or assigning a topic.This configuration must be set to `false` when using brokers older than 0.11.0
+# 在订阅或分配主题时，允许在代理上自动创建主题。当使用高于0.11.0的代理时，此配置必须设置为“false”
+# # Allow automatic topic creation on the broker when subscribing to or assigning a topic.This configuration must be set to `false` when using brokers older than 0.11.0
+allow.auto.create.topics=true 
 
 auto.offset.reset=latest # [latest, earliest, none] 当Kafka中没有初始偏移量或者当前偏移量在服务器上不存在时该怎么办
 # earliest 自动将偏移量重置为最早的偏移量,加入开始处理
@@ -2305,8 +2312,10 @@ exclude.internal.topics=true
 group.instance.id=null # string 和消费组相关（静态相关）
 
 isolation.level=read_uncommitted # [read_committed, read_uncommitted] 读取事务性消息设置,非事物消息不受控制
-
-max.poll.interval.ms=300000 # The maximum delay between invocations of poll() when using consumer group management. 这为消费者在获取更多记录之前可以空闲的时间设置了上限。如果在此超时到期之前未调用poll()，则认为消费者失败，组将重新平衡，以便将分区重新分配给另一个成员
+# The maximum delay between invocations of poll() when using consumer group management.
+# 这为消费者在获取更多记录之前可以空闲的时间设置了上限。如果在此超时到期之前未调用poll()，则认为消费者失败，组将重新平衡，以便将分区重新分配给另一个成员
+# 消费者是什么时候poll(),是否是消费完成一次消息调用？还是自动调用？
+max.poll.interval.ms=300000  
 # 消费者一次拉取请求的最大消息数
 max.poll.records=500 # 并不影响底层的抓取行为。消费者将缓存来自每个获取请求的记录，并从每个轮询中增量地返回它们。
 
@@ -2405,7 +2414,19 @@ metadata.max.age.ms=300000
 
 ~~~
 
-max.poll.records=500
+拉取消息相关配置：
+
+~~~properties
+fetch.min.bytes
+fetch.max.bytes
+max.poll.records
+max.poll.interval.ms
+
+~~~
+
+
+
+
 
 
 
