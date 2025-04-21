@@ -329,7 +329,7 @@ public String listen(String in) {
 
 ~~~
 
-
+:::
 
 #### AggregatingReplyingKafkaTemplate
 
