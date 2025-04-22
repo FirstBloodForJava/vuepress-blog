@@ -1392,6 +1392,8 @@ ConcurrentKafkaListenerContainerFactoryConfigurer 监听器容器工厂配置类
 
 自动配置以下内容：**以下获取的Spring容器的对象，要求唯一或使用@Primary标注。**
 
+**ObjectProvider要求具体的类型存在，ConditionalOnMissingBean指定class的子类对象存在就不匹配。**
+
 1. spring.kafka 配置类对象；
 2. 设置MessageConverter（消息转换器）对象类型，batch/single 获取消息。默认没有配置。
 3. 设置回复KafkaTemplate，**配置ReplyingKafkaTemplate对象，消费者方法返回不为空，导致启动失败，没有回复KafkaTemplate**。
@@ -1432,4 +1434,131 @@ ConcurrentKafkaListenerContainerFactory 监听器容器工厂。用于存放Cons
    11. 设置ConsumerAwareRebalanceListener。
 
 
+
+### KafkaListenerConfigurationSelector
+
+通过导入KafkaBootstrapConfiguration，在Spring中注入Bean的后置处理器。
+
+- KafkaListenerAnnotationBeanPostProcessor：每个创建的bean，包含注解KafkaListener等，则对其进行处理。将注解消费者封装成待处理的对象，注册在KafkaListenerEndpointRegistrar中。
+- KafkaListenerEndpointRegistry：对KafkaListenerEndpointRegistrar注册的对象进行处理。
+
+
+
+#### KafkaListenerAnnotationBeanPostProcessor
+
+Bean后置处理器，对Bean的两种情况进行处理：
+
+1. 类上有@KafkaListener注解，类+@KafkaHandler注解方法注册监听信息。
+2. 方法上有@KafkaListener注解，注册监听方法。
+
+![image-20250422201017580](http://47.101.155.205/image-20250422201017580.png)
+
+**@KafkaListener方法信息进行注册：**
+
+![image-20250422202246868](http://47.101.155.205/image-20250422202246868.png)
+
+![image-20250422203242281](http://47.101.155.205/image-20250422203242281.png)
+
+1. Bean的对象信息；
+2. 消费者线程名称`id`；
+3. 消费者组名称设置，**为空的情况可能后面还会再设置**；
+4. Topic设置；
+5. Topic分区设置；
+6. 前缀设置`clientIdPrefix`；
+7. 监听器容器设置MessageListenerContainer(containerGroup)；
+8. 并发数设置`concurrency`；
+9. 是否自动启动设置`autoStartup`；
+10. 消费者指定的配置设置`properties`；
+11. List消息是否拆分设置`splitIterables`；
+12. 容器KafkaListenerContainerFactory工厂设置`containerFactory`；
+13. 方法Spring的BeanFactory；
+14. 错误处理器设置`errorHandler`；
+15. 注册
+
+![image-20250422203748419](http://47.101.155.205/image-20250422203748419.png)
+
+
+
+**@KakfaListener类的注册过程：**
+
+![image-20250422204135031](http://47.101.155.205/image-20250422204135031.png)
+
+封装的对象不能，类使用`MultiMethodKafkaListenerEndpoint`，是方法封装MethodKafkaListenerEndpoint的子类。
+
+其它逻辑相同。
+
+
+
+**KafkaListenerAnnotationBeanPostProcessor实现的SmartInitializingSingleton接口，在所有的单例Bean创建完成后，调用afterSingletonsInstantiated方法开始启动监听器。**
+
+![image-20250422205521537](http://47.101.155.205/image-20250422205521537.png)
+
+1. 通过KafkaListenerConfigurer Bean对KafkaListenerEndpointRegistrar进行自定义操作；可以配置`MessageHandlerMethodFactory`、`KafkaListenerContainerFactory`容器工厂；
+2. KafkaListenerEndpointRegistrar对象设置KafkaListenerEndpointRegistry注册对象；
+3. KafkaListenerEndpointRegistrar对象设置容器工厂默认名称；
+4. 消息处理工厂设置；
+5. 注册所有的消费者，使用KafkaListenerEndpointRegistrar的KafkaListenerEndpointRegistry注册表对象进行注册。
+
+
+
+#### KafkaListenerEndpointRegistry
+
+获取封装KafkaListenerEndpointDescriptor对象的容器工厂对象，**默认没有配置为null**，两种方式设置，一是通过KafkaListenerConfigurer配置注册者的容器工厂对象，二是通过注册者的名称在BeanFacotry上下文中查询，否则启动失败。
+
+使用MethodKafkaListenerEndpoint、KafkaListenerContainerFactory开始创建消费者。
+
+![image-20250422205808504](http://47.101.155.205/image-20250422205808504.png)
+
+![image-20250422211932718](http://47.101.155.205/image-20250422211932718.png)
+
+**配置的MessageListenerContainer有什么用？**
+
+![image-20250422212513235](http://47.101.155.205/image-20250422212513235.png)
+
+
+
+
+
+### ConcurrentKafkaListenerContainerFactory
+
+用来创建监听器容器的工厂对象。
+
+createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerContainer监听器容器，有两个具体实现：ConcurrentMessageListenerContainer、KafkaMessageListenerContainer。
+
+执行步骤：
+
+1. 创建ConcurrentMessageListenerContainer对象，封装了ConsumerFactory、Topic及分区信息。而后设置属性beanName为endpoint唯一标识；
+2. 根据监听器容器工厂的配置对监听器容器进行配置；
+   1. RecordFilterStrategy：过滤器；
+   2. ackDiscarded：是否
+   3. RetryTemplate：
+   4. RecoveryCallback：
+   5. statefulRetry：是否
+   6. batchListener：是否
+   7. replyTemplate：回复KafkaTemplate；
+   8. ReplyHeadersConfigurer(replyHeadersConfigurer)：
+3. AbstractKafkaListenerContainerFactory.setupListenerContainer(..);消息监听器容器设置MessagingMessageListenerAdapter；
+   1. 适配器创建及判断；
+   2. 适配器设置及后续校验；
+   3. 重试配置；
+   4. 过滤器配置；
+   5. 适配器设置；
+4. 对监听器容器进行配置；
+5. 有设置ContainerCustomizer对象则对监听器容器进行自定就操作；返回监听器容器对象。
+
+![image-20250422220815150](http://47.101.155.205/image-20250422220815150.png)
+
+![image-20250422214009406](http://47.101.155.205/image-20250422214009406.png)
+
+![image-20250422214501438](http://47.101.155.205/image-20250422214501438.png)
+
+![image-20250422215928029](http://47.101.155.205/image-20250422215928029.png)
+
+![image-20250422220520274](http://47.101.155.205/image-20250422220520274.png)
+
+监听器容器对象进行初始化后，判断其启动配置和监听器工厂的启动配置情况。
+
+是否有配置监听器容器组，有配置的情况下，将其注入到Spring的容器中。
+
+默认不是立即启动监听器容器。
 
