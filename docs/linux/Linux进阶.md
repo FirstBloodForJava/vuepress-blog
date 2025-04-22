@@ -126,3 +126,47 @@ sudo rm /swapfile
 
 ~~~
 
+
+
+## 连接相关命令
+
+Linux服务器之间进行文件拷贝：
+
+~~~bash
+# 执行命令后需要进行密码认证
+# 拷贝单个文件到其它指定的服务器
+scp <file> [user]@[ip]:<path>
+# 递归拷贝目录
+scp -r <path> [user]@[ip]:<path>
+
+# 指定端口
+scp -P 23 <path> [user]@[ip]:<path>
+
+~~~
+
+ssh连接其它服务器：
+
+~~~bash
+# 执行后需要输入密码
+ssh -v [user]@[ip]
+
+~~~
+
+**修改Linux连接端口：**
+
+~~~bash
+# 备份文件
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config_bak
+# 修改文件
+vim /etc/ssh/sshd_config
+# 添加需要监听的端口
+Port 22
+
+# 保存后，重启sshd服务
+sudo systemctl restart sshd
+
+# 还原
+cp /etc/ssh/sshd_config_bak /etc/ssh/sshd_config
+
+~~~
+
