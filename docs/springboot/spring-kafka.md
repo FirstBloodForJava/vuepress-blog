@@ -1503,6 +1503,16 @@ Bean后置处理器，对Bean的两种情况进行处理：
 
 #### KafkaListenerEndpointRegistry
 
+**实现DisposableBean接口**，在对象被销毁时，销毁DisposableBean 类型的监听器容器对象。
+
+**实现SmartLifecycle接口**，用来管理启动和停止。
+
+**实现ApplicationContextAware接口**，获取ConfigurableApplicationContext对象。
+
+**实现ApplicationListener接口**，监听发布的ContextRefreshedEvent事件，标记上下文已经刷新。
+
+
+
 获取封装KafkaListenerEndpointDescriptor对象的容器工厂对象，**默认没有配置为null**，两种方式设置，一是通过KafkaListenerConfigurer配置注册者的容器工厂对象，二是通过注册者的名称在BeanFacotry上下文中查询，否则启动失败。
 
 使用MethodKafkaListenerEndpoint、KafkaListenerContainerFactory开始创建消费者。
@@ -1511,11 +1521,13 @@ Bean后置处理器，对Bean的两种情况进行处理：
 
 ![image-20250422211932718](http://47.101.155.205/image-20250422211932718.png)
 
-**配置的MessageListenerContainer有什么用？**
+**配置的group MessageListenerContainer有什么用？**
 
 ![image-20250422212513235](http://47.101.155.205/image-20250422212513235.png)
 
+触发启动，上下文已经刷新(所有的Bean已经注册了)或容器中标记启动。
 
+![SmartLifecycle](http://47.101.155.205/image-20250423194445449.png)
 
 
 
@@ -1542,7 +1554,7 @@ createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerCon
    2. 适配器设置及后续校验；
    3. 重试配置；
    4. 过滤器配置；
-   5. 适配器设置；
+   5. 消息监听器（适配器）设置；
 4. 对监听器容器进行配置；
 5. 有设置ContainerCustomizer对象则对监听器容器进行自定就操作；返回监听器容器对象。
 
@@ -1562,3 +1574,72 @@ createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerCon
 
 默认不是立即启动监听器容器。
 
+
+
+
+
+### ConcurrentMessageListenerContainer
+
+消息监听器容器。
+
+启动容器过程：
+
+1. 判断是否有配置消费者组；
+2. 消息监听器类型校验；
+3. 启动：
+   1. 是否校验Topic存在，`spring.kafka.listener.missingTopicsFatal`；
+   2. 并发配置和分区配置比对；
+   3. 创建KafkaMessageListenerContainer对象，将当前容器监听相关设置赋值给该对象；设置错误停止事件；启动对象；将对象放入容器。
+4. 每次调用KafkaMessageListenerContainer 的启动。
+
+![image-20250423204621526](http://47.101.155.205/image-20250423204621526.png)
+
+![image-20250423204726956](http://47.101.155.205/image-20250423204726956.png)
+
+
+
+### KafkaMessageListenerContainer
+
+![image-20250423205213825](http://47.101.155.205/image-20250423205213825.png)
+
+启动过程校验：
+
+1. 确认模式校验；
+2. 每个监听器容器的消息监听器设置一个SimpleAsyncTaskExecutor线程池；
+3. 确定消息监听器的类型：ListenerType；
+4. 根据类型和消息监听器创建监听消费者对象：ListenerConsumer(Runnable)；
+5. 线程池提交任务；
+6. 超时时间判断消费者是否成功监听，失败则发布ConsumerFailedToStartEvent事件。
+
+
+
+**ListenerConsumer对象创建过程：**
+
+1. 确定消息是否自动提交；
+2. 根据消费者工厂创建Consumer对象，真正的消费者；
+3. 确认是否创建事件模板对象；
+4. 消息监听器赋值；
+5. 确定消息监听器是否ConsumerSeekAware类型；
+6. 确定分配期间消息是否提交：自动提交则为false；
+7. 设置默认的重平衡监听器ListenerConsumerRebalanceListener；
+8. 确定是否批次处理消息；
+9. 确定是否织入Consumer；
+10. 批次/单条消息错误处理校验；
+11. 确认是否配置任务调度器：默认ThreadPoolTaskScheduler，以固定速率周期执行任务，**如果(当前时间-上次poll时间)/pollTimeout > noPollThreshold阈值，则发布NonResponsiveConsumerEvent事件**
+12. 是否记录初始对象ListenerConsumer信息；
+13. 确认key/value的反序列是否异常；
+14. 确认消费端default.api.timeout.ms配置，默认60s；
+15. 确认消费者max.poll.interval.ms配置，默认30s；
+16. 确定是否配置MicrometerHolder；
+
+
+
+**ListenerConsumer对象run执行过程：**
+
+1. 发布ConsumerStartingEvent事件；
+2. ConsumerSeekAware注册this对象；
+3. 将group.id绑定到线程变量上；
+4. 确定自己的分区；
+5. 发布ConsumerStartedEvent事件；
+6. 启动循环：
+   1. 
