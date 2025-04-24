@@ -419,7 +419,7 @@ spring.kafka.consumer.properties.partition.assignment.strategy=org.apache.kafka.
 false的确认默认模式(AckMode)：
 
 1. RECORD：监听器处理完消息提交。
-2. BATCH：当poll()返回的所有记录都处理完成提交。
+2. BATCH：当poll()返回的所有记录都处理完成提交，**默认模式**。
 3. TIME：当poll()返回的所有记录都处理完成，并超过上一次ackTime时间。
 4. COUNT：当poll()返回的所有记录都处理完成，并超过一定数量。
 5. COUNT_TIME：TIME或COUNT任意满足则提交。
@@ -1580,7 +1580,7 @@ createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerCon
 
 ### ConcurrentMessageListenerContainer
 
-消息监听器容器。
+消息监听器容器，组合KafkaMessageListenerContainer。
 
 启动容器过程：
 
@@ -1599,6 +1599,8 @@ createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerCon
 
 
 ### KafkaMessageListenerContainer
+
+spring-kafka的最小监听器容器。
 
 ![image-20250423205213825](http://47.101.155.205/image-20250423205213825.png)
 
@@ -1641,5 +1643,75 @@ createListenerContainer(KafkaListenerEndpoint endpoint);创建MessageListenerCon
 3. 将group.id绑定到线程变量上；
 4. 确定自己的分区；
 5. 发布ConsumerStartedEvent事件；
-6. 启动循环：
-   1. 
+6. 启动循环，执行pollAndInvoke（）：
+   1. 非自动提交且非`RECORD`确认模式，调用processCommits。已处理的消息存在LinkedBlockingQueue acks中。线程池执行线程非当前消费者线程，消息记录添加到队列；如果`MANUAL_IMMEDIATE`确认模式，wakeup()唤醒消费者；
+      1. 如果`MANUAL_IMMEDIATE`确认模式，根据消息构建提交偏移量所需的对象，事务、同步提交、异步提交回调模式（默认只打印日志）。其它情况，将信息维护到offsets一个key为Topic，value为Map，key为分区，value为偏移量；
+      2. 非MANUAL_IMMEDIATE模式：
+      3. 且非MANUAL，将信息维护到一个key为Topic，value为Map，key为分区，value为偏移量；
+      4. COUNT/COUNT_TIME模式，且acks数量大于阈值，根据`offsets`提交偏移量，count记为0；
+      5. TIME/COUNT_TIME模式，当前时间与last提交时间差值大于确认时间阈值，根据`offsets`提交偏移量，count记为0；
+   2. 两次poll空闲时间，默认0。大于0时，判断是否需要睡眠一定时间。睡眠时间小于(max.poll.interval.ms-5)，避免发生重平衡。
+   3. 维护TopicPartitionOffset的阻塞队列大于0，通过KakfaConsumer. seek(TopicPartition partition, long offset)对消费者分区偏移量进行调整；
+      1. 先对SeekPosition.TIMESTAMP类型，通过时间戳查询当前分区的便宜，然后进行seek；
+      2. TopicPartitionOffset.position为空，查询消费者的偏移量，和0比较取最大进行seek；
+      3. position为SeekPosition.BEGINNING类型，先seek到初始偏移量处；如果TopicPartitionOffset.offset不为空，则seek到该位置；
+      4. 同1类型处理；
+      5. position为SeekPosition.BEGINNING类型类型，先seek到最新偏移量处；如果TopicPartitionOffset.offset不为空，查询当前分区位置，则seek到offset+查询的位置；
+   4. 判断是否停止消费：通过assignment获取分区，pause停止消费，发布ConsumerPausedEvent事件；
+   5. lastPoll设为当前时间戳；polling设为true；
+   6. doPoll()拉去数据：返回拉去到的ConsumerRecords数据；
+   7. 判断是否在拉去数据中是否存在将polling标记为false，调用了wakeIfNecessary方法；有拉到数据则丢弃；
+   8. 判断是否恢复消费者，获取被暂停的分区，恢复这些分区的消费；发布ConsumerResumedEvent事件；
+   9. 记录获取的消息数量，topic-partition@offset记录一条消息；
+   10. 有配置空闲间隔idleEventInterval发布事件时间，设置接收消息时间：
+       1. 如果接收到消息，根据单条/批量调用真正的监听器方法；
+       2. 未接收到消息，存在idleEventInterval配置，lastReceive（上次接收时间）、lastAlertAt（上次发送事件时间），当前时间大于两者和这个间隔时间，发布ListenerContainerIdleEvent事件；如果是ConsumerSeekAware监听者，则对指定消费者分区的Topic进行一些**回调**处理；
+
+
+
+**无事务单条消息调用过程：**
+
+1. 调用配置的事务前RecordInterceptor拦截器，拦截器返回null，表示跳过该条消息；
+2. 如果有配置MicrometerHolder，则对消费情况进行记录；
+3. 进入调用消息方法：
+   1. 消息的key和value的序列号进行错误判断；
+   2. 调用非事务前RecordInterceptor拦截器，拦截器返回null，表示跳过该条消息；
+   3. 根据监听器容器的ListenerType类型，调用MessageListener的方法；
+   4. 调用真正的消费者处理完成（无异常），nackSleep < 0且非MANUAL_IMMEDIATE确认模式：
+      1. RECORD模式，提交消息偏移量；
+      2. 非自动提交且非（MANUAL或MANUAL_IMMEDIATE确认模式），将消息添加到acks消息确认队列中；
+4. 记录消费指标；
+5. 处理消息出现异常处理方式：
+   1. 记录指标；
+   2. 判断是否需要确认消息，**默认不会确认**；
+   3. 没有错误处理器，则抛出异常，**默认有一个记录日志的错误处理器**；
+      1. RemainingRecordsErrorHandler错误处理器，触发processCommits消息确认；将这次的所有消息交给错误处理器处理；
+      2. 其它调用其handle(Exception thrownException, T data, Consumer consumer)方法； 
+6. 如果nackSleep大于等于0，应该是在消费者上操作了Acknowledgment对象才会触发这个。
+
+
+
+
+
+### ConsumerCoordinator
+
+创建消费者对象，自动创建的消费者协调器。
+
+创建协调器的关键配置：
+
+1. ConsumerNetworkClient：同消费者；
+2. groupId：消费者组；
+3. group.instance.id：和静态消费者相关；
+4. rebalanceTimeoutMs：max.poll.interval.ms，默认30s；
+5. sessionTimeoutMs：session.timeout.ms，默认10s；
+6. Heartbeat：heartbeat.interval.ms，默认3s；
+7. PartitionAssignor：分区分配策略；
+8. ConsumerMetadata：消费者元数据；
+9. SubscriptionState：
+10. Metrics：
+11. Time：
+12. retryBackoffMs：retry.backoff.ms，默认0.1s；
+13. autoCommitEnabled：enable.auto.commit，是否自动提交；
+14. autoCommitIntervalMs：自动提交间隔时间；
+15. ConsumerInterceptors：消息拦截器；
+16. leaveGroupOnClose：internal.leave.group.on.close，在关闭时离开组，默认true；设置为false，则不会发送重平衡，触发和broker超时；
