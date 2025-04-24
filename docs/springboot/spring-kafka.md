@@ -1618,12 +1618,12 @@ spring-kafka的最小监听器容器。
 **ListenerConsumer对象创建过程：**
 
 1. 确定消息是否自动提交；
-2. 根据消费者工厂创建Consumer对象，真正的消费者；
-3. 确认是否创建事件模板对象；
-4. 消息监听器赋值；
-5. 确定消息监听器是否ConsumerSeekAware类型；
-6. 确定分配期间消息是否提交：自动提交则为false；
-7. 设置默认的重平衡监听器ListenerConsumerRebalanceListener；
+2. consumer：根据消费者工厂创建Consumer对象，真正的消费者；
+3. transactionTemplate：确认是否创建事件模板对象；
+4. genericListener：消息监听器赋值；
+5. consumerSeekAwareListener：确定消息监听器是否ConsumerSeekAware类型；
+6. commitCurrentOnAssignment：确定分配期间消息是否提交：自动提交则为false；
+7. subscribeOrAssignTopics()：消费者调用subscribe()设置Topic重平衡监听器ListenerConsumerRebalanceListener，并设置KafkaConsumerd的SubscriptionState的订阅类型；
 8. 确定是否批次处理消息；
 9. 确定是否织入Consumer；
 10. 批次/单条消息错误处理校验；
@@ -1662,20 +1662,24 @@ spring-kafka的最小监听器容器。
    6. doPoll()拉去数据：返回拉去到的ConsumerRecords数据；
    7. 判断是否在拉去数据中是否存在将polling标记为false，调用了wakeIfNecessary方法；有拉到数据则丢弃；
    8. 判断是否恢复消费者，获取被暂停的分区，恢复这些分区的消费；发布ConsumerResumedEvent事件；
-   9. 记录获取的消息数量，topic-partition@offset记录一条消息；
+   9. 记录获取的消息数量，`topic-partition@offset`格式记录一条消息；
    10. 有配置空闲间隔idleEventInterval发布事件时间，设置接收消息时间：
        1. 如果接收到消息，根据单条/批量调用真正的监听器方法；
        2. 未接收到消息，存在idleEventInterval配置，lastReceive（上次接收时间）、lastAlertAt（上次发送事件时间），当前时间大于两者和这个间隔时间，发布ListenerContainerIdleEvent事件；如果是ConsumerSeekAware监听者，则对指定消费者分区的Topic进行一些**回调**处理；
 
 
 
+![image-20250424195329093](http://47.101.155.205/image-20250424195329093.png)
+
+
+
 **无事务单条消息调用过程：**
 
-1. 调用配置的事务前RecordInterceptor拦截器，拦截器返回null，表示跳过该条消息；
+1. 调用配置的事务前RecordInterceptor消息拦截器，拦截器返回null，表示跳过该条消息；
 2. 如果有配置MicrometerHolder，则对消费情况进行记录；
 3. 进入调用消息方法：
    1. 消息的key和value的序列号进行错误判断；
-   2. 调用非事务前RecordInterceptor拦截器，拦截器返回null，表示跳过该条消息；
+   2. 调用非事务前RecordInterceptor消息拦截器，拦截器返回null，表示跳过该条消息；
    3. 根据监听器容器的ListenerType类型，调用MessageListener的方法；
    4. 调用真正的消费者处理完成（无异常），nackSleep < 0且非MANUAL_IMMEDIATE确认模式：
       1. RECORD模式，提交消息偏移量；
@@ -1691,11 +1695,28 @@ spring-kafka的最小监听器容器。
 
 
 
+### poll
+
+#### KafkaConsumer
 
 
-### ConsumerCoordinator
 
-创建消费者对象，自动创建的消费者协调器。
+**poll()调用过程：**
+
+1. acquireAndEnsureOpen确保消费者是单线程访问，通过线程id+当前线程值判断是否只有当前线程访问；
+2. 判断SubscriptionState订阅类型是否有效；
+3. do while循环直到Timer超时：
+   1. 通过分区协调器判断是否需要重新分配元数据；启动HeartbeatThread线程；
+   2. 拉取数据，拉取数据成功，调用ConsumerInterceptor消费者拦截器，可以对消息进行修改，拦截器出现异常不影响正常处理；
+4. 处理结束，释放消费者占用的线程；
+
+
+
+
+
+#### ConsumerCoordinator
+
+创建消费者对象，自动创建的消费者协调器，作为消费者的属性。
 
 创建协调器的关键配置：
 
@@ -1715,3 +1736,10 @@ spring-kafka的最小监听器容器。
 14. autoCommitIntervalMs：自动提交间隔时间；
 15. ConsumerInterceptors：消息拦截器；
 16. leaveGroupOnClose：internal.leave.group.on.close，在关闭时离开组，默认true；设置为false，则不会发送重平衡，触发和broker超时；
+17. completedOffsetCommits：ConcurrentLinkedQueue用来存偏移量；
+18. nextAutoCommitTimer：Timer，自动提交偏移量才创建；
+
+
+
+
+
