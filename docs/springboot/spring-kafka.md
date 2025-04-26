@@ -1659,11 +1659,11 @@ spring-kafka的最小监听器容器。
       5. position为SeekPosition.BEGINNING类型类型，先seek到最新偏移量处；如果TopicPartitionOffset.offset不为空，查询当前分区位置，则seek到offset+查询的位置；
    4. 判断是否停止消费：通过assignment获取分区，pause停止消费，发布ConsumerPausedEvent事件；
    5. lastPoll设为当前时间戳；polling设为true；
-   6. doPoll()拉去数据：返回拉去到的ConsumerRecords数据；
+   6. doPoll()拉取数据：如果Topic中没有数据，则等待至超时时间，有数据则提前返回，返回拉取到的ConsumerRecords数据；
    7. 判断是否在拉去数据中是否存在将polling标记为false，调用了wakeIfNecessary方法；有拉到数据则丢弃；
    8. 判断是否恢复消费者，获取被暂停的分区，恢复这些分区的消费；发布ConsumerResumedEvent事件；
    9. 记录获取的消息数量，`topic-partition@offset`格式记录一条消息；
-   10. 有配置空闲间隔idleEventInterval发布事件时间，设置接收消息时间：
+   10. 有配置空闲间隔idleEventInterval(idle-event-interval)，无消息超过时间则发布事件，有消息设置接收消息时间：
        1. 如果接收到消息，根据单条/批量调用真正的监听器方法；
        2. 未接收到消息，存在idleEventInterval配置，lastReceive（上次接收时间）、lastAlertAt（上次发送事件时间），当前时间大于两者和这个间隔时间，发布ListenerContainerIdleEvent事件；如果是ConsumerSeekAware监听者，则对指定消费者分区的Topic进行一些**回调**处理；
 
@@ -1726,7 +1726,7 @@ spring-kafka的最小监听器容器。
 4. rebalanceTimeoutMs：max.poll.interval.ms，默认30s；
 5. sessionTimeoutMs：session.timeout.ms，默认10s；
 6. Heartbeat：heartbeat.interval.ms，默认3s；
-7. PartitionAssignor：分区分配策略；
+7. PartitionAssignor：分区分配策略；partition.assignment.strategy，默认RangeAssignor；
 8. ConsumerMetadata：消费者元数据；
 9. SubscriptionState：
 10. Metrics：
@@ -1739,7 +1739,35 @@ spring-kafka的最小监听器容器。
 17. completedOffsetCommits：ConcurrentLinkedQueue用来存偏移量；
 18. nextAutoCommitTimer：Timer，自动提交偏移量才创建；
 
+消费者成功加入消费者组，协调器会启动HeartbeatThread守护线程，线程名称格式`kafka-coordinator-heartbeat-thread | [groupId]`。同一个消费者组的多个Topic可能创建多个相同名称的心跳线程。
 
 
 
+#### HeartbeatThread
 
+心跳检测线程在消费组加入消费组后，做以下工作：
+
+1. 超过上次session最大间隔时间未发起检测，检测分区协调器的健康；
+2. 超过上次poll最大间隔时间未发起poll，将当前消费者移出消费组，触发分区平衡；
+3. 指定心跳心跳间隔时间发起检测；
+
+![image-20250426131223679](http://47.101.155.205/image-20250426131223679.png)
+
+![image-20250426134656700](http://47.101.155.205/image-20250426134656700.png)
+
+
+
+消费者消费时间超过poll最大间隔时间情况分析：
+
+- Topic情况：6个分区；
+- 消费者情况：3个消费者，消费组最大poll间隔时间10s，一个消费者耗时20s，另外2个正常处理；消费者关闭自动提交；BATCH确认模式；
+- 其它使用默认配置；
+- 往耗时长的Topic分区发送消息；
+
+消费线程和心跳检测线程都是异步的。单线程消费完成后，再次poll消息之前会先提交偏移量，由于心跳线程向broker提出离开消费组，导致这次提交偏移量失败，出现异常，默认的错误处理器处理此异常。下一次poll时，分区协调器触发重平衡，当前消费者继续上一次的分区，重复消费当前消息。就不会断循环。
+
+![image-20250426193805179](http://47.101.155.205/image-20250426193805179.png)
+
+重平衡后，消费者更好了分区，消息被其它消费者重新消费。
+
+![image-20250426194908183](http://47.101.155.205/image-20250426194908183.png)
