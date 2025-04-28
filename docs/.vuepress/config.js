@@ -146,6 +146,7 @@ export default defineUserConfig({
         prefix: '/JavaEE',
         children: [
           'JavaSE.md',
+          'Java进阶.md',
           'JavaWeb.md',
           {
             text: 'Java多线程使用',
