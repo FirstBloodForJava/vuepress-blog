@@ -170,3 +170,34 @@ cp /etc/ssh/sshd_config_bak /etc/ssh/sshd_config
 
 ~~~
 
+
+
+## 定时删除日志文件
+
+设置步骤：
+
+1. 准备删除日志文件的脚本；
+2. 通过crontab定时执行删除脚本；
+
+**删除第30天前的文件：rm30days.sh**
+
+~~~bash
+#!/bin/bash
+path=/springboot/spring-kafka/log
+date=`date --date="30 days ago" "+%Y-%m-%d"`
+# 注意"+%Y-%m-%d" 要和日志文件名称一致
+rm -r $path/$date'.log'
+
+~~~
+
+**crontab命令添加执行命令：**
+
+~~~bash
+crontab -e
+
+# 每天10点执行定时
+0 10 * * * sh /springboot/spring-kafka/rm30days.sh
+
+~~~
+
+![image-20250428144348107](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250428144348107.png)
