@@ -200,4 +200,4 @@ crontab -e
 
 ~~~
 
-![image-20250428144348107](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20250428144348107.png)
+![image-20250428144348107](http://47.101.155.205/image-20250428144348107.png)
