@@ -397,6 +397,16 @@ export default defineUserConfig({
             link: 'Transactional'
           }
         ]
+      },
+      {
+        text: '其它',
+        prefix: '/tools',
+        children: [
+          {
+            text: 'cron表达式',
+            link: 'cron'
+          }
+        ]
       }
     ],
     // 修改主题的footer
