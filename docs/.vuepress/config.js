@@ -108,11 +108,12 @@ export default defineUserConfig({
         
         ],
       },
-      // 控制元素何时被激活
+      // nginx
       {
         text: 'nginx',
         prefix: '/nginx',
         children: [
+          'nginx.md',
           'nginx配置代理https请求步骤.md',
           'nginx配置代理400.md'
         ],
