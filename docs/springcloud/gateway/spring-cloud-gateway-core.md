@@ -4,6 +4,8 @@
 
 ## 自动配置
 
+spring-cloud-gateway-server：
+
 ~~~facotries
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
@@ -115,15 +117,147 @@ org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer
    31. TokenRelayGatewayFilterFactory
    
 6. gzip消息解析器GzipMessageBodyResolver
-   
+  
 7. netty配置：
 
    1. 服务端配置：spring.cloud.gateway.httpserver.wiretap配置是否记录请求头和请求体。
    2. 配置netty的`HttpClient`。配置类前缀spring.cloud.gateway.httpclient。
-   3. 配置过滤器WebsocketRoutingFilter的一些配置。
+   3. NettyRoutingFilter存在则配置NettyWriteResponseFilter过滤器
+   4. 配置过滤器WebsocketRoutingFilter的一些配置。
    
 8. 配置springboot的actuator，暴露端点api(GatewayControllerEndpoint、GatewayLegacyControllerEndpoint)。
 
 9. 存在oautch，配置TokenRelayGatewayFilterFactory过滤器工厂。
 
+
+
+### GatewayResilience4JCircuitBreakerAutoConfiguration
+
+存在相关依赖才会生效
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+</dependency>
+
+~~~
+
+`@ConditionalOnEnabledFilter`注解默认判断类或方法(返回类型)的GatewayFilterFactory实现是否关闭配置，是否激活配置类或Bean。
+
+SpringCloudCircuitBreakerFilterFactory子类实现配置spring.cloud.gateway.filter.circuit-breaker.enabled。其它则为驼峰命名转换为`-`分割格式。
+
+AddRequestHeaderGatewayFilterFactory格式spring.cloud.gateway.filter.add-request-header.enabled。
+
+断路器自动配置：
+
+![ReactiveResilience4JAutoConfiguration](http://47.101.155.205/image-20250511171029987.png)
+
+gateway断路器自动配置：
+
+![image-20250511170815524](http://47.101.155.205/image-20250511170815524.png)
+
+
+
+### GatewayNoLoadBalancerClientAutoConfiguration
+
+当没有`org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer`类时，添加NoLoadBalancerClientFilter过滤器，将`lb`请求拦截。
+
+![image-20250511204840047](http://47.101.155.205/image-20250511204840047.png)
+
+
+
+### GatewayMetricsAutoConfiguration
+
+![image-20250511205811026](http://47.101.155.205/image-20250511205811026.png)
+
+1. 3个GatewayTagsProvider配置；
+2. 依据spring.cloud.gateway.metrics.tags配置PropertiesTagsProvider；
+3. GatewayMetricsFilter过滤器，监控请求指标；
+4. RouteDefinitionMetrics处理RefreshRoutesEvent事件。
+
+
+
+### GatewayRedisAutoConfiguration
+
+**Redis Lua脚本实现了令牌桶算法：**
+
+key参数说明：
+
+1. tokens_key：存储当前令牌数量的键，格式request_rate_limiter.{id}.tokens。
+2. timestamp_key：存储上次令牌刷新时间的键，格式request_rate_limiter.{id}.timestamp。
+
+argv参数说明：
+
+1. rate：令牌填充速率(单位：令牌/秒)，
+2. capacity：令牌桶的最大容量。
+3. 默认空字符串。
+4. requested：当前请求需要的令牌数。
+
+
+
+~~~lua
+-- Redis Lua脚本中，默认情况下命令是随机复制的，使用这个函数可以确保命令确定性地复制，特别是在涉及时间或随机数时，避免不一致的情况。
+redis.replicate_commands()
+
+local tokens_key = KEYS[1]
+local timestamp_key = KEYS[2]
+
+local rate = tonumber(ARGV[1])
+local capacity = tonumber(ARGV[2])
+local now = redis.call('TIME')[1]
+local requested = tonumber(ARGV[4])
+
+-- 容量/速率 表示填满整个桶所需的时间
+local fill_time = capacity/rate
+-- 设置过期时间为2倍所需时间
+local ttl = math.floor(fill_time*2)
+
+-- 获取当前key的令牌数量
+local last_tokens = tonumber(redis.call("get", tokens_key))
+if last_tokens == nil then
+  -- 不存在则默认当前桶容量为剩余数量
+  last_tokens = capacity
+end
+
+-- 获取上次key刷新时间
+local last_refreshed = tonumber(redis.call("get", timestamp_key))
+if last_refreshed == nil then
+  -- 没有则默认0
+  last_refreshed = 0
+end
+
+-- 计算与上次key刷新时间差
+local delta = math.max(0, now-last_refreshed)
+-- last_tokens+(delta*rate) 根据时间差补充令牌，但是不能超过最大容量
+local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
+-- 可用令牌大于此次消耗令牌数量
+local allowed = filled_tokens >= requested
+local new_tokens = filled_tokens
+local allowed_num = 0
+if allowed then
+  new_tokens = filled_tokens - requested
+  allowed_num = 1
+end
+
+if ttl > 0 then
+  redis.call("setex", tokens_key, ttl, new_tokens)
+  redis.call("setex", timestamp_key, ttl, now)
+end
+
+-- return { allowed_num, new_tokens, capacity, filled_tokens, requested, new_tokens }
+return { allowed_num, new_tokens }
+
+~~~
+
+
+
+自动配置作用：
+
+1. 供RequestRateLimiterGatewayFilterFactory过滤器作请求拦截；
+2. 通过redis配置路由。
+
+
+
+### GatewayDiscoveryClientAutoConfiguration
 
