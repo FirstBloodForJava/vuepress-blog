@@ -261,3 +261,29 @@ return { allowed_num, new_tokens }
 
 ### GatewayDiscoveryClientAutoConfiguration
 
+DiscoveryClient发现客户端注册。
+
+![image-20250512095402164](http://47.101.155.205/image-20250512095402164.png)
+
+
+
+### SimpleUrlHandlerMappingGlobalCorsAutoConfiguration
+
+通过配置解决跨域。
+
+![image-20250512105801474](http://47.101.155.205/image-20250512105801474.png)
+
+
+
+### GatewayReactiveLoadBalancerClientAutoConfiguration
+
+添加依赖：
+
+~~~xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+</dependency>
+
+~~~
+
