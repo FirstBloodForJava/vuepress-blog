@@ -2795,7 +2795,7 @@ spring:
 
 ~~~
 
-配置spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping为true(默认false)，false：只有gateway路由处理的请求才允许跨域；true：gate所有的请求配置都应用跨域规则。
+配置`spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping`为true(默认false)，false：只有gateway路由处理的请求才允许跨域；true：gateway所有的请求配置都应用跨域规则。
 
 
 
@@ -2867,7 +2867,7 @@ public class CorsConfig {
 
 
 
-### 14.4.手动自定义过滤器处理
+### 14.4.自定义过滤器工厂处理跨域
 
 {FilterName}GatewayFilterFactory继承了AbstractGatewayFilterFactory，往容器中注入了该过滤器，过滤器要生效，需要在路由中应用过滤器。
 
