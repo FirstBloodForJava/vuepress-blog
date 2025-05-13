@@ -308,3 +308,69 @@ DiscoveryClient发现客户端注册。
 ![image-20250513111202600](http://47.101.155.205/image-20250513111202600.png)
 
 Oauth自动配置。
+
+
+
+## 记录请求情况
+
+~~~java
+@Component
+public class ElapsedFilter implements GlobalFilter, Ordered {
+
+    private static final Logger logger = LoggerFactory.getLogger(ElapsedFilter.class);
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        logger.info("ElapsedFilter start");
+        long start = System.currentTimeMillis();
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            logger.info("ElapsedFilter end, time {}", System.currentTimeMillis() - start);
+        }));
+    }
+
+    @Override
+    public int getOrder() {
+        return -2;
+    }
+}
+
+~~~
+
+![image-20250513202022446](http://47.101.155.205/image-20250513202022446.png)
+
+
+
+### 解决方式
+
+使用doFinally API。
+
+![image-20250513203534907](http://47.101.155.205/image-20250513203534907.png)
+
+~~~java
+@Component
+public class ElapsedFilter implements GlobalFilter, Ordered {
+
+    private static final Logger logger = LoggerFactory.getLogger(ElapsedFilter.class);
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        logger.info("ElapsedFilter start");
+        long start = System.currentTimeMillis();
+
+        return chain.filter(exchange).doFinally(signalType -> {
+            logger.info("singleType: {}", signalType);
+            logger.info("ElapsedFilter end, time {}", System.currentTimeMillis() - start);
+        }).then(Mono.fromRunnable(() -> {
+            logger.info("then");
+        }));
+
+    }
+
+    @Override
+    public int getOrder() {
+        return -2;
+    }
+}
+
+~~~
+
