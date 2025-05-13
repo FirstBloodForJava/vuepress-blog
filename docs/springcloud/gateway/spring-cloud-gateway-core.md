@@ -287,3 +287,24 @@ DiscoveryClient发现客户端注册。
 
 ~~~
 
+![image-20250513110706667](http://47.101.155.205/image-20250513110706667.png)
+
+根据配置的`LoadBalancerClientFactory`客户端负载均衡工厂创建`ReactiveLoadBalancerClientFilter`、`LoadBalancerServiceInstanceCookieFilter`过滤器。
+
+
+
+### GatewayReactiveOAuth2AutoConfiguration
+
+添加依赖：
+
+~~~xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+
+~~~
+
+![image-20250513111202600](http://47.101.155.205/image-20250513111202600.png)
+
+Oauth自动配置。

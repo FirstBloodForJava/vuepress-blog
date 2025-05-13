@@ -368,6 +368,10 @@ export default defineUserConfig({
               {
                 text: 'spring-cloud-gateway使用介绍',
                 link: 'spring-cloud-gateway'
+              },
+              {
+                text: 'gateway核心',
+                link: 'spring-cloud-gateway-core'
               }
             ]
           }
