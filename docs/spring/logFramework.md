@@ -880,3 +880,31 @@ MDCAdapter抽象，`ch.qos.logback.classic.util.LogbackMDCAdapter`实现。
 ![image-20250416111057016](http://47.101.155.205/image-20250416111057016.png)
 
 ![image-20250416111535552](http://47.101.155.205/image-20250416111535552.png)
+
+
+
+## 注意
+
+SpringBoot项目，通过META-INF/spring.factories指定注册`EnvironmentPostProcessor`，在实现中使用日志框架打印日志没有效果，因为日志系统暂未初始化。
+
+SpringBoot `EnvironmentPostProcessor`的实现中，也没有日志打印相关代码。
+
+~~~srping.facotries
+org.springframework.boot.env.EnvironmentPostProcessor=com.oycm.config.CustomEnvironmentPostProcessor
+~~~
+
+~~~java
+@Order(HIGHEST_PRECEDENCE + 10)
+public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomEnvironmentPostProcessor.class);
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        // 此处打印不生效
+        log.info("custom CustomEnvironmentPostProcessor");
+        System.out.println("CustomEnvironmentPostProcessor");
+    }
+}
+
+~~~
+
