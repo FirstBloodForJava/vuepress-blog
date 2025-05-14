@@ -3020,7 +3020,7 @@ management.endpoint.health.roles=ADMIN
 
 ~~~
 
-自动配置了许多	，health详情会显示内容。
+自动配置了许多`HealthIndicator`，health详情会显示内容。注入抽象类`AbstractHealthIndicator`的实现Bean，在调用health接口触发`doHealthCheck()`方法。
 
 ![image-20241214162602858](http://47.101.155.205/image-20241214162602858.png)
 
@@ -3133,6 +3133,51 @@ org.springframework.boot.web.context.WebServerPortFileWriter
 
 
 程序方式：SpringApplication.addListeners(…)。
+
+
+
+### info
+
+通过注入`org.springframework.boot.actuate.info.InfoContributor`实例Bean，通过/actuator/info暴露应用信息。
+
+~~~java
+@Configuration
+public class InfoEndpointConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(InfoEndpointConfig.class);
+
+    // 可去掉
+    @Bean
+    @ConditionalOnMissingBean
+    public InfoEndpoint infoEndpoint(ObjectProvider<InfoContributor> infoContributors) {
+        return new InfoEndpoint(infoContributors.orderedStream().collect(Collectors.toList()));
+    }
+
+    @Bean
+    public CustomInfoContributor customInfoContributor() {
+        log.info("new CustomInfoContributor");
+        return new CustomInfoContributor();
+    }
+
+    // 自定义的 InfoContributor 实现
+    static class CustomInfoContributor implements InfoContributor {
+
+        @Override
+        public void contribute(Info.Builder builder) {
+            Map<String,String> properties = new HashMap<>();
+
+            // 获取该 class 的版本
+            properties.put("version", InfoContributor.class.getPackage().getImplementationVersion());
+            properties.put("componentsName", "custom");
+
+            builder.withDetail("custom", properties);
+        }
+    }
+}
+
+~~~
+
+![actuator/info](http://47.101.155.205/image-20250514165102697.png)
 
 
 
