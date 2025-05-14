@@ -3020,7 +3020,7 @@ management.endpoint.health.roles=ADMIN
 
 ~~~
 
-自动配置了许多`HealthIndicator`，health详情会显示内容。注入抽象类`AbstractHealthIndicator`的实现Bean，在调用health接口触发`doHealthCheck()`方法。
+自动配置了许多`HealthIndicator`，health(`HealthEndpointWebExtension`)接口详情会显示内容。注入抽象类`AbstractHealthIndicator`的实现Bean，在调用health接口触发`doHealthCheck()`方法。
 
 ![image-20241214162602858](http://47.101.155.205/image-20241214162602858.png)
 
