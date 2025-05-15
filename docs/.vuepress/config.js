@@ -353,6 +353,10 @@ export default defineUserConfig({
           {
             text: 'springboot使用Kafka',
             link: 'spring-kafka'
+          },
+          {
+            text: 'Micrometer',
+            link: 'Micrometer'
           }
         ]
       },
