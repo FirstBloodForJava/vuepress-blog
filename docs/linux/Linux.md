@@ -1380,6 +1380,17 @@ netstat -r
 
 
 
+统计服务器各个TCP连接状态数量：
+
+~~~bash
+netstat -n | awk '/^tcp/ {++S[$NF]} END {for (a in S)print a,S[a]}'
+
+~~~
+
+![image-20250518135311009](http://47.101.155.205/image-20250518135311009.png)
+
+
+
 ##### ss
 
 ~~~bash
