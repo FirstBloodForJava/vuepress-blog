@@ -261,3 +261,127 @@ Tag的值必须是非null的。
 每个唯一的标签组合都会在监控系统中生成一个新的时间序列（Time Series）。监控系统的存储、查询性能会因基数爆炸急剧下降（如 Prometheus 默认限制单指标基数为10000）。高基数指标可能导致监控系统内存/存储过载，甚至崩溃。
 
 **如果标签值来自用户输入（如 URL 参数、请求头、用户 ID 等），且未做规范化处理，标签值的可能性是无限的。**
+
+
+
+### Meter Filters
+
+可以给注册表配置过滤器，更好地控制Meter的注册方式以及发出的统计数据类型。Filter的三个基本功能：
+
+- Deny/Accept正在注册的Meter。
+- Transform meter内容，如：修改name、添加或删除tags、修改description或base units。
+- 为某些meter类型配置分布统计信息。
+
+编程添加MegerFilter的方式（按顺序应用）：
+
+~~~java
+registry.config()
+    .meterFilter(MeterFilter.ignoreTags("too.much.information"))
+    .meterFilter(MeterFilter.denyNameStartsWith("jvm"));
+
+~~~
+
+
+
+#### Deny/Accept MeterFilter
+
+拒绝或接收MeterFilter样例：
+
+~~~java
+new MeterFilter() {
+    @Override
+    public MeterFilterReply accept(Meter.Id id) {
+       if(id.getName().contains("test")) {
+          return MeterFilterReply.DENY;
+       }
+       return MeterFilterReply.NEUTRAL;
+    }
+}
+
+~~~
+
+MeterFilterReply有3个枚举类型：
+
+- DENY：不让这个Meter注册。当尝试在注册表上注册一个Meter，并且过滤器返回DENY时，注册表将返回该Meter的`NOOP version`（例如，`NoopCounter`或`NoopTimer`）。代码可以继续与NOOP Meter交互，但是记录到NOOP Meter的任何内容都将以最小的开销立即丢弃。
+- NEUTRAL：如果其它MeterFilter没有返回`DENY`，注册的Meter则正常返回。
+- ACCEPT：如果过滤器返回`ACCEPT`，则立即注册Meter，而不询问任何其他过滤器的`accept`方法。
+
+
+
+MeterFilter为Deny/Accept提供的静态构造器：
+
+- accept()：接收所有的meter，覆盖后面所有的Filterr。
+- accept(Predicate\<Meter.Id\>)：接受匹配的Predicate。
+- acceptNameStartsWith(String)：接受匹配前缀的Meter
+- deny()：拒绝所有的meter，覆盖后面所有的Filterr。
+- denyNameStartsWith(String)：拒绝匹配前缀的Meter
+- deny(Predicate\<Meter.Id\>)：拒绝匹配的Predicate。
+- maximumAllowableMetrics(int)：注册表达到一定数量，拒绝Meter。
+- maximumAllowableTags(String meterNamePrefix, String tagKey, int maximumTagValues, MeterFilter onMaxReached)：对标签数量做限制。
+- denyUnless(Predicate\<Meter.Id\>)：拒绝不匹配Predicate的Meter。
+
+
+
+过滤链，按照配置的顺序应用过滤器，下面的例子：只匹配http的Meter。
+
+~~~java
+registry.config()
+    .meterFilter(MeterFilter.acceptNameStartsWith("http"))
+    .meterFilter(MeterFilter.deny()); 
+
+~~~
+
+
+
+#### Transform
+
+给test开始的meter添加名称前缀，添加附加标签。
+
+~~~java
+new MeterFilter() {
+    @Override
+    public Meter.Id map(Meter.Id id) {
+       if(id.getName().startsWith("test")) {
+          return id.withName("extra." + id.getName()).withTag("extra.tag", "value");
+       }
+       return id;
+    }
+}
+
+~~~
+
+构造器方法：
+
+- commonTags(Iterable\<Tag\>)：为所有Meter添加一组标签。建议添加应用程序名称、host、region(区域)等通用标签。
+- ignoreTags(String…)：删除匹配这些key的标签。当一个标签基数过高影响监控系统性能，可以快速删除，待后续更改检测点。
+- replaceTagValues(String tagKey, Function\<String, String\> replacement, String… exceptions)：对所有匹配的标签(被排除的除外)，调用替换函数。
+- renameTag(String meterNamePrefix, String fromTagKey, String toTagKey)：对匹配前缀的和指定key的标签替换名称。
+
+
+
+#### Configure
+
+`Timer`和`DistributionSummary`包含一组可选的分布统计信息（除了基本的count、total和max之外），可以通过过滤器配置这些统计信息。这些分布统计包括预先计算的百分位数(pre-computed percentiles)、SLO和柱状图(histograms)。
+
+~~~java
+new MeterFilter() {
+    @Override
+    public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+        if (id.getName().startsWith(prefix)) {
+            return DistributionStatisticConfig.builder()
+                    .publishPercentiles(0.9, 0.95)
+                    .build()
+                    .merge(config);
+        }
+        return config;
+    }
+};
+
+~~~
+
+
+
+构造器方法：
+
+- maxExpected(Duration/long)：控制上限。
+- minExpected(Duration/long)：控制下限。
