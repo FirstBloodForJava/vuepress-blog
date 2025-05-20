@@ -385,3 +385,308 @@ new MeterFilter() {
 
 - maxExpected(Duration/long)：控制上限。
 - minExpected(Duration/long)：控制下限。
+
+
+
+### Rate Aggregation
+
+在指标发布之前在客户端进行速率聚合，或者在服务端查询时临时聚合。
+
+
+
+**客户端聚合的两类系统：**
+
+- 期望速率聚合的数据。考虑到关键的洞察力，对于大多数生产目的，我们应该基于比率而不是绝对值来做出决定。这样的系统得益于不必做更少的数学运算来满足查询。
+- 使用相对较少或没有数学操作来通过查询对聚合数据进行评级。对于这些系统，发布预聚合的数据是对构建有意义的唯一方法。
+
+![image-20250520202409514](C:\Users\oycm\AppData\Roaming\Typora\typora-user-images\image-20250520202409514.png)
+
+
+
+
+
+### Counters
+
+`Counter`接口允许按固定值递增，这个值必须是正数。
+
+
+
+~~~java
+// 生成随机数的对象
+Random rand = ...; 
+
+MeterRegistry registry = ...;
+// 使用注册表创建 Counter
+Counter counter = registry.counter("counter"); 
+
+Flux.interval(Duration.ofMillis(10))
+        .doOnEach(d -> {
+            if (rand.nextDouble() + 0.1 > 0) {
+               	// 计数
+                counter.increment(); 
+            }
+        })
+        .blockLast();
+
+~~~
+
+Counter接口提供的流式构建器，提供了对`baseUnit`、`description`、`tags`的访问。您可以通过最后调用`register`将计数器注册。
+
+~~~java
+Counter counter = Counter
+    .builder("counter")
+    .baseUnit("beans") // optional
+    .description("a description of what this counter does") // optional
+    .tags("region", "test") // optional
+    .register(registry);
+
+~~~
+
+
+
+#### @Counted
+
+`@Counted`注解为特定类型的方法，例如，Controller方法或其它方法添加计数支持。
+
+
+
+添加`CountedAspect`以支持注解工作：
+
+~~~java
+@Configuration
+public class CountedConfiguration {
+   @Bean
+   public CountedAspect countedAspect(MeterRegistry registry) {
+      return new CountedAspect(registry);
+   }
+}
+
+~~~
+
+~~~java
+@Service
+public class ExampleService {
+	
+    // @Counted 记录该方法的执行次数
+  	@Counted
+    public void sync() {
+    	// ...
+    }
+
+    // @Counted 记录该方法的执行次数
+  	@Async
+  	@Counted
+  	public CompletableFuture<?> async() {
+    	return CompletableFuture.supplyAsync(...);
+  	}
+}
+
+~~~
+
+
+
+要注解`@MeterTag`支持方法参数使用，需要配置`CountedAspect`添加`CountedMeterTagAnnotationHandler`。
+
+~~~java
+ValueResolver valueResolver = parameter -> "Value from myCustomTagValueResolver [" + parameter + "]";
+
+ValueExpressionResolver valueExpressionResolver = new SpelValueExpressionResolver();
+
+countedAspect.setMeterTagAnnotationHandler(
+        new CountedMeterTagAnnotationHandler(aClass -> valueResolver, aClass -> valueExpressionResolver));
+
+~~~
+
+假设该接口使用了以下注解：
+
+
+~~~java
+interface MeterTagClassInterface {
+
+	@Counted
+    void getAnnotationForTagValueResolver(@MeterTag(key = "test", resolver = ValueResolver.class) String test);
+
+    @Counted
+    void getAnnotationForTagValueExpression(
+            @MeterTag(key = "test", expression = "'hello' + ' characters'") String test);
+
+    @Counted
+    void getAnnotationForArgumentToString(@MeterTag("test") Long param);
+
+    @Counted
+    void getMultipleAnnotationsForTagValueExpression(
+            @MeterTag(key = "value1", expression = "'value1: ' + value1") @MeterTag(key = "value2",expression = "'value2: ' + value2") DataHolder param);
+
+}
+
+~~~
+
+当调用`MeterTagClassInterface`接口实现时，**实现的方法需要@Counted注解**。将创建以下计数器：
+
+~~~java
+// @MeterTag("test") Long param
+service.getAnnotationForArgumentToString(15L);
+
+assertThat(registry.get("method.counted").tag("test", "15").counter().count()).isEqualTo(1);
+
+// @MeterTag(key = "test", resolver = ValueResolver.class) 使用了Value解析器
+service.getAnnotationForTagValueResolver("foo");
+
+assertThat(registry.get("method.counted")
+    .tag("test", "Value from myCustomTagValueResolver [foo]")
+    .counter()
+    .count()).isEqualTo(1);
+
+// @MeterTag(key = "test", expression = "'hello' + ' characters'") 使用 ValueExpressionResolver
+service.getAnnotationForTagValueExpression("15L");
+
+assertThat(registry.get("method.counted").tag("test", "hello characters").counter().count()).isEqualTo(1);
+
+// @MeterTag(key = "value1", expression = "'value1: ' + value1") @MeterTag(key = "value2",expression = "'value2: ' + value2")
+// @MeterTags({ @MeterTag(...), @MeterTag(...) }) 等价
+service.getMultipleAnnotationsForTagValueExpression(new DataHolder("zxe", "qwe"));
+
+assertThat(registry.get("method.counted")
+    .tag("value1", "value1: zxe")
+    .tag("value2", "value2: qwe")
+    .counter()
+    .count()).isEqualTo(1);
+
+~~~
+
+
+
+### Function-tracking Counters
+
+`Micrometer`还提供了一种不常用的计数器模式，可以跟踪单调增加的函数（保持不变或随时间增加但从不减少的函数）。一些监视系统（如Prometheus）将计数器的累积值推送到后端，但其他监视系统则发布计数器在推送间隔内的增量速率。通过采用此模式，您可以让监视系统的Micrometer实现选择是否对计数器进行评级规范化，并且您的计数器在不同类型的监视系统之间保持可移植性。
+
+
+
+~~~java
+Cache cache = ...; // suppose we have a Guava cache with stats recording on
+// evictionCount一个单调递增的函数，从其生命周期开始，每次缓存驱逐都会递增。
+registry.more().counter("evictions", tags, cache, c -> c.stats().evictionCount()); 
+
+~~~
+
+
+
+~~~java
+MyCounterState state = ...;
+
+FunctionCounter counter = FunctionCounter
+    .builder("counter", state, state -> state.count())
+    .baseUnit("beans") // optional
+    .description("a description of what this counter does") // optional
+    .tags("region", "test") // optional
+    .register(registry);
+
+~~~
+
+
+
+### Gauges
+
+仪表是获取当前值的媒介。测量的典型示例是集合或映射的大小，或者处于运行状态的线程数。
+
+
+
+~~~java
+// 一种更常见的仪表形式是监视一些非数字对象的仪表。最后一个参数建立了一个函数，该函数用于在观察量规时确定量规的值。
+List<String> list = registry.gauge("listGauge", Collections.emptyList(), new ArrayList<>(), List::size);
+// 
+List<String> list2 = registry.gaugeCollectionSize("listSize2", Tags.empty(), new ArrayList<>()); 
+Map<String, Integer> map = registry.gaugeMapSize("mapGauge", Tags.empty(), new HashMap<>());
+
+~~~
+
+
+
+创建`Gauge`时不会获得对`Gauge`的引用。相反，你会得到对正在观察的事物的引用：
+
+~~~java
+// 获取gauge的观察的引用
+AtomicInteger myGauge = registry.gauge("numberGauge", new AtomicInteger(0));
+
+// 在其他地方，您可以使用对象引用更新它保存的值
+myGauge.set(27);
+myGauge.set(11);
+
+~~~
+
+
+
+**流式构建Gauge：**
+
+~~~java
+Gauge gauge = Gauge
+    .builder("gauge", myObj, myObj::gaugeValue)
+    .description("a description of what this gauge does") // optional
+    .tags("region", "test") // optional
+    .register(registry);
+
+~~~
+
+
+
+**如果Gauge的引用被回收，报告的内容回事NaN或不记录。**
+
+
+
+#### TimeGauge
+
+
+
+`TimeGauge`是跟踪时间值的专用度量，该值将被缩放到每个注册中心实现所期望的基本时间单位。
+
+**TimeGauge注册到TimeUnit ：**
+
+~~~java
+AtomicInteger msTimeGauge = new AtomicInteger(4000);
+AtomicInteger usTimeGauge = new AtomicInteger(4000);
+TimeGauge.builder("my.gauge", msTimeGauge, TimeUnit.MILLISECONDS, AtomicInteger::get).register(registry);
+TimeGauge.builder("my.other.gauge", usTimeGauge, TimeUnit.MICROSECONDS, AtomicInteger::get).register(registry);
+
+~~~
+
+**Prometheus转换的内容：**
+
+~~~md
+# HELP my_gauge_seconds
+# TYPE my_gauge_seconds gauge
+my_gauge_seconds 4.0
+# HELP my_other_gauge_seconds
+# TYPE my_other_gauge_seconds gauge
+my_other_gauge_seconds 0.004
+~~~
+
+
+
+#### Multi-gauge
+
+
+
+~~~java
+// SELECT count(*) from job group by status WHERE job = 'dirty'
+MultiGauge statuses = MultiGauge.builder("statuses")
+    .tag("job", "dirty")
+    .description("The number of widgets in various statuses")
+    .baseUnit("widgets")
+    .register(registry);
+
+...
+
+// run this whenever you re-run your query
+statuses.register(
+    resultSet.stream()
+        .map(result -> Row.of(Tags.of("status", result.getAsString("status")), result.getAsInt("count")))
+        .collect(toList()),
+    true // whether to overwrite the previous value or only record it once
+);
+
+~~~
+
+
+
+### Timers
+
