@@ -218,6 +218,10 @@ export default defineUserConfig({
           {
             text: 'Java多线程理论',
             link: 'Java多线程理论',
+          },
+          {
+            text: 'ErrorFile文件分析',
+            link: 'ErrorFile文件分析'
           }
         ]
       },
