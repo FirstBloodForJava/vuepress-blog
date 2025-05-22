@@ -556,7 +556,7 @@ assertThat(registry.get("method.counted")
 
 
 
-### Function-tracking Counters
+#### Function-tracking Counters
 
 `Micrometer`还提供了一种不常用的计数器模式，可以跟踪单调增加的函数（保持不变或随时间增加但从不减少的函数）。一些监视系统（如Prometheus）将计数器的累积值推送到后端，但其他监视系统则发布计数器在推送间隔内的增量速率。通过采用此模式，您可以让监视系统的Micrometer实现选择是否对计数器进行评级规范化，并且您的计数器在不同类型的监视系统之间保持可移植性。
 
@@ -689,4 +689,427 @@ statuses.register(
 
 
 ### Timers
+
+Timer用于测量低延迟，高频率的事件。不支持负值记录。
+
+~~~java
+Timer timer = Timer
+    .builder("my.timer")
+    .description("a description of what this timer does") // optional
+    .tags("region", "test") // optional
+    .register(registry);
+
+~~~
+
+Timer实现`CumulativeTimer`和`StepTimer`的最大统计值是时间窗口最大值TimeWindowMax。
+
+
+
+**记录代码块：**
+
+~~~java
+timer.record(() -> dontCareAboutReturnValue());
+timer.recordCallable(() -> returnValue());
+
+Runnable r = timer.wrap(() -> dontCareAboutReturnValue()); 
+Callable c = timer.wrap(() -> returnValue());
+
+~~~
+
+**在Timer.Sample中存储开始状态：**
+
+~~~java
+Timer.Sample sample = Timer.start(registry);
+
+// do stuff
+Response response = ...
+
+sample.stop(registry.timer("my.timer", "response", response.status()));
+
+~~~
+
+
+
+#### @Timed
+
+`micrometer-core`模块的`@Timed`注解可以为方法添加计时支持。
+
+~~~java
+@Configuration
+public class TimedConfiguration {
+   @Bean
+   public TimedAspect timedAspect(MeterRegistry registry) {
+      return new TimedAspect(registry);
+   }
+}
+
+~~~
+
+~~~java
+@Service
+public class ExampleService {
+
+  @Timed
+  public void sync() {
+    // @Timed 记录方法执行的耗时，正常退出或异常退出
+  }
+
+  @Async
+  @Timed
+  public CompletableFuture<?> async() {
+    // @Timed 记录方法执行的耗时，正常返回CompletableFuture或异常结束
+    return CompletableFuture.supplyAsync(...);
+  }
+
+}
+
+~~~
+
+
+
+#### @MeterTag
+
+在方法参数使用`@MeterTag`注解。创建`TimedAspect`的Bean添加`MeterTagAnnotationHandler`。
+
+~~~java
+ValueResolver valueResolver = parameter -> "Value from myCustomTagValueResolver [" + parameter + "]";
+
+ValueExpressionResolver valueExpressionResolver = new SpelValueExpressionResolver();
+
+timedAspect.setMeterTagAnnotationHandler(
+        new MeterTagAnnotationHandler(aClass -> valueResolver, aClass -> valueExpressionResolver));
+
+~~~
+
+**MeterTagClassInterface接口：**
+
+
+~~~java
+interface MeterTagClassInterface {
+
+    @Timed
+    void getAnnotationForTagValueResolver(@MeterTag(key = "test", resolver = ValueResolver.class) String test);
+
+    @Timed
+    void getAnnotationForTagValueExpression(
+            @MeterTag(key = "test", expression = "'hello' + ' characters'") String test);
+
+    @Timed
+    void getAnnotationForArgumentToString(@MeterTag("test") Long param);
+
+    @Timed
+    void getMultipleAnnotationsForTagValueExpression(
+            @MeterTag(key = "value1", expression = "'value1: ' + value1") @MeterTag(key = "value2",
+                    expression = "'value2: ' + value2") DataHolder param);
+
+}
+
+~~~
+
+**MeterTagClassInterface接口测试，实现的方法也要有注解：**
+
+~~~java
+service.getAnnotationForArgumentToString(15L);
+
+assertThat(registry.get("method.timed").tag("test", "15").timer().count()).isEqualTo(1);
+
+service.getAnnotationForTagValueResolver("foo");
+
+assertThat(registry.get("method.timed")
+    .tag("test", "Value from myCustomTagValueResolver [foo]")
+    .timer()
+    .count()).isEqualTo(1);
+
+service.getAnnotationForTagValueExpression("15L");
+
+assertThat(registry.get("method.timed").tag("test", "hello characters").timer().count()).isEqualTo(1);
+
+service.getMultipleAnnotationsForTagValueExpression(new DataHolder("zxe", "qwe"));
+
+assertThat(
+        registry.get("method.timed").tag("value1", "value1: zxe").tag("value2", "value2: qwe").timer().count())
+    .isEqualTo(1);
+
+~~~
+
+
+
+#### Function-tracking Timers
+
+
+
+~~~java
+IMap<?, ?> cache = ...; // suppose we have a Hazelcast cache
+registry.more().timer("cache.gets.latency", Tags.of("name", cache.getName()), cache,
+    c -> c.getLocalMapStats().getGetOperationCount(), 
+    c -> c.getLocalMapStats().getTotalGetLatency(),
+    TimeUnit.NANOSECONDS 
+
+~~~
+
+
+
+~~~java
+IMap<?, ?> cache = ...
+
+FunctionTimer.builder("cache.gets.latency", cache,
+        c -> c.getLocalMapStats().getGetOperationCount(),
+        c -> c.getLocalMapStats().getTotalGetLatency(),
+        TimeUnit.NANOSECONDS)
+    .tags("name", cache.getName())
+    .description("Cache gets")
+    .register(registry);
+
+~~~
+
+
+
+#### Pause Detection
+
+
+
+**自定义暂停检测器：**
+
+~~~java
+registry.config().pauseDetector(new ClockDriftPauseDetector(sleepInterval, pauseThreshold));
+registry.config().pauseDetector(new NoPauseDetector());
+
+~~~
+
+
+
+#### Memory Footprint Estimation
+
+Timer是消耗内存最多的测量器。
+
+- R：环缓冲区长度。在所有示例中，我们都假定默认值为3。R是用Timer.builder.distributionStatisticBufferLength设置的。
+- B：总直方图桶。可以是SLO边界或百分位直方图桶。默认情况下，计时器被限制为最小期望值1ms和最大期望值30秒，在适用的情况下，为百分位数直方图产生66个桶。
+- I：暂停补偿的区间估计器。1.7 kb。
+- M：Time-decaying max。104字节。
+- Fb：固定边界直方图。8b * B * R
+- Pp：百分位精度。缺省值是1。一般在[0,3]的范围内。Pp是用Timer.Builder.percentilePrecision设置的。
+- Hdr(Pp)：高动态范围直方图。
+  - When Pp = 0: 1.9kb * R + 0.8kb
+  - When Pp = 1: 3.8kb * R + 1.1kb
+  - When Pp = 2: 18.2kb * R + 4.7kb
+  - When Pp = 3: 66kb * R + 33kb
+
+![image-20250522212245193](http://47.101.155.205/image-20250522212245193.png)
+
+
+
+### Distribution Summaries
+
+分布摘要跟踪事件的分布。它在结构上类似于计时器，但记录的值不代表时间单位。例如，您可以使用分发摘要来度量到达服务器的请求的有效负载大小。
+
+~~~java
+DistributionSummary summary = registry.summary("response.size");
+
+~~~
+
+~~~java
+DistributionSummary summary = DistributionSummary
+    .builder("response.size")
+    .description("a description of what this summary does") // optional
+    .baseUnit("bytes") // optional 
+    .tags("region", "test") // optional
+    .scale(100) // optional 
+    .register(registry);
+
+~~~
+
+`DistributionSummary`实现（如`CumulativeDistributionSummary`和`StepDistributionSummary`）的最大值是时间窗最大值`TimeWindowMax`。
+
+
+
+#### Scaling and Histograms
+
+
+~~~java
+DistributionSummary.builder("my.ratio").scale(100).register(registry)
+
+~~~
+
+
+
+~~~java
+DistributionSummary.builder("my.ratio")
+   .scale(100)
+   .serviceLevelObjectives(70, 80, 90)
+   .register(registry)
+
+~~~
+
+
+
+
+
+#### Memory Footprint Estimation
+
+根据选择的选项，分布摘要的总内存占用可能会有很大差异。
+
+- R：环缓冲区长度。在所有示例中，我们都假定默认值为3。R是用DistributionSummary.Builder.distributionStatisticBufferLength设置的。
+- B：总直方图桶。它可以是SLO边界或百分位直方图桶。默认情况下，摘要没有最小和最大期望值，所以我们发布所有276个预定的直方图桶。当您打算发布百分位数直方图时，您应该始终使用minimumExpectedValue和maximumExpectedValue来夹紧分布摘要。
+- M：Time-decaying max。104字节。
+- Fb：固定边界直方图。8b * B * R
+- Pp：百分位精度。缺省值是1。取值范围一般为[0,3]。Pp是用DistributionSummary.Builder.percentilePrecision设置的。
+- Hdr(Pp)：高动态范围直方图。
+  - When Pp = 0: 1.9kb * R + 0.8kb
+  - When Pp = 1: 3.8kb * R + 1.1kb
+  - When Pp = 2: 18.2kb * R + 4.7kb
+  - When Pp = 3: 66kb * R + 33kb
+
+![image-20250522213035762](http://47.101.155.205/image-20250522213035762.png)
+
+
+
+### Long Task Timers
+
+长任务`Timer`是一种特殊类型的计时器，记录长时间运行的任务开始时间和持续时间，并同时监控有多少个任务正在运行。
+
+长任务Timer至少发布以下统计信息：
+
+- 活动任务数；
+- 活动任务的总持续时间；
+- 活动任务最大持续时间。
+
+**Spring使用长任务Timer：**
+
+~~~java
+@Timed(value = "aws.scrape", longTask = true)
+@Scheduled(fixedDelay = 360000)
+void scrapeResources() {
+	// ...
+}
+
+~~~
+
+**编码使用长任务Timer：**
+
+~~~java
+LongTaskTimer scrapeTimer = registry.more().longTaskTimer("scrape");
+void scrapeResources() {
+    scrapeTimer.record(() => {
+        // ...
+    });
+}
+
+~~~
+
+**长任务计时器的`Fluent`构建器：**
+
+~~~java
+LongTaskTimer longTaskTimer = LongTaskTimer
+    .builder("long.task.timer")
+    .description("a description of what this timer does") // optional
+    .tags("region", "test") // optional
+    .register(registry);
+
+~~~
+
+
+
+**可以对任务运行时间较长的做警告。**
+
+
+
+### Histograms and Percentiles
+
+计时器和分布摘要支持收集数据以观察其百分位数分布。查看百分位数有两种主要方法：
+
+- **百分位柱状图(Percentile histograms)：**Micrometer将值累积到底柱状方图中，并将一组预先确定的桶发送到监控系统。监控系统的查询语言负责计算该柱状图的百分位数。目前，只有Prometheus、Atlas和Wavefront分别通过histogram_quantile、:percentile和hs()支持基于直方图的百分位数近似值。如果您的目标是Prometheus、Atlas或Wavefront，则更喜欢这种方法，因为您可以跨维度聚合柱状图（通过将一组维度上的桶的值相加），并从柱状图中获得可聚合的百分位数。
+- **客户端百分位数(Client-side percentiles)：**Micrometer计算每个Meter ID（一组名称和标签）的百分位数近似值，并将百分位数值发送到监控系统。这并不像百分位数直方图那样灵活，因为不可能在标签之间汇总百分位数近似值。然而，对于不支持基于直方图的服务器端百分位数计算的监控系统，它提供了对百分位数分布的某种程度的了解。
+
+**使用Timer构建的柱状图：**
+
+~~~java
+Timer.builder("my.timer")
+    // 用于发布在应用程序中计算的百分位数。这些值在各个维度上是不可聚合的
+   .publishPercentiles(0.5, 0.95) // 中位数和第95百分位
+    // 
+   .publishPercentileHistogram()
+    // 用于发布由slo定义的桶的累积直方图。当在支持可聚合百分位数的监视系统上与publishPercentileHistogram一起使用时，此设置将向发布的直方图添加额外的桶。当在不支持可聚合百分位数的系统上使用时，此设置将导致仅使用这些桶发布直方图。
+   .serviceLevelObjectives(Duration.ofMillis(100)) 
+    // 控制publishPercentileHistogram发送的桶的数量，并控制底层HdrHistogram结构的准确性和内存占用。
+   .minimumExpectedValue(Duration.ofMillis(1)) 
+   .maximumExpectedValue(Duration.ofSeconds(10))
+
+~~~
+
+
+
+**给myservice开始的计时器启用客户端百分位数：**
+
+~~~java
+registry.timer("myservice.http.requests").record(..);
+registry.timer("myservice.db.requests").record(..);
+
+registry.config().meterFilter(
+    new MeterFilter() {
+        @Override
+        public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+            if(id.getName().startsWith("myservice")) {
+                return DistributionStatisticConfig.builder()
+                    .percentiles(0.95)
+                    .build()
+                    .merge(config);
+            }
+            return config;
+        }
+    });
+
+~~~
+
+
+
+### Meter Provider
+
+
+
+**测量job执行的结果：**
+
+~~~java
+Timer.Sample sample = Timer.start(registry);
+
+Result result = job.execute();
+
+Timer timer = Timer.builder("job.execution")
+    .tag("job.name", "job")
+    .tag("status", result.status())
+    .register(registry);
+sample.stop(timer);
+
+~~~
+
+上面代码有两个问题：每次执行创建`Timer.Builder`对象的开销以及GC。
+
+~~~java
+// 可以替换成这样
+// 这样有局限性
+registry.timer("job.execution", "job.name", "my-job", "status", result.status());
+
+~~~
+
+
+
+**使用MeterProvider解决问题。MeterProvider可以和Counter, Timer, LongTaskTimer,  DistributionSummary一起使用。**
+
+
+
+~~~java
+// 提前创建好的属性
+private MeterProvider<Timer> timerProvider = Timer.builder("job.execution")
+    .tag("job.name", "my-job")
+    .withRegistry(registry);
+
+// ...
+
+Timer.Sample sample = Timer.start(registry);
+
+Result result = job.execute();
+
+// 记录tag
+sample.stop(timerProvider.withTags("status", result.status()));
+
+~~~
 
