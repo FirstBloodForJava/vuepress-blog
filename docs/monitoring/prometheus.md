@@ -109,13 +109,17 @@ alerting:
 
 
 rule_files:
-
+# 支持同时监听多个应用
 scrape_configs:
-  - job_name: "prometheus" # 可以是${spring.application.name}配置的名称,后续结合Grafana会使用到
-    # metrics_path: "/actuator/prometheus" 默认后缀地址metrics,SpringBoot应用监听地址需要修改
+  - job_name: "prometheus" # 监听prometheus自己
+    # metrics_path: "/actuator/prometheus" 默认后缀地址metrics
     static_configs:
       - targets: ["localhost:8090"] # 监听prmetheus自己
-# 支持多个应用
+  - job_name: "applicationName"  # 可以是${spring.application.name}配置的名称,后续结合Grafana会使用到
+    metrics_path: "/actuator/prometheus" # SpringBoot actuator可配置前缀
+    static_configs:
+      - targets: ["ip:port"] # 监听应用的ip+端口
+
 
 ~~~
 
