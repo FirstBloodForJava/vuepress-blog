@@ -442,7 +442,24 @@ Counter counter = Counter
 
 ~~~
 
+**spring-boot-starter-actuator桥接Prometheus创建的Counter：**
 
+~~~java
+// registry io.micrometer.prometheus.PrometheusMeterRegistry
+// tags Iterable io.micrometer.core.instrument.Tag
+Counter allocatedBytes = Counter.builder("jvm.gc.memory.allocated").tags(tags)
+    .baseUnit(BaseUnits.BYTES)
+    .description("Incremented for an increase in the size of the young generation memory pool after one GC to before the next")
+    .register(registry);
+
+// 通过allocatedBytes.increment(double) 设置指标值
+allocatedBytes.increment(delta);
+
+~~~
+
+![image-20250527144750916](http://47.101.155.205/image-20250527144750916.png)
+
+![image-20250527145211004](http://47.101.155.205/image-20250527145211004.png)
 
 #### @Counted
 
@@ -585,6 +602,21 @@ FunctionCounter counter = FunctionCounter
 
 
 
+**spring-boot-starter-actuator桥接Prometheus创建的FunctionCounter：**
+
+~~~java
+FunctionCounter.builder("jvm.classes.unloaded", classLoadingBean, ClassLoadingMXBean::getUnloadedClassCount)
+    .tags(tags)
+    .description("The total number of classes unloaded since the Java virtual machine has started execution")
+    .baseUnit(BaseUnits.CLASSES)
+    .register(registry);
+
+~~~
+
+![image-20250527150251448](http://47.101.155.205/image-20250527150251448.png)
+
+![image-20250527150417965](http://47.101.155.205/image-20250527150417965.png)
+
 ### Gauges
 
 仪表是获取当前值的媒介。测量的典型示例是集合或映射的大小，或者处于运行状态的线程数。
@@ -599,6 +631,26 @@ List<String> list2 = registry.gaugeCollectionSize("listSize2", Tags.empty(), new
 Map<String, Integer> map = registry.gaugeMapSize("mapGauge", Tags.empty(), new HashMap<>());
 
 ~~~
+
+**spring-boot-starter-actuator桥接Prometheus创建的Gauge：**
+
+
+~~~java
+// registry registry io.micrometer.prometheus.PrometheusMeterRegistry
+// tags Iterable io.micrometer.core.instrument.Tag
+AtomicLong liveDataSize = new AtomicLong(0L);
+// 通过GC回调修改liveDataSize的值
+Gauge.builder("jvm.gc.live.data.size", liveDataSize, AtomicLong::get)
+	.tags(tags)
+    .description("Size of old generation memory pool after a full GC")
+    .baseUnit(BaseUnits.BYTES)
+    .register(registry);
+
+~~~
+
+![image-20250527145843952](http://47.101.155.205/image-20250527145843952.png)
+
+![image-20250527145928764](http://47.101.155.205/image-20250527145928764.png)
 
 
 
@@ -704,6 +756,24 @@ Timer timer = Timer
 Timer实现`CumulativeTimer`和`StepTimer`的最大统计值是时间窗口最大值TimeWindowMax。
 
 
+
+**spring-boot-starter-actuator桥接Prometheus创建的Timer：**
+
+~~~java
+// registry io.micrometer.prometheus.PrometheusMeterRegistry
+// 使用record(long amount, TimeUnit unit)直接记录GC赞同时间
+// 通过玩GC中注册回调
+Timer.builder("jvm.gc.pause")
+    .tags("action", gcAction, "cause", gcCause)
+    .description("Time spent in GC pause")
+    .register(registry)
+    .record(duration, TimeUnit.MILLISECONDS);
+
+~~~
+
+![image-20250527143804137](http://47.101.155.205/image-20250527143804137.png)
+
+![image-20250527144047312](http://47.101.155.205/image-20250527144047312.png)
 
 **记录代码块：**
 
