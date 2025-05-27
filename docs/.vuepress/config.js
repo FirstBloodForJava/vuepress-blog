@@ -361,7 +361,11 @@ export default defineUserConfig({
           {
             text: 'Micrometer',
             link: 'Micrometer'
-          }
+          },
+          {
+            text: 'starter-actuator',
+            link: 'starter-actuator'
+          },
         ]
       },
       // SpringCloud
