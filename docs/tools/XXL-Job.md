@@ -10,6 +10,10 @@ XXL-JOB官网文档地址：https://www.xuxueli.com/xxl-job/
 
 `xxl-job-admin`模块是调度中心。
 
+
+
+### 配置文件
+
 调度中心配置文件说明：
 
 ~~~properties
@@ -86,3 +90,104 @@ xxl.job.logretentiondays=30
 
 
 
+### Docker镜像构建
+
+Dockerfile构建Docker镜像命令
+
+~~~dockerfile
+# jre运行环境
+FROM openjdk:8-jre-slim
+# 镜像创建者
+MAINTAINER ouyangcm
+
+ENV PARAMS=""
+
+ENV TZ=PRC
+# 设置系统时区为中国标准时间
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 添加jar文件到镜像
+ADD target/xxl-job-admin-*.jar /app.jar
+
+# 启动镜像命令
+# PARAMS 通过环境变量替换jar包的配置文件配置
+ENTRYPOINT ["sh","-c","java -jar $JAVA_OPTS /app.jar $PARAMS"]
+
+~~~
+
+
+
+~~~bash
+# 使用Dockerfile 构建镜像
+docker build -t xxl-job-admin:1.0 .
+
+# 启动镜像
+# -v /tmp:/data/applogs 主机目录和容器目录挂载
+# --name 容器名称
+# 
+docker run -e PARAMS="--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai" -p 8080:8080 -v /tmp:/data/applogs --name xxl-job-admin  -d xxl-job-admin:1.0
+
+~~~
+
+
+
+### logback
+
+~~~xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="1 seconds">
+
+    <contextName>logback</contextName>
+    <property name="log.path" value="/data/applogs/xxl-job/xxl-job-admin.log"/>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}.%d{yyyy-MM-dd}.zip</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date %level [%thread] %logger{36} [%file : %line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+    </root>
+
+</configuration>
+
+~~~
+
+
+
+## 执行器
+
+`xxl-job-executor-sample-springboot`基于SpringBoot开发的执行器例子。
+
+![image-20250604165149209](http://47.101.155.205/image-20250604165149209.png)
+
+
+
+### 运行模式
+
+支持的运行模式有：
+
+- BEAN：结合`JobHandler`属性使用，`JobHandler`设置
+- GLUE(Java)：
+- GLUE(Shell)：
+- GLUE(Python)：
+- GLUE(PHP)：
+- GLUE(NodeJS)：
+- GLUE(PowerShell)：
+
+
+
+#### BEAN
