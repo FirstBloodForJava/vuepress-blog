@@ -1226,6 +1226,7 @@ lsof [option] <key>
 -p <pid>：该进程所有的文件
 -i <:port>：特定端口的进程信息
 -i tcp：特定协议的进程信息
+-n 系统当前打开的所有文件
 
 # 查询所有文件的进程信息
 lsof
@@ -1269,6 +1270,22 @@ call close(142)
 
 
 ![image-20250123132828966](http://47.101.155.205/image-20250123132828966.png)
+
+
+
+统计Linux系统进程打开的文件数：**命令结果不一致**。
+
+~~~bash
+# awk '{print $2}' 显示结果的第2行数据，pid
+# uniq -c 统计每个pid出现的次数
+# sort -nr 按照统计数量降序排序
+lsof -n |awk '{print $2}' |sort|uniq -c|sort -nr|more
+
+lsof -n -p | wc -l
+
+~~~
+
+
 
 
 
