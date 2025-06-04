@@ -1821,6 +1821,7 @@ mysqldump -hlocalhost -uroot -p1024 school student>D:\1.sql
 ~~~bash
 # 显示当前所有活跃的客户端连接信息
 SHOW PROCESSLIST;
+show full PROCESSLIST;
 
 # thread_id上面结果的id
 KILL <id>;
