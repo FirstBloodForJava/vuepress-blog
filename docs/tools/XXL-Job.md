@@ -168,6 +168,19 @@ docker run -e PARAMS="--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/xxl_jo
 
 
 
+### 触发一次任务
+
+uri：/xxl-job-admin/jobinfo/trigger
+
+~~~json
+
+
+~~~
+
+
+
+
+
 ## 执行器
 
 `xxl-job-executor-sample-springboot`基于SpringBoot开发的执行器例子。
@@ -191,3 +204,23 @@ docker run -e PARAMS="--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/xxl_jo
 
 
 #### BEAN
+
+实现自定义执行器的方式：
+
+1. 注册类：继承`com.xxl.job.core.handler.IJobHandler`抽象类，手动注册到执行器容器。
+2. 注解方法：`@XxlJob`，注解定义`JobHandler`名称
+
+
+
+##### 注解方法说明
+
+xxl-job提个了几个默认的Bean执行器：
+
+- demoJobHandler：简单的任务；
+- shardingJobHandler：分片广播任务；
+- commandJobHandler：命令行任务；
+- httpJobHandler：根据参数发起简单http请求；
+
+
+
+![image-20250605162700204](http://47.101.155.205/image-20250605162700204.png)
