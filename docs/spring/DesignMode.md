@@ -548,6 +548,8 @@ public class CglibProxyDemo {
 
 模板模式(Template Method Pattern)定义算法框架，把可变部分延迟到子类实现。
 
+通过定义一个抽象方法，调用它，最终执行什么由实现决定。
+
 
 
 ### 11.访问者模式
