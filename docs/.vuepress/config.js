@@ -467,6 +467,10 @@ export default defineUserConfig({
           {
             text: 'XXL-Job',
             link: 'XXL-Job'
+          },
+          {
+            text: '领域驱动设计',
+            link: 'DDD'
           }
         ]
       }
