@@ -67,6 +67,10 @@ export default defineUserConfig({
           {
             text: '动态规划',
             link: 'dp'
+          },
+          {
+            text: '数据结构',
+            link: '数据结构'
           }
 
 
@@ -303,6 +307,10 @@ export default defineUserConfig({
                 text: '数据访问对象',
                 link: 'Dao'
               },
+              {
+                text: 'SpringDataJPA',
+                link: 'SpringDataJPA'
+              }
             ]
           },
           // 接口层
@@ -336,8 +344,24 @@ export default defineUserConfig({
             ]
           },
           {
+            text: "Spring注解介绍",
+            link: "Spring注解介绍"
+          },
+          {
             text: "日志框架",
             link: "logFramework"
+          },
+          {
+            text: "Spring特殊接口",
+            link: "SpecialInterfaceFunction"
+          },
+          {
+            text: "设计模式",
+            link: "DesignMode"
+          },
+          {
+            text: "工具类",
+            link: "util"
           }
         ]
       },
@@ -353,6 +377,10 @@ export default defineUserConfig({
           {
             text: '嵌入式容器starter',
             link: 'starter-embedded'
+          },
+          {
+            text: 'starter-web',
+            link: 'starter-web'
           },
           {
             text: 'springboot使用Kafka',
@@ -386,6 +414,10 @@ export default defineUserConfig({
                 link: 'spring-cloud-gateway-core'
               }
             ]
+          },
+          {
+            text: 'spring-sleuth',
+            link: 'spring-sleuth'
           }
         ]
       },
@@ -423,6 +455,18 @@ export default defineUserConfig({
           {
             text: 'cron表达式',
             link: 'cron'
+          },
+          {
+            text: 'UML介绍',
+            link: 'uml'
+          },
+          {
+            text: 'JMeter',
+            link: 'JMeter'
+          },
+          {
+            text: 'XXL-Job',
+            link: 'XXL-Job'
           }
         ]
       }
