@@ -82,7 +82,7 @@ UML模型的主要构成部分：
 
 每个参与者都有一条垂直向下的虚线。
 
-![image-20250606194428241](C:\Users\oycm\AppData\Roaming\Typora\typora-user-images\image-20250606194428241.png)
+![image-20250606194428241](http://47.101.155.205/image-20250606194428241.png)
 
 
 
