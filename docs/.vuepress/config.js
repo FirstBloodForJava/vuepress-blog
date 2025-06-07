@@ -435,6 +435,10 @@ export default defineUserConfig({
             link: 'Oracle'
           },
           {
+            text: 'InfluxDB',
+            link: 'InfluxDB'
+          },
+          {
             text: 'Oracle执行错误代码',
             link: 'Oracle-SQLErr'
           },
@@ -445,7 +449,15 @@ export default defineUserConfig({
           {
             text: 'Spring事物控制',
             link: 'Transactional'
-          }
+          },
+          {
+            text: 'DruidPoolProblem',
+            link: 'DruidPoolProblem'
+          },
+          {
+            text: 'seata',
+            link: 'seata'
+          },
         ]
       },
       {
