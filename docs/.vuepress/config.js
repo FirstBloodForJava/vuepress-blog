@@ -418,6 +418,10 @@ export default defineUserConfig({
           {
             text: 'spring-sleuth',
             link: 'spring-sleuth'
+          },
+          {
+            text: 'Sentinel',
+            link: 'AlibabaSentinel'
           }
         ]
       },
