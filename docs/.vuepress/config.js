@@ -422,6 +422,14 @@ export default defineUserConfig({
           {
             text: 'Sentinel',
             link: 'AlibabaSentinel'
+          },
+          {
+            text: 'zuul',
+            link: 'zuul'
+          },
+          {
+            text: 'nacos',
+            link: 'nacos'
           }
         ]
       },
@@ -487,6 +495,10 @@ export default defineUserConfig({
           {
             text: '领域驱动设计',
             link: 'DDD'
+          },
+          {
+            text: 'git',
+            link: 'git'
           }
         ]
       }
