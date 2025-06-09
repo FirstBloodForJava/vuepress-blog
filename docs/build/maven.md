@@ -287,6 +287,33 @@ mirrorOf支持的内容：
 
 
 
+### repositories
+
+可以在项目中使用国内镜像配置。
+
+~~~xml
+<repositories>
+    <repository>
+        <id>central</id>
+        <url>https://maven.aliyun.com/repository/central</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+
+~~~
+
+1. id：仓库唯一标识，可以任意取名；
+2. url：Maven结构的仓库地址；
+3. releases：是否启用下载`release`版本；
+4. snapshots：是否启用下载`snapshot`（快照）版本。
+
+
+
 
 
 ## maven使用
