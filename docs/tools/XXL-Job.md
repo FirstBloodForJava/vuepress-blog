@@ -203,16 +203,25 @@ uri：/xxl-job-admin/jobinfo/trigger
 
 
 
-#### BEAN
+#### 1.BEAN
 
 实现自定义执行器的方式：
 
-1. 注册类：继承`com.xxl.job.core.handler.IJobHandler`抽象类，手动注册到执行器容器。
-2. 注解方法：`@XxlJob`，注解定义`JobHandler`名称
+1. 注册类模式：继承`com.xxl.job.core.handler.IJobHandler`抽象类，手动注册到执行器容器。
+2. 注解方法模式：`@XxlJob`，注解定义`JobHandler`名称
 
 
 
-##### 注解方法说明
+##### 1.类模式
+
+每个任务对应一个Java类。步骤如下：
+
+1. 开发一个继承`com.xxl.job.core.handler.IJobHandler`的类；
+2. 手动注册到执行器容器：`XxlJobExecutor.registJobHandler("demoJobHandler", new DemoJobHandler())`。
+
+
+
+##### 2.注解方法
 
 xxl-job提个了几个默认的Bean执行器：
 
@@ -224,3 +233,8 @@ xxl-job提个了几个默认的Bean执行器：
 
 
 ![image-20250605162700204](http://47.101.155.205/image-20250605162700204.png)
+
+
+
+
+
