@@ -209,7 +209,7 @@ uri：/xxl-job-admin/jobinfo/trigger
 
 无框架的执行还是SpringBoot的执行器，调度逻辑都是如此。
 
-![image-20250610214852614](Http://47.101.155.205/image-20250610214852614.png)
+![image-20250610214852614](http://47.101.155.205/image-20250610214852614.png)
 
 
 
