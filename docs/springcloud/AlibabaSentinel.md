@@ -201,6 +201,8 @@ Sentinel可以简单的分为`Sentinel 核心库`和`Dashboard`。核心库不�
 
 **注意2**：由于`try-with-resources`语法中`catch`调用顺序的问题(**可能是资源关闭在catch之前**)，会导致无法正确统计异常数，因此统计异常信息时也不能在`try-with-resources`的`catch`块中调用`Tracer.trace(ex)`。
 
+![image-20250612211715983](http://47.101.155.205/image-20250612211715983.png)
+
 ~~~java
 // try-with-resources 特性
 try (Entry entry = SphU.entry("resourceName")) {
