@@ -402,6 +402,10 @@ export default defineUserConfig({
         prefix: '/springcloud',
         children: [
           {
+            text: 'SpringCloud',
+            link: 'SpringCloud'
+          },
+          {
             text: '网关',
             prefix: 'gateway',
             children: [
@@ -428,7 +432,7 @@ export default defineUserConfig({
             link: 'zuul'
           },
           {
-            text: 'nacos',
+            text: 'Nacos',
             link: 'nacos'
           }
         ]
