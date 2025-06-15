@@ -1,8 +1,27 @@
-# nacos
+# Nacos
 
 git地址：https://github.com/alibaba/nacos.git
 
 nacos2.x官网文档：https://nacos.io/docs/v2/what-is-nacos/
+
+
+
+## Nacos是什么
+
+Nacos(Dynamic Naming and Configuration Service)用于构建云原生应用的`动态服务发现`、`服务配置`、和`服务管理`平台。Nacos提供简单易用的特性集，能快速实现动态服务发现、服务配置、服务元数据及流量管理。
+
+
+
+### Nacos特性
+
+- **服务发现和服务健康监测**：Nacos支持基于DNS和基于RPC的服务发现。服务提供者使用`原生SDK(nacos-client)`、`OpenAPI(nacos-server-api)`、`其它语言客户端SDK`注册Service后，服务消费者可以使用`DNS TODO`或`HTTP API`查找和发现服务。Nacos提供对服务的实时的健康检查，阻止向不健康的主机或服务实例发送请求。Nacos支持传输层 (`PING`或`TCP`)和应用层 (如`HTTP`、`MySQL`、用户自定义）的健康检查。 对于复杂的云环境和网络拓扑环境中（如 VPC、边缘网络等）服务的健康检查，Nacos 提供了`agent上报模式`和`服务端主动检测`2种健康检查模式。Nacos还提供了统一的健康检查仪表盘，帮助您根据健康状态管理服务的可用性及流量。
+- **动态配置服务**：动态配置服务可以以中心化、外部化和动态化的方式管理所有环境的`应用配置`和`服务配置`。Nacos提供了简洁易用的UI管理所有的服务和应用的配置。Nacos还提供包括`配置版本跟踪`、`金丝雀发布`、`一键回滚配置`以及`客户端配置更新状态跟踪`在内的一系列开箱即用的配置管理特性。
+- **动态DNS服务**：动态DNS服务支持权重路由，更容易地实现`中间层负载均衡`、`更灵活的路由策略`、`流量控制`以及`数据中心内网的简单DNS解析服务`。动态DNS服务还能更容易地实现以DNS协议为基础的服务发现，以消除耦合到厂商私有服务发现API上的风险。
+- 
+
+
+
+
 
 ## nacos构建
 
@@ -71,7 +90,7 @@ tar -xvf nacos-server-2.2.3.tar.gz
 
 ![image-20240808164953730](http://47.101.155.205/image-20240808164953730.png)
 
-包含了一个错误的字符，即 ^M。^M 是表示回车符（Carriage Return, CR）的符号，这通常发生在你在 Windows 环境中编辑了这个脚本，然后在 Linux/Unix 系统中运行它。
+包含了一个错误的字符，即`^M`。`^M`是表示回车符（Carriage Return, CR）的符号，这通常发生在：在Windows环境中编辑了这个脚本，然后在 Linux/Unix 系统中运行它。
 
 ~~~ bash
 vim startup.sh
