@@ -406,6 +406,18 @@ export default defineUserConfig({
             link: 'SpringCloud'
           },
           {
+            text: 'spring-sleuth',
+            link: 'spring-sleuth'
+          },
+          {
+            text: 'Sentinel',
+            link: 'AlibabaSentinel'
+          },
+          {
+            text: 'Nacos',
+            link: 'nacos'
+          },
+          {
             text: '网关',
             prefix: 'gateway',
             children: [
@@ -416,24 +428,12 @@ export default defineUserConfig({
               {
                 text: 'gateway核心',
                 link: 'spring-cloud-gateway-core'
+              },
+              {
+                text: 'zuul',
+                link: 'zuul'
               }
             ]
-          },
-          {
-            text: 'spring-sleuth',
-            link: 'spring-sleuth'
-          },
-          {
-            text: 'Sentinel',
-            link: 'AlibabaSentinel'
-          },
-          {
-            text: 'zuul',
-            link: 'zuul'
-          },
-          {
-            text: 'Nacos',
-            link: 'nacos'
           }
         ]
       },
