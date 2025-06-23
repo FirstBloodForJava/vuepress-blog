@@ -4,6 +4,8 @@
 
 [ZooKeeper官网文档](https://zookeeper.apache.org/doc/current/index.html)
 
+[ZooKeeper下载地址](https://zookeeper.apache.org/releases.html)
+
 ZooKeeper是中心服务，用于维护配置信息、命名、提供分布式同步、提供组服务。
 
 
@@ -69,4 +71,88 @@ ZooKeeper使用自定义的原子消息传递协议。由于消息收发层是�
 
 
 ## ZooKeeper使用入门
+
+ZooKeeper部署服务器建议：双核处理器、2GB内存、80GB硬盘内存。
+
+集群部署建议使用**奇数**台服务器，最少3台服务器。
+
+**如果三台ZooKeeper服务器，它们的网线都插入了同一个网络交换机，那么交换机的故障将导致整个集群瘫痪。**
+
+
+
+### 集群启动
+
+**conf目录下创建配置文件zoo.cfg：**
+
+~~~conf
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/zookeeper/data
+clientPort=2181
+
+# 集群节点配置（所有节点配置相同）
+server.1=node1:2888:3888
+server.2=node2:2888:3888
+server.3=node3:2888:3888
+# node1 node2 node3需在 /etc/hosts 中配置或使用DNS解析
+
+~~~
+
+
+
+**每个服务器创建内容唯一的myid文件**
+
+~~~bash
+node1 1
+node2 2
+node3 3
+
+~~~
+
+
+
+**启动命令：**
+
+~~~bash
+bin/zkServer.sh
+
+java -cp zookeeper.jar:lib/*:conf org.apache.zookeeper.server.quorum.QuorumPeerMain zoo.conf
+
+~~~
+
+
+
+### 单机启动
+
+**配置文件conf/zoo.cfg**：
+
+~~~conf
+tickTime=2000
+dataDir=/var/lib/zookeeper
+clientPort=2181
+
+~~~
+
+
+
+**启动命令**：
+
+~~~bash
+# 解压缩包，将apache-zookeeper-3.8.4-bin 修改为 apache-zookeeper-3.8.4
+tar -zxf apache-zookeeper-3.8.4-bin.tar.gz --transform 's/apache-zookeeper-3.8.4-bin/apache-zookeeper-3.8.4/'
+
+bin/zkServer.sh start
+
+~~~
+
+
+
+
+
+### ZooKeeper服务端配置说明
+
+- tickTime：单位毫秒，心跳检测时间，最小会话超时时间是tickTime的两倍。
+- dataDir：存储内存数据库快照的位置，除非有执行，否则页存储事务更新日志。
+- clientPort：监听客户端的断开。
 
