@@ -1093,27 +1093,34 @@ mid("字符串"，start_index,length),截取字符串
 
 #### 时间
 
-current_date()当前时间年月日YY-MM-DD
+- current_date()当前时间年月日YY-MM-DD
+- current_time()hh:mm:ss
+- now()YY-MM-DD hh:mm:ss
+- localtime()本地时间
+- sysdate()系统时间
+- year(now())
+- month(now())
+- day(now())
+- hour(now())
+- minute(now())
+- second(now())
+- DATE_FORMAT(data, format)日期转指定格式字符串
+- STR_TO_DATE(str, format)字符串按指定格式转日期，非法转换结果会为null
 
-current_time()hh:mm:ss
-
-now()YY-MM-DD hh:mm:ss
-
-localtime()本地时间
-
-sysdate()系统时间
-
-year(now())
-
-month(now())
-
-day(now())
-
-hour(now())
-
-minute(now())
-
-second(now())
+| format格式 | 说明        | 示例   |
+| ---------- | ----------- | ------ |
+| %Y         | 4位年份     | 2025   |
+| %y         | 2位年份     | 25     |
+| %m         | 2位月份     | 06     |
+| %c         | 月份        | 6      |
+| %d         | 2位日期     | 23     |
+| %H         | 24小时制    | 21     |
+| %h         | 12小时制    | 09     |
+| %i         | 分钟(00-59) | 23     |
+| %s         | 秒(00-59)   | 20     |
+| %p         | AM/PM       | AM     |
+| %W         | 星期名      | Monday |
+| %a         | 星期名缩写  | Mon    |
 
 
 
