@@ -205,11 +205,81 @@ java -cp zookeeper.jar:lib/*:conf org.apache.zookeeper.server.quorum.QuorumPeerM
 
 
 
-### ZooKeeper服务端配置说明
 
-- tickTime：单位毫秒，心跳检测时间，最小会话超时时间是tickTime的两倍。
-- dataDir：存储内存数据库快照的位置，除非有执行，否则页存储事务更新日志。
-- clientPort：监听客户端的断开。
+
+
+## 管理ZooKeeper
+
+ZooKeeper的可靠性取决于两个假设：
+
+1. 部署中的服务器只有少数会失败。失败的意思是计算机崩溃，网络中的某些错误将服务器与大多服务器断开连接。
+2. 部署的计算机正常运行。系统时间、存储和网络一起正常运行。
+
+**N个服务的ZooKeeper集群，如果N是奇数，集群能够容忍最多N/2服务故障，而不会丢失任何数据；如果N是偶数，集群能够容忍最多(N/2 -1)服务故障而不会数据丢失，并防止“大脑分裂”问题。**
+
+
+
+JVM启动参数：发生`OutOfMemoryError`错误，停止程序并生成堆转储文件。
+
+~~~bash
+# Linux
+-XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError='kill -9 %p'
+
+# Windows
+"-XX:+HeapDumpOnOutOfMemoryError" "-XX:OnOutOfMemoryError=cmd /c taskkill /pid %%%%p /t /f"
+
+~~~
+
+
+
+
+
+### 维护
+
+**ZooKeeper的数据目录存储快照和事务日志。当对znode进行修改时，修改将追加到事务日志。当日志变大时，所有znodes的当前状态的快照会写入到文件，并为未来的事务创建一个新的事务日志文件。在快照期间，事务继续追加操作到旧的日志文件中。因此，一些比快照更新更快的事务记录会在上一个快照的最后一个事务日志文件中找到。**
+
+使用默认配置时，ZooKeeper服务器不会删除旧的快照和日志文件。
+
+[ZooKeeper命令介绍文档](https://zookeeper.apache.org/doc/current/zookeeperTools.html)
+
+
+
+**故障排查：**
+
+`A server might not be able to read its database and fail to come up because of some file corruption in the transaction logs of the ZooKeeper server.`因为ZooKeeper服务的事务日志文件损坏，服务可能无法读取数据库并无法启动。在加载时会看见ZooKeeper数据库时会看见IOException。在这种情况下，确保集群中的其它服务器启动并运行正常。可以在命令行用`stat`检测状态，在验证其它服务器已启动时，可以继续清理损坏的数据库文件。删除`datadir/version-2`和`datalogdir/version-2/`中的所有文件，并重启。
+
+
+
+### 配置
+
+#### 最低配置
+
+- clientPort：监听客户端的端口。
+- secureClientPort：SSL连接指定端口。
+- observerMasterPort：监听观察者的端口。
+- dataDir：ZooKeeper存储内存中数据的数据库快照位置，除非有指定，否则也存储事务更新记录日志。
+- tickTime：单位毫秒，ZooKeeper使用的基本时间单位。心跳检测时间，最小会话超时时间是tickTime的两倍。
+
+
+
+
+
+
+
 - initLimit：Follower和Leader完成同步的最大时间，时间单位是tickTime。
 - syncLimit：Leader和Follower之间心跳检测或数据同步的最大延迟响应，时间单位是tickTime。
+- autopurge.snapRetainCount：
+- autopurge.purgeInterval：
+
+### 高级配置
+
+可选的配置，用来微调ZooKeeper服务器行为。有些可以使用Java系统属性配置，通常采用`zookeeper.keyword`形式配置。
+
+- dataLogDir：无Java系统属性。指定事务日志写入的位置。这允许使用专用日志设备，并有助于避免日志记录和快照之间的竞争。
+- globalOutstandingLimit：`zookeeper.globalOutstandingLimit`。客户端提交请求的速度比`ZooKeeper`处理请求的速度要快，尤其是在客户端很多的情况下。为了防止ZooKeeper因排队请求而耗尽内存，ZooKeeper将限制客户端，以便整个集合中不超过`globalOutstandingLimit`未完成的请求，平均分配。默认限制为1000，例如，如果有`3`个成员，每个成员将有`1000 / 2 = 500`个单独的限制。
+- preAllocSize：`zookeeper.preAllocSize`。为避免查找，ZooKeeper 在事务日志文件中以 preAllocSize KB 的块分配空间。默认块大小为 64M。更改块大小的一个原因是，如果更频繁地拍摄快照，则可以减小块大小。
+
+
+
+### 集群
 
