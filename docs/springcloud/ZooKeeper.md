@@ -271,15 +271,21 @@ JVM启动参数：发生`OutOfMemoryError`错误，停止程序并生成堆转�
 - autopurge.snapRetainCount：
 - autopurge.purgeInterval：
 
-### 高级配置
+#### 高级配置
 
 可选的配置，用来微调ZooKeeper服务器行为。有些可以使用Java系统属性配置，通常采用`zookeeper.keyword`形式配置。
 
 - dataLogDir：无Java系统属性。指定事务日志写入的位置。这允许使用专用日志设备，并有助于避免日志记录和快照之间的竞争。
 - globalOutstandingLimit：`zookeeper.globalOutstandingLimit`。客户端提交请求的速度比`ZooKeeper`处理请求的速度要快，尤其是在客户端很多的情况下。为了防止ZooKeeper因排队请求而耗尽内存，ZooKeeper将限制客户端，以便整个集合中不超过`globalOutstandingLimit`未完成的请求，平均分配。默认限制为1000，例如，如果有`3`个成员，每个成员将有`1000 / 2 = 500`个单独的限制。
 - preAllocSize：`zookeeper.preAllocSize`。为避免查找，ZooKeeper 在事务日志文件中以 preAllocSize KB 的块分配空间。默认块大小为 64M。更改块大小的一个原因是，如果更频繁地拍摄快照，则可以减小块大小。
+- snapCount：`zookeeper.snapCount`。为了防止集群中中的所有服务器同时拍摄快照，当事务日志中的事务数达到运行时生成的[snapCount/2+1， snapCount]范围内的随机值时，每个ZooKeeper服务器都将拍摄快照。默认 snapCount 为 100,000。
+- commitLogCount：`zookeeper.commitLogCount`。Zookeeper内存中维护的最后提交请求的列表，以便在`Follower`不太落后时与`Follower`快速同步。这可以提高快照较大 (>100,000)时的同步性能。默认值为500，这是建议的最小值。
+- snapSizeLimitInKb：`zookeeper.snapSizeLimitInKb`。ZooKeeper使用快照和事务日志（考虑预写日志）记录其事务。在拍摄快照（并滚动事务日志）之前，事务日志中记录的事务集允许的总字节大小由snapSize决定。为了防止仲裁中的所有机器同时进行快照，当事务日志中的事务集的字节大小达到运行时生成的[snapSize/2+1， snapSize]范围内的随机值时，每个ZooKeeper服务器都会进行快照。每个文件系统都有一个最小标准文件大小，为了有效地发挥该特性的作用，所选的文件大小必须大于该值。默认snapSizeLimitInKb为4,194,304 (4GB)。非正值将禁用该特性。
+- 
 
 
 
-### 集群
+#### 集群配置
+
+
 
