@@ -281,7 +281,27 @@ JVM启动参数：发生`OutOfMemoryError`错误，停止程序并生成堆转�
 - snapCount：`zookeeper.snapCount`。为了防止集群中中的所有服务器同时拍摄快照，当事务日志中的事务数达到运行时生成的[snapCount/2+1， snapCount]范围内的随机值时，每个ZooKeeper服务器都将拍摄快照。默认 snapCount 为 100,000。
 - commitLogCount：`zookeeper.commitLogCount`。Zookeeper内存中维护的最后提交请求的列表，以便在`Follower`不太落后时与`Follower`快速同步。这可以提高快照较大 (>100,000)时的同步性能。默认值为500，这是建议的最小值。
 - snapSizeLimitInKb：`zookeeper.snapSizeLimitInKb`。ZooKeeper使用快照和事务日志（考虑预写日志）记录其事务。在拍摄快照（并滚动事务日志）之前，事务日志中记录的事务集允许的总字节大小由snapSize决定。为了防止仲裁中的所有机器同时进行快照，当事务日志中的事务集的字节大小达到运行时生成的[snapSize/2+1， snapSize]范围内的随机值时，每个ZooKeeper服务器都会进行快照。每个文件系统都有一个最小标准文件大小，为了有效地发挥该特性的作用，所选的文件大小必须大于该值。默认snapSizeLimitInKb为4,194,304 (4GB)。非正值将禁用该特性。
-- 
+- txnLogSizeLimitInKb：`zookeeper.txnLogSizeLimitInKb`。Zookeeper事务日志文件也可以使用txnLogSizeLimitInKb更直接地控制。当使用事务日志完成同步时，较大的txn日志可能导致较慢的跟随者同步。这是因为leader必须扫描磁盘上相应的日志文件，以找到要开始同步的事务。该特性在默认情况下是关闭的，snapCount和snapSizeLimitInKb是限制事务日志大小的仅有的值。启用后，Zookeeper将在达到任何限制时滚动日志。请注意，实际日志大小可能超过此值的序列化事务大小。另一方面，如果这个值设置得太接近（或小于）preAllocSize，它可能会导致Zookeeper滚动每个事务的日志。虽然这不是正确性问题，但这可能会导致性能严重下降。为了避免这种情况并充分利用该特性，建议将该值设置为`N*preAllocSize1`，其中`N>2`。
+- maxCnxns：`zookeeper.maxCnxns`。限制zookeeper服务器的并发连接总数（每个服务器的每个客户端端口）。默认值为0，将其设置为0将完全取消对并发连接总数的限制。`serverCnxnFactory`和`secureServerCnxnFactory`的连接数是分开计算的，因此一个对等体最多可以托管`2*maxCnxns`，只要它们是适当的类型。
+- maxClientCnxns：限制单个客户端（通过IP地址标识）对ZooKeeper集合中单个成员的并发连接数（在Socket级别）。这是用来防止某些类型的DoS攻击，包括文件描述符耗尽。默认值为60。将其设置为0完全取消了对并发连接的限制。
+- clientPortAddress(3.3.0)：监听客户端连接的地址（ipv4、ipv6或hostname）。这是可选的，默认情况下，服务器上任何`address/interface/nic`到clientPort的连接都将被接受。
+- minSessionTimeout(3.3.0)：ZooKeeper服务端允许客户端协商的最小会话超时（单位毫秒）。默认为tickTime的2倍。
+- maxSessionTimeout(3.3.0)：ZooKeeper服务端允许客户端协商的最大会话超时（单位毫秒）。默认为tickTime的20倍。
+- fsync.warningthresholdms(3.3.4)：`zookeeper.fsync.warningthresholdms`。只要事务日志中的`fsync`花费的时间超过这个值，就会向日志输出一条警告消息。单位毫秒，默认值为1000。此值只能设置为系统属性。
+- maxResponseCacheSize：`zookeeper.maxResponseCacheSize`。当设置为正整数时，它决定存储最近读取记录的序列化形式的缓存的大小。有助于节省流行的znode上的序列化成本。指标`response_packet_cache_hits`和`response_packet_cache_misses`可用于将此值调优到给定的工作负载。默认情况下开启该功能，值为400，设置为0或负整数以关闭该功能。
+- maxGetChildrenResponseCacheSize(3.6.0)：`zookeeper.maxGetChildrenResponseCacheSize`。类似于`maxResponseCacheSize`，但适用于获取子请求。指标`response_packet_get_children_cache_hits`和`response_packet_get_children_cache_misses`可用于将此值调整到给定的工作负载。默认情况下开启该功能，值为400，设置为0或负整数以关闭该功能。
+- autopurge.snapRetainCount(3.4.0)：
+- autopurge.purgeInterval(3.4.0)：
+- syncEnabled(3.5.4, 3.6.0)：`zookeeper.observer.syncEnabled`。
+- extendedTypesEnabled(3.5.4, 3.6.0)：`zookeeper.extendedTypesEnabled`。
+- emulate353TTLNodes(3.5.4, 3.6.0)：`zookeeper.emulate353TTLNodes`。
+- watchManagerName(3.6.0)：`zookeeper.watchManagerName`。
+- watcherCleanThreadsNum(3.6.0)：`zookeeper.watcherCleanThreadsNum`。
+- watcherCleanThreshold(3.6.0)：`zookeeper.watcherCleanThreshold`。
+- watcherCleanIntervalInSeconds(3.6.0)：`zookeeper.watcherCleanIntervalInSeconds`。
+- maxInProcessingDeadWatchers(3.6.0)：`zookeeper.maxInProcessingDeadWatchers`。
+- bitHashCacheSize(3.6.0)：zookeeper.bitHashCacheSize。
+- fastleader.minNotificationInterval：`zookeeper.fastleader.minNotificationInterval`。
 
 
 
