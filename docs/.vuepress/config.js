@@ -418,6 +418,14 @@ export default defineUserConfig({
             link: 'nacos'
           },
           {
+            text: 'ZooKeeper',
+            link: 'ZooKeeper'
+          },
+          {
+            text: 'Dubbo',
+            link: 'Dubbo'
+          },
+          {
             text: '网关',
             prefix: 'gateway',
             children: [
