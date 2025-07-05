@@ -266,8 +266,6 @@ JVM启动参数：发生`OutOfMemoryError`错误，停止程序并生成堆转�
 
 
 
-- initLimit：Follower和Leader完成同步的最大时间，时间单位是tickTime。
-- syncLimit：Leader和Follower之间心跳检测或数据同步的最大延迟响应，时间单位是tickTime。
 - autopurge.snapRetainCount：
 - autopurge.purgeInterval：
 
@@ -302,10 +300,107 @@ JVM启动参数：发生`OutOfMemoryError`错误，停止程序并生成堆转�
 - maxInProcessingDeadWatchers(3.6.0)：`zookeeper.maxInProcessingDeadWatchers`。
 - bitHashCacheSize(3.6.0)：zookeeper.bitHashCacheSize。
 - fastleader.minNotificationInterval：`zookeeper.fastleader.minNotificationInterval`。
+- fastleader.maxNotificationInterval：`zookeeper.fastleader.maxNotificationInterval`。
+- connectionMaxTokens(3.6.0)：`zookeeper.connection_throttle_tokens`。
+- connectionTokenFillTime(3.6.0)：`zookeeper.connection_throttle_fill_time`。
+- connectionTokenFillCount(3.6.0)：`zookeeper.connection_throttle_fill_count`。
+- connectionFreezeTime(3.6.0)：`zookeeper.connection_throttle_freeze_time`。
+- connectionDropIncrease(3.6.0)：`zookeeper.connection_throttle_drop_increase`。
+- connectionDropDecrease(3.6.0)：`zookeeper.connection_throttle_drop_decrease`。
+- connectionDecreaseRatio(3.6.0)：`zookeeper.connection_throttle_decrease_ratio`。
+- zookeeper.connection_throttle_weight_enabled(3.6.0)：。
+- zookeeper.connection_throttle_global_session_weight(3.6.0)：。
+- zookeeper.connection_throttle_local_session_weight(3.6.0)：。
+- zookeeper.connection_throttle_renew_session_weight(3.6.0)：。
+- clientPortListenBacklog：
+- serverCnxnFactory：`zookeeper.serverCnxnFactory`。指定`ServerCnxnFactory`实现。为了使用基于TLS的服务器通信，应该将其设置为`NettyServerCnxnFactory`。默认为`NIOServerCnxnFactory`。
+- flushDelay：`zookeeper.flushDelay`。
+- maxWriteQueuePollTime：`zookeeper.maxWriteQueuePollTime`。
+- maxBatchSize：`zookeeper.maxBatchSize`。
+- enforceQuota(3.7.0)：`zookeeper.enforceQuota`。
+- requestThrottleLimit：`zookeeper.request_throttle_max_requests`。
+- requestThrottleStallTime：`zookeeper.request_throttle_stall_time`。
+- requestThrottleDropStale：`request_throttle_drop_stale`。
+- requestStaleLatencyCheck：`zookeeper.request_stale_latency_check`。
+- requestStaleConnectionCheck：`zookeeper.request_stale_connection_check`。
+- zookeeper.request_throttler.shutdownTimeout：。
+- advancedFlowControlEnabled：`zookeeper.netty.advancedFlowControl.enabled`。
+- enableEagerACLCheck：`zookeeper.enableEagerACLCheck`。
+- maxConcurrentSnapSyncs：`zookeeper.leader.maxConcurrentSnapSyncs`。
+- maxConcurrentDiffSyncs：`zookeeper.leader.maxConcurrentDiffSyncs`。
+- digest.enabled：`zookeeper.digest.enabled`。
+- snapshot.compression：`zookeeper.snapshot.compression.method`。
+- snapshot.trust.empty：`zookeeper.snapshot.trust.empty`。
+- audit.enable：`zookeeper.audit.enable`。
+- audit.impl.class：`zookeeper.audit.impl.class`。
+- largeRequestMaxBytes：`zookeeper.largeRequestMaxBytes`。
+- largeRequestThreshold：`zookeeper.largeRequestThreshold`。
+- outstandingHandshake.limit ：`zookeeper.netty.server.outstandingHandshake.limit`。
+- netty.server.earlyDropSecureConnectionHandshakes：`zookeeper.netty.server.earlyDropSecureConnectionHandshakes`。
+- throttledOpWaitTime：`zookeeper.throttled_op_wait_time`。
+- learner.closeSocketAsync：`zookeeper.learner.closeSocketAsync`。
+- leader.closeSocketAsync：`zookeeper.leader.closeSocketAsync`。
+- learner.asyncSending：`zookeeper.learner.asyncSending`。
+- forward_learner_requests_to_commit_processor_disabled：`zookeeper.forward_learner_requests_to_commit_processor_disabled`。
+- serializeLastProcessedZxid.enabled：`zookeeper.serializeLastProcessedZxid.enabled`。
+- 
 
 
 
 #### 集群配置
 
 
+
+- electionAlg：
+- maxTimeToWaitForEpoch：`zookeeper.leader.maxTimeToWaitForEpoch`。
+- initLimit：Follower和Leader完成同步的最大时间，时间单位是tickTime。
+- connectToLearnerMasterLimit：`zookeeper.connectToLearnerMasterLimit`。
+- leaderServes：`zookeeper.leaderServes`。
+- `server.x=[hostname]:port[:port]`：组成ZooKeeper集群的服务器。当服务器启动时，它通过在数据目录中查找文件`myid`来确定它是哪个服务器，它应该与server中的x匹配。客户端使用的ZooKeeper服务器列表必须与每个ZooKeeper服务器所拥有的ZooKeeper服务器列表匹配。有两个端口号。第一个是Followers用来连接Leader，第二个Followers用来选举Leader。如果想在一台机器上测试多个服务器，那么可以为每个服务器使用不同的端口。
+- syncLimit：Leader和Follower之间心跳检测或数据同步的最大延迟响应，时间单位是tickTime。
+- `group.x=n1[:n2]`：启用分层仲裁结构。`x`是一个组标识符，`=`后面的数字对应于服务器标识符。
+- `weight.x=n`：它与`group`一起使用，在形成quorum时为服务器分配权重。该值对应于投票时服务器的权重。ZooKeeper中有几个部分需要投票，比如leader选举和原子广播协议。缺省情况下，服务器的权重为1。如果配置定义了组，但没有定义权重，那么将为所有服务器分配值1。
+- cnxTimeout：`zookeeper.cnxTimeout`。设置领导人选举通知打开连接的超时值。仅适用于使用`electionAlg 3`的情况。默认5s。
+- quorumCnxnTimeoutMs：`zookeeper.quorumCnxnTimeoutMs`。
+- standaloneEnabled：
+- reconfigEnabled：
+- 4lw.commands.whitelist：`zookeeper.4lw.commands.whitelist`。用户要使用的逗号分隔的四个字母单词命令的列表。默认情况下，白名单中只包含`zkServer.sh`使用的`srvr`命令。其余的四个字母的单词命令默认处于禁用状态。例如：`4lw.commands.whitelist=stat, ruok, conf, isro`、`4lw.commands.whitelist=*`。
+- tcpKeepAlive：`zookeeper.tcpKeepAlive`。
+- clientTcpKeepAlive：`zookeeper.clientTcpKeepAlive`。
+- electionPortBindRetry：`zookeeper.electionPortBindRetry`。
+- observer.reconnectDelayMs：`zookeeper.observer.reconnectDelayMs`。
+- observer.election.DelayMs：`zookeeper.observer.election.DelayMs `。
+- localSessionsEnabled和localSessionsUpgradingEnabled：
+
+
+
+### 使用Netty
+
+在3.5+版本，通过将环境变量`zookeeper.serverCnxnFactory`设置为 `org.apache.zookeeper.server.NettyServerCnxnFactory`，ZooKeeper服务器可以使用Netty而不是NIO;对于客户端，将`zookeeper.clientCnxnSocket`设置为`org.apache.zookeeper.ClientCnxnSocketNetty`。
+
+
+
+### 命令
+
+#### 四个单词命令
+
+- conf：打印有关服务配置的详细信息。
+- cons：列出连接到此服务器的所有客户机的完整连接/会话详细信息。包括接收/发送的数据包数量、会话id、操作延迟、上次执行的操作等信息。
+- crst：重置所有连接的连接/会话统计信息。
+- dump：列出未完成的会话和临时节点。
+- envi：打印服务环境的详细信息。
+- ruok：测试服务器是否在非错误状态下运行。
+- srst：重置服务器统计信息。
+- srvr：列出服务器的全部详细信息。
+- stat：列出服务器和连接的客户端的简要详细信息。
+- wchs：列出服务器的监听的简要信息。
+- wchc：按会话列出服务器的监听的详细信息。这将输出带有相关监听（路径）的会话（连接）列表。注意，根据监听的数量，此操作可能代价昂贵（即影响服务器性能），请谨慎使用。
+- dirs：以字节为单位显示快照和日志文件的总大小。
+- wchp：按路径列出服务器的监听的详细信息。这将输出带有关联会话的路径`znodes`列表。注意，根据监听的数量，此操作可能代价昂贵（即影响服务器性能），请谨慎使用。
+- mntr：输出可用于监视集群运行状况的变量列表。
+- isro：测试服务器是否以只读模式运行。如果处于只读模式，服务器将使用`ro`响应，如果不是只读模式，则使用`rw`响应。
+- hash：返回与zxid关联的树摘要的最新历史。
+- gtmk：
+- stmk：
+- 
 
