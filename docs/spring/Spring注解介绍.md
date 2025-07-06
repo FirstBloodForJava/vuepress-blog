@@ -691,6 +691,8 @@ public @interface Profile {
 
 ##### @ConditionalOnRibbonRestClient
 
+netfilix-zuul基于@Conditional派生注解
+
 ~~~java
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
@@ -706,7 +708,8 @@ private static class OnRibbonRestClientCondition extends AnyNestedCondition {
 	static class RibbonProperty {}
 	
 }
-// 继承AnyNestedCondition的作用是可以将OnRibbonRestClientCondition中的匹配条件算上，这里作用是相当于要有ribbon.restclient.enabled存在配置中，且值不为false，则匹配这个@Configuration才生效，否则不会作为配置类
+// 继承 AnyNestedCondition 的作用是可以将 OnRibbonRestClientCondition 中的静态类匹配条件算上
+// 这里作用是相当于要有 ribbon.restclient.enabled 存在配置中，且值不为false，才会匹配激活，否则不会作为配置类
 
 ~~~
 
