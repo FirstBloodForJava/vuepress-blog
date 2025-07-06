@@ -20,9 +20,9 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 
 
 
+## 使用介绍
 
-
-## zuul自定义过滤器
+### zuul自定义过滤器
 
 1. 继承ZuulFilter类，实现其方法filterType()、filterOrder()、shouldFilter()、run()
    1. filterType()表示过滤器的类型：pre-前置过滤器，用于请求处理前；route-路由过滤器，用于路由请求(使用Apache或NetflixRibbon发送原始http请求)；post-后置过滤器，用于响应请求；error-错误过滤器，用于处理错误情况(其它任何阶段发生错误)。
@@ -126,7 +126,7 @@ server:
 
 
 
-## hystrix和ribbon时间
+### hystrix和ribbon时间
 
 Ribbon超时时间
 
@@ -150,38 +150,21 @@ Hystrix超时时间
 
 
 
-## RibbonAutoConfiguration自动配置
-
-~~~java
-// 注入属性
-@Autowired(required = false)
-private List<RibbonClientSpecification> configurations = new ArrayList<>();
-
-~~~
 
 
 
 
 
-## FeignAutoConfiguration自动配置
-
-~~~java
-@Bean
-public FeignContext feignContext() {
-	FeignContext context = new FeignContext();
-	context.setConfigurations(this.configurations);
-	return context;
-}
-
-~~~
 
 
 
-## RibbonEurekaAutoConfiguration
 
 
 
-## SendErrorFilter过滤器
+
+
+
+### SendErrorFilter过滤器
 
 **该过滤器没什么太大作用**
 
@@ -340,12 +323,12 @@ public class SendErrorFilter extends ZuulFilter {
 
 
 
-## @EnableZuulServer
+### @EnableZuulServer作用
 
 将应用程序设置为没有任何内置反向代理特性的通用Zuul服务器。到Zuul服务器的路由可以通过ZuulProperties配置(默认情况下没有)
 
 
-## @EnableZuulProxy
+### @EnableZuulProxy作用
 
 设置一个Zuul服务器端点，并在其中安装一些反向代理过滤器，这样它就可以将请求转发到后端服务器。后端可以通过配置手工注册，也可以通过DiscoveryClient注册。
 
@@ -364,7 +347,7 @@ public class SendErrorFilter extends ZuulFilter {
 
 
 
-## zuul配置
+### zuul配置
 
 ~~~yml
  zuul:
@@ -383,3 +366,143 @@ route结合eureka发现服务，服务信息是通过域名注册，无法识别
 ![image-20240930135955380](http://47.101.155.205/image-20240930135955380.png)
 
 代码逻辑导致线程的condition调用await方法，线程阻塞了。
+
+
+
+## zuul-自动配置
+
+### RibbonCommandFactoryConfiguration
+
+根据配置或加载的类，决定使用哪个 `RibbonCommandFactory` 工厂实现。
+
+**工厂用于创建 RibbonCommand 对象，extends HystrixExecutable\<ClientHttpResponse\>。**
+
+
+
+1. RestClientRibbonCommandFactory：`ribbon.restclient.enabled=true`。
+2. OkHttpRibbonCommandFactory：`ribbon.okhttp.enabled=true`，且存在 `okhttp3.OkHttpClient` 客户端类。
+3. HttpClientRibbonCommandFactory：默认，`ribbon.httpclient.enabled=false` 可关闭默认。
+
+
+
+![image-20250705215445199](http://47.101.155.205/image-20250705215445199.png)
+
+`HttpClientRibbonCommandFactory` 通过 netflix-ribbon的 `SpringClientFactory`来创建 `RibbonLoadBalancingHttpClient`。
+
+
+
+
+
+
+
+## openfeign
+
+### FeignAutoConfiguration自动配置
+
+~~~java
+@Bean
+public FeignContext feignContext() {
+	FeignContext context = new FeignContext();
+	context.setConfigurations(this.configurations);
+	return context;
+}
+
+~~~
+
+
+
+## netflix-ribbon
+
+**spring-cloud-netflix-ribbon**
+
+### RibbonAutoConfiguration
+
+`spring-cloud-netflix-ribbon` 的自动配置类。
+
+在 `EurekaClientAutoConfiguration` 配置类之后；在 `LoadBalancerAutoConfiguration`、`AsyncLoadBalancerAutoConfiguration` 之前。
+
+激活 `RibbonEagerLoadProperties(ribbon.eager-load)`、`ServerIntrospectorProperties(ribbon)` 配置类。
+
+
+
+**Bean 的注入：**
+
+1. HasFeatures：actuator 端点有用到。
+2. SpringClientFactory：客户端工厂。
+3. LoadBalancerClient：客户端负载均衡器，默认使用 `RibbonLoadBalancerClient`。
+4. LoadBalancedRetryFactory：重试负载均衡工厂。
+5. PropertiesFactory：配置工厂。
+6. RibbonApplicationContextInitializer：`ribbon.eager-load.enabled=true` 配置更早激活 Ribbon 客户端。
+
+
+
+#### RibbonClientHttpRequestFactoryConfiguration
+
+`RibbonAutoConfiguration` 的静态内部类 `RibbonClientHttpRequestFactoryConfiguration`。
+
+通过配置 `ribbon.http.client.enabled=true` 和 `ribbon.restclient.enabled` 使用特定的 `RibbonClientHttpRequestFactory` http 请求客户端工厂。
+
+创建 `RestTemplate` 默认的 `RestTemplateCustomizer`  自定义器。
+
+
+
+#### SpringClientFactory
+
+继承 `spring-cloud-context` 中的 `NamedContextFactory`。
+
+**API(简化泛型) **
+
+1. IClient getClient(String name, Class clientClass)：获取与 `name` 相关联的 `clientClass` 客户端。
+2. ILoadBalancer getLoadBalancer(String name)：获取与 `name` 相关联的 `ILoadBalancer` 负载均衡器。
+3. IClientConfig getClientConfig(String name)：获取与 `name` 相关联的 `IClientConfig` 客户端配置。
+
+上面获取对象底层方法一致，逻辑如下：
+
+1. 每个 `service` 都有会有一个名为 `SpringClientFactory-name` 的 `AnnotationConfigApplicationContext`，context 的 parent 就是当前应用的context；
+2. context 在创建时，自动添加 `PropertyPlaceholderAutoConfiguration`、`RibbonClientConfiguration`这两个注解类；
+3. 可以通过配置 `RibbonClientSpecification` Bean 为指定的 `service` 或所有的添加注解类。
+4. 刷新后，通过上下文获取对应的对象。
+   1. `IClient`：默认 `RibbonLoadBalancingHttpClient`，通过 `RibbonClientConfiguration` Import `HttpClientRibbonConfiguration` 注解类创建。
+   2. `ILoadBalancer`：默认 `ZoneAwareLoadBalancer`，通过 `RibbonClientConfiguration` 注解类创建。可以通过配置 `RibbonClientSpecification` Bean 中的注解类，引入自定义的 `ILoadBalancer`。 
+   3. `IClientConfig`：默认 `DefaultClientConfigImpl`，通过 `RibbonClientConfiguration` 注解类创建。
+
+![image-20250706153601205](http://47.101.155.205/image-20250706153601205.png)
+
+![image-20250706153841597](http://47.101.155.205/image-20250706153841597.png)
+
+![image-20250706155138408](http://47.101.155.205/image-20250706155138408.png)
+
+
+
+### HttpClientRibbonConfiguration
+
+
+
+## netflix-eureka-client
+
+### RibbonEurekaAutoConfiguration
+
+
+
+## ribbon-loadbalancer
+
+**com.netflix.ribbon:ribbon-loadbalancer**
+
+
+
+### ILoadBalancer
+
+负载均衡接口。
+
+
+
+#### DynamicServerListLoadBalancer
+
+
+
+### ServerListUpdater
+
+动态拉取可用服务信息Server。
+
+#### PollingServerListUpdater
+
