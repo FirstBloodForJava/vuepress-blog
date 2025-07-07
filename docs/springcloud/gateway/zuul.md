@@ -2,7 +2,11 @@
 
 # zuul
 
-**使用zuul的不足：在路由请求失败的情况下，默认还是会返回200状态的响应，同时响应体是空字符串。**
+特点：
+
+- 通过自定义过滤器，可以将所有请求的状态码都设为200；
+
+
 
 ## zuul介绍
 
@@ -423,6 +427,13 @@ public FeignContext feignContext() {
 
 **spring-cloud-netflix-ribbon**
 
+覆盖 Service 默认使用的 Bean 策略方式：
+
+1. 创建 RibbonClientSpecification Bean，通过 name(确定是哪个 Service 需要)、configuration(激活的注解类集合)；
+2. @RibbonClients(defaultConfiguration = {}) 注解指定需要的注解类。参考 RibbonEurekaAutoConfiguration。
+
+
+
 ### RibbonAutoConfiguration
 
 `spring-cloud-netflix-ribbon` 的自动配置类。
@@ -486,6 +497,30 @@ public FeignContext feignContext() {
 
 
 
+### RibbonClientConfiguration
+
+为每个动态的 Service 都会引入这个注解类。该注解类可替换的 Bean ：
+
+1. IClientConfig：默认 DefaultClientConfigImpl。为客户端添加默认的配置，连接超时时间和读取超时时间设为1s。
+
+
+
+**Import HttpClientRibbonConfiguration 创建的 Bean: **
+
+- AbstractLoadBalancerAwareClient：默认 RibbonLoadBalancingHttpClient 。**执行 Http 请求的客户端**。
+
+
+
+
+
+### RibbonLoadBalancingHttpClient
+
+默认引用 apache CloseableHttpClient 抽象类的实现 `InternalHttpClient` 作为 Http 客户端。
+
+![image-20250707220713167](http://47.101.155.205/image-20250707220713167.png)
+
+
+
 ## netflix-eureka-client
 
 ### RibbonEurekaAutoConfiguration
@@ -508,9 +543,110 @@ public FeignContext feignContext() {
 
 
 
+#### ZoneAwareLoadBalancer
+
+DynamicServerListLoadBalancer 的子类。
+
+
+
+
+
+
+
 ### ServerListUpdater
 
-动态拉取可用服务信息Server。
+有两个实现：`EurekaNotificationServerListUpdater` 和 `PollingServerListUpdater`，用于动态拉取可用服务信息Server。`spring-cloud-netflix-ribbon` 默认使用 `PollingServerListUpdater`。可以通过指定 Bean 来覆盖默认操作。
+
+
 
 #### PollingServerListUpdater
+
+`DynamicServerListLoadBalancer` 使用 `PollingServerListUpdater` 逻辑：
+
+~~~java
+protected volatile ServerListUpdater serverListUpdater;
+
+
+protected final ServerListUpdater.UpdateAction updateAction = new ServerListUpdater.UpdateAction() {
+    @Override
+    public void doUpdate() {
+        updateListOfServers();
+    }
+};
+
+@VisibleForTesting
+public void updateListOfServers() {
+    List<T> servers = new ArrayList<T>();
+    if (serverListImpl != null) {
+        // ServerList 获取服务器
+        servers = serverListImpl.getUpdatedListOfServers();
+        LOGGER.debug("List of Servers for {} obtained from Discovery client: {}",
+                     getIdentifier(), servers);
+		// ServerListFilter 进行过滤
+        if (filter != null) {
+            servers = filter.getFilteredListOfServers(servers);
+            LOGGER.debug("Filtered List of Servers for {} obtained from Discovery client: {}",getIdentifier(), servers);
+        }
+    }
+    // 更新所有的 Server
+    updateAllServerList(servers);
+}
+
+// 触发逻辑, 线程池异步调用。
+// 虽然每个 Service 都会创建Bean，但是都公用这个线程池
+public void enableAndInitLearnNewServersFeature() {
+    LOGGER.info("Using serverListUpdater {}", serverListUpdater.getClass().getSimpleName());
+    // 固定延迟线程池启动
+    // 具体调用逻辑为 DynamicServerListLoadBalancer.updateListOfServers()
+    serverListUpdater.start(updateAction);
+}
+
+~~~
+
+![image-20250707195332784](http://47.101.155.205/image-20250707195332784.png)
+
+
+
+### ServerList
+
+定义发现服务端的接口。
+
+`spring-cloud-netflix-ribbon` 的 `RibbonClientConfiguration` 默认使用 `ConfigurationBasedServerList`。可以通过指定 Bean 来覆盖默认操作。
+
+由于使用了`spring-cloud-netflix-eureka-client` 的 `EurekaRibbonClientConfiguration` ，这里的 Bean 是 `DomainExtractingServerList`。
+
+**因为 RibbonAutoConfiguration 在创建 SpringClientFactory Bean 时，Spring 上下文中已经有 2个 RibbonClientSpecification Bean。**
+
+- `name=default.org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration`，`class=[]`
+- `name=default.org.springframework.cloud.netflix.ribbon.eureka.RibbonEurekaAutoConfiguration`，`class=org.springframework.cloud.netflix.ribbon.eureka.EurekaRibbonClientConfiguration`
+
+**通过注解 @RibbonClients(defaultConfiguration = EurekaRibbonClientConfiguration.class) 里面的 Import实现了这个功能。**
+
+
+
+#### DomainExtractingServerList
+
+`getUpdatedListOfServers`：将 `DiscoveryEnabledNIWSServerList` 获取的 `DiscoveryEnabledServer` 转换成 `DomainExtractingServer`。
+
+![image-20250707210619590](http://47.101.155.205/image-20250707210619590.png)
+
+封装 Server 过程：
+
+![image-20250707211749914](http://47.101.155.205/image-20250707211749914.png)
+
+#### ConfigurationBasedServerList
+
+
+
+### ServerListFilter
+
+对已经获取的服务端进行筛选。
+
+`spring-cloud-netflix-ribbon` 默认使用 `ZonePreferenceServerListFilter`。可以通过指定 Bean 来覆盖默认操作。
+
+
+
+
+
+#### ZonePreferenceServerListFilter
 
