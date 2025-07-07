@@ -2,7 +2,7 @@
 
 # zuul
 
-**使用zuul的不足：**在路由请求失败的情况下，默认还是会返回200状态的响应，同时响应体是空字符串。
+**使用zuul的不足：在路由请求失败的情况下，默认还是会返回200状态的响应，同时响应体是空字符串。**
 
 ## zuul介绍
 
@@ -131,6 +131,14 @@ server:
 Ribbon超时时间
 
 ![image-20231113141016743](http://47.101.155.205/image-20231113141016743.png)
+
+默认全局时间：`ribbonTimeout = (ribbon.ReadTimeout + ribbon.ConnectTimeout) * (1) * (1+1)` 
+
+`ribbon.ReadTimeout + ribbon.ConnectTimeout` 表示单次 ribbon请求的最大时间， 默认2000 ms。
+
+`ribbon.MaxAutoRetries` 表示开启重试机制的次数，默认 0 次。
+
+`ribbon.MaxAutoRetriesNextServer` 表示最大自动重试下一个服务器，默认一次。**作用是什么？**
 
 
 
