@@ -27,7 +27,43 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 
 ## 使用介绍
 
-### zuul自定义过滤器
+
+
+### 过滤器
+
+**过滤器执行原理介绍：**
+
+`HttpServlet` 的实现 `ZuulServlet`，在 `service` 处理 Web 请求中，设计了过滤器执行过程：
+
+1. `service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse)` 方法处理所有请求；
+2. Server 初始化时创建 `ZuulRunner`；
+3. ZuulRunner 中的 FilterProcessor，其中存储了注册的过滤器 Bean ZuulFilter 实例；
+4. 处理请求逻辑如下：
+
+![image-20250708205931863](http://47.101.155.205/image-20250708205931863.png)
+
+
+
+`ZuulServletFilter` 过滤器执行原理如下：
+
+1. Servlet 类型过滤器 `ZuulServletFilter` 过滤请求；
+2. `ZuulServletFilter` 创建时初始化 `ZuulRunner`；
+3. `ZuulRunner` 中的 `FilterProcessor`，其中存储了注册的过滤器 Bean `ZuulFilter` 实例；
+4. `ZuulServletFilter` 组合以上对象的执行过程如下：
+
+![image-20250708204024376](http://47.101.155.205/image-20250708204024376.png)
+
+**在 Server 模式下，启动这个过滤器，没有转发请求，但是 pre 过滤器有执行，没有代理请求。缺乏转发请求的过滤器。**
+
+
+
+#### FilterProcessor
+
+
+
+
+
+#### zuul自定义过滤器
 
 1. 继承ZuulFilter类，实现其方法filterType()、filterOrder()、shouldFilter()、run()
    1. filterType()表示过滤器的类型：pre-前置过滤器，用于请求处理前；route-路由过滤器，用于路由请求(使用Apache或NetflixRibbon发送原始http请求)；post-后置过滤器，用于响应请求；error-错误过滤器，用于处理错误情况(其它任何阶段发生错误)。
@@ -131,6 +167,8 @@ server:
 
 
 
+
+
 ### hystrix和ribbon时间
 
 Ribbon超时时间
@@ -180,6 +218,25 @@ Hystrix超时时间
 ### SendErrorFilter过滤器
 
 **该过滤器没什么太大作用**
+
+![image-20250708210450129](http://47.101.155.205/image-20250708210450129.png)
+
+**这里出现异常的原因就是 RequestDispatcher forward 的执行，当第一次出现错误，假设这里时转发请求到自己，/error 无法路由，再次抛出异常，错误处理器不会处理。这里后续出现异常时出了 Servlet 才出现的。**
+
+~~~java
+RequestDispatcher dispatcher = request.getRequestDispatcher(
+                "/error");
+dispatcher.forward(request, response);
+
+~~~
+
+**上面这段代码的效果可能如下：由于 zuul 的一些其它特性可能影响了最终效果。**
+
+![image-20250708212003013](http://47.101.155.205/image-20250708212003013.png)
+
+
+
+
 
 sendErrorFilter.ran请求上下为true则不执行这个默认过滤器
 
@@ -363,12 +420,15 @@ public class SendErrorFilter extends ZuulFilter {
 ### zuul配置
 
 ~~~yml
- zuul:
-  ignoredServices: '*' 
+zuul:
+  SendErrorFilter:
+    error:
+      disable: true # 禁用 error 类型的 SendErrorFilter 过滤器,默认注册即启用
+  ignoredServices: '*'
 
 ~~~
 
-
+![image-20250708200558395](http://47.101.155.205/image-20250708200558395.png)
 
 
 
@@ -431,7 +491,7 @@ public FeignContext feignContext() {
 覆盖 Service 默认使用的 Bean 策略方式：
 
 1. 创建 RibbonClientSpecification Bean，通过 name(确定是哪个 Service 需要)、configuration(激活的注解类集合)；
-2. @RibbonClients(defaultConfiguration = {}) 注解指定需要的注解类。参考 RibbonEurekaAutoConfiguration。
+2. @RibbonClients(defaultConfiguration = {EurekaRibbonClientConfiguration.class}) 注解指定需要的注解类。参考 RibbonEurekaAutoConfiguration。
 
 
 
@@ -512,6 +572,18 @@ public FeignContext feignContext() {
 
 
 
+通过配置为指定的服务设置特点的实现类，支持的有(详见 `PropertiesFactory`)：
+
+1. ILoadBalancer；
+2. IPing；
+3. IRule；
+4. ServerList；
+5. ServerListFilter。
+
+**单独配置格式：serviceId.name.typeValue=class。typeValue表示前面类对应的属性值。**
+
+
+
 
 
 ### RibbonLoadBalancingHttpClient
@@ -549,6 +621,61 @@ public FeignContext feignContext() {
 DynamicServerListLoadBalancer 的子类。
 
 
+
+
+
+### IRule
+
+定义负载均衡的规则接口。
+
+
+
+#### ZoneAvoidanceRule
+
+`RibbonClientConfiguration` 配置的 IRule。
+
+![image-20250708215129999](http://47.101.155.205/image-20250708215129999.png)
+
+**路由服务的大体规则：**
+
+![image-20250708220154992](http://47.101.155.205/image-20250708220154992.png)
+
+
+
+#### AbstractServerPredicate
+
+**使用 AbstractServerPredicate 的两个 ZoneAvoidancePredicate、AvailabilityPredicate 组合断言。**
+
+![image-20250708221053125](http://47.101.155.205/image-20250708221053125.png)
+
+
+
+**CompositePredicate 对象创建说明：**
+
+![image-20250708221851370](http://47.101.155.205/image-20250708221851370.png)
+
+![image-20250708222657952](http://47.101.155.205/image-20250708222657952.png)
+
+
+
+#### ZoneAvoidancePredicate
+
+ZoneAvoidancePredicate 断言 apply 匹配规则：
+
+1. `niws.loadbalancer.zoneAvoidanceRule.enabled` 配置 false 则匹配；
+2. Server 没有区域信息，则直接匹配；
+3. 断言中没有负载均衡器信息，则直接匹配；
+4. 负载均衡器的分区为1，则直接匹配；
+5. 存在多个分区，则判断分区是否在可用分区中。
+
+
+
+#### AvailabilityPredicate
+
+AvailabilityPredicate 断言 apply 匹配规则：
+
+1. 断言中没有负载均衡器信息，则直接匹配；
+2. 根据服务的使用情况，判断是否匹配。
 
 
 
@@ -641,7 +768,7 @@ public void enableAndInitLearnNewServersFeature() {
 
 ### ServerListFilter
 
-对已经获取的服务端进行筛选。
+对已经设置或动态获取到的服务端进行筛选过滤。
 
 `spring-cloud-netflix-ribbon` 默认使用 `ZonePreferenceServerListFilter`。可以通过指定 Bean 来覆盖默认操作。
 
@@ -651,3 +778,4 @@ public void enableAndInitLearnNewServersFeature() {
 
 #### ZonePreferenceServerListFilter
 
+![image-20250708213645718](http://47.101.155.205/image-20250708213645718.png)
