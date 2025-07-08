@@ -5,6 +5,7 @@
 特点：
 
 - 通过自定义过滤器，可以将所有请求的状态码都设为200；
+- 转发请求失败时，例如未在 ribbon 要求时间内响应，zuul 默认会发起重试请求。可能由于 zool 的原因，下游服务读取请求数据出现 `UT000128: Remote peer closed connection before all data could be read` 异常。
 
 
 
