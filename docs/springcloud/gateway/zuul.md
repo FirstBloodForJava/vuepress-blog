@@ -530,7 +530,7 @@ public FeignContext feignContext() {
 
 继承 `spring-cloud-context` 中的 `NamedContextFactory`。
 
-**API(简化泛型) **
+**API(简化泛型)**
 
 1. IClient getClient(String name, Class clientClass)：获取与 `name` 相关联的 `clientClass` 客户端。
 2. ILoadBalancer getLoadBalancer(String name)：获取与 `name` 相关联的 `ILoadBalancer` 负载均衡器。
@@ -566,7 +566,7 @@ public FeignContext feignContext() {
 
 
 
-**Import HttpClientRibbonConfiguration 创建的 Bean: **
+**Import HttpClientRibbonConfiguration 创建的 Bean:**
 
 - AbstractLoadBalancerAwareClient：默认 RibbonLoadBalancingHttpClient 。**执行 Http 请求的客户端**。
 
