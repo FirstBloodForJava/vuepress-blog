@@ -5,7 +5,15 @@
 特点：
 
 - 通过自定义过滤器，可以将所有请求的状态码都设为200；
-- 转发请求失败时，例如未在 ribbon 要求时间内响应，zuul 默认会发起重试请求。可能由于 zool 的原因，下游服务读取请求数据出现 `UT000128: Remote peer closed connection before all data could be read` 异常。
+- 转发请求失败时，例如未在 ribbon 要求时间内响应，zuul 默认会发起重试请求。可能由于 zuul 的原因，下游服务读取请求数据出现 `UT000128: Remote peer closed connection before all data could be read` 异常。**原因：由于超时请求中断，触发了 zuul 的 error 类型过滤器 SendErrorFilter，该过滤器逻辑是将请求又转发到 /error 上下文，请求又进入了 HttpServlet 上下文，当前线程又在过滤器中执行了一次，导致重复发送到下游。重发的过程中，可能失败（ConnectTimeout 连接时间太短），再次触发 error 由于上一次已经标记执行过，所以不会再进来，到这里，请求就已经结束了。需要自定义错误过滤器才能解决问题。**
+
+![image-20250709220516919](http://47.101.155.205/image-20250709220516919.png)
+
+![image-20250709220840366](http://47.101.155.205/image-20250709220840366.png)
+
+![image-20250709220957870](http://47.101.155.205/image-20250709220957870.png)
+
+![image-20250709221227763](http://47.101.155.205/image-20250709221227763.png)
 
 
 
@@ -167,55 +175,75 @@ server:
 
 
 
+#### PreDecorationFilter
 
-
-### hystrix和ribbon时间
-
-Ribbon超时时间
-
-![image-20231113141016743](http://47.101.155.205/image-20231113141016743.png)
-
-默认全局时间：`ribbonTimeout = (ribbon.ReadTimeout + ribbon.ConnectTimeout) * (1) * (1+1)` 
-
-`ribbon.ReadTimeout + ribbon.ConnectTimeout` 表示单次 ribbon请求的最大时间， 默认2000 ms。
-
-`ribbon.MaxAutoRetries` 表示开启重试机制的次数，默认 0 次。
-
-`ribbon.MaxAutoRetriesNextServer` 表示最大自动重试下一个服务器，默认一次。**作用是什么？**
+`pre` 类型过滤器。
 
 
 
-Hystrix超时时间
+~~~java
+@Override
+public boolean shouldFilter() {
+    RequestContext ctx = RequestContext.getCurrentContext();
+    return !ctx.containsKey(FORWARD_TO_KEY) // 属性 forward.to 有值，表示过滤器已经转发
+        && !ctx.containsKey(SERVICE_ID_KEY); // 属性 serviceId 有值，表示过滤器已经确定目标
+}
 
-![image-20231113141217463](http://47.101.155.205/image-20231113141217463.png)
+~~~
 
 
 
-配置文件
+![image-20250709205232525](http://47.101.155.205/image-20250709205232525.png)
 
-![image-20231113141237886](http://47.101.155.205/image-20231113141237886.png)
-
-调用过程
-
-![image-20231113142602157](http://47.101.155.205/image-20231113142602157.png)
+![image-20250709205629445](http://47.101.155.205/image-20250709205629445.png)
 
 
 
 
 
+#### RibbonRoutingFilter
+
+`route` 类型过滤器。
+
+~~~java
+@Override
+public boolean shouldFilter() {
+    RequestContext ctx = RequestContext.getCurrentContext();
+    // 默认 forward: 和 serviceId 模式才执行
+    return (ctx.getRouteHost() == null && ctx.get(SERVICE_ID_KEY) != null
+            && ctx.sendZuulResponse());
+
+}
+
+~~~
+
+~~~java
+@Override
+public Object run() {
+    RequestContext context = RequestContext.getCurrentContext();
+    // 记录忽略的请求头 key
+    this.helper.addIgnoredHeaders();
+    try {
+        RibbonCommandContext commandContext = buildCommandContext(context);
+		ClientHttpResponse response = forward(commandContext);
+        setResponse(response);
+        return response;
+    } catch (ZuulException ex) {
+        throw new ZuulRuntimeException(ex);
+    } catch (Exception ex) {
+        throw new ZuulRuntimeException(ex);
+    }
+}
+
+~~~
+
+![image-20250709212009661](http://47.101.155.205/image-20250709212009661.png)
+
+**默认使用 HttpClientRibbonCommand 作为断路器实现，抽象类 AbstractRibbonCommand 中定义了 run 方法逻辑、getFallback 熔断逻辑。**
 
 
 
-
-
-
-
-
-
-
-
-
-### SendErrorFilter过滤器
+#### SendErrorFilter
 
 **该过滤器没什么太大作用**
 
@@ -388,6 +416,56 @@ public class SendErrorFilter extends ZuulFilter {
 }
 
 ~~~
+
+
+
+### hystrix和ribbon时间
+
+Ribbon超时时间
+
+![image-20231113141016743](http://47.101.155.205/image-20231113141016743.png)
+
+默认全局时间：`ribbonTimeout = (ribbon.ReadTimeout + ribbon.ConnectTimeout) * (1) * (1+1)` 
+
+`ribbon.ReadTimeout + ribbon.ConnectTimeout` 表示单次 ribbon请求的最大时间， 默认2000 ms。
+
+`ribbon.MaxAutoRetries` 表示开启重试机制的次数，默认 0 次。
+
+`ribbon.MaxAutoRetriesNextServer` 表示最大自动重试下一个服务器，默认一次。**作用是什么？**
+
+
+
+Hystrix超时时间
+
+![image-20231113141217463](http://47.101.155.205/image-20231113141217463.png)
+
+
+
+配置文件
+
+![image-20231113141237886](http://47.101.155.205/image-20231113141237886.png)
+
+调用过程
+
+![image-20231113142602157](http://47.101.155.205/image-20231113142602157.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
