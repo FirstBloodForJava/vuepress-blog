@@ -170,12 +170,62 @@ docker run -e PARAMS="--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/xxl_jo
 
 ### 触发一次任务
 
-uri：/xxl-job-admin/jobinfo/trigger
+uri：`/xxl-job-admin/jobinfo/trigger`
 
-~~~json
+请求方式：`POST`
 
+请求参数格式：`application/x-www-form-urlencoded; charset=UTF-8`
+
+~~~md
+# 任务 id
+id=4&
+executorParam=ping+192.168.8.8&
+addressList=
 
 ~~~
+
+
+
+### 停止执行器
+
+uri：`/xxl-job-admin/jobinfo/stop`
+
+请求方式：`POST`
+
+请求参数格式：`application/x-www-form-urlencoded; charset=UTF-8`
+
+~~~md
+# 任务 id
+id=4
+
+~~~
+
+
+
+### 停止调度中任务
+
+uri：`/xxl-job-admin/jobinfo/logKill`
+
+请求方式：`POST`
+
+请求参数格式：`application/x-www-form-urlencoded; charset=UTF-8`
+
+~~~md
+# 调度记录 id
+id=4
+
+~~~
+
+停止任务逻辑如下：
+
+1. 根据 id 查询调度记录，获取执行器信息，`ip:port`；
+2. 调用执行器的 `kill`接口；等待接口返回；
+3. 执行器 `kill` 逻辑：
+   1. 根据调度记录id，获取任务线程对象 `JobThread`，不存在则直接返回成功；
+   2. 将任务线程对象从缓存中移除，标记任务停止；
+   3. 调用线程的实例方法  `interrupt()` 标记线程中断，结束。
+   4. **如果需要停止任务，还需要任务执行器线程自己获取线程中断状态，会根据线程对象的属性来停止任务。**
+4. 执行器返回成功，则根据调度记录的任务状态和日志。
 
 
 
