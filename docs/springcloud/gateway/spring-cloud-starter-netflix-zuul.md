@@ -17,7 +17,7 @@
 
 ![image-20250710110744920](http://47.101.155.205/image-20250710110744920.png)
 
-## zuul介绍
+## zuul-1.x介绍
 
 zuul的git：https://github.com/Netflix/zuul
 
