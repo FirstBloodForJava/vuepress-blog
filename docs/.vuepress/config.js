@@ -438,8 +438,8 @@ export default defineUserConfig({
                 link: 'spring-cloud-gateway-core'
               },
               {
-                text: 'zuul',
-                link: 'zuul'
+                text: 'zuul-1.x',
+                link: 'spring-cloud-starter-netflix-zuul'
               }
             ]
           }
