@@ -6,6 +6,12 @@ gradle版本：4.9
 
 
 
+在 `maven` 项目中使用 `gradle init` 命令初始化项目，发现 `maven` 文件时会提示是否依据此配置构建，选中。
+
+**构建项目时，注意项目设置 gradle 使用的 java 版本。**
+
+
+
 ### gradle-init.d配置
 
 配置maven仓库和插件的仓库。
