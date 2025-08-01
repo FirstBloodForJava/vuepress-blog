@@ -295,3 +295,23 @@ gradle init --type java-application  --dsl groovy
 关联远程git仓库
 
 ![image-20240531111247750](http://47.101.155.205/image-20240531111247750.png)
+
+
+
+## 项目文件夹名和项目名不一致
+
+`rootProject.name` 的大小写与项目文件夹名称或模块名称不一致。
+
+![image-20250801104501375](http://47.101.155.205/image-20250801104501375.png)
+
+指定 jar 名称
+
+~~~gradle
+
+bootJar {
+    // 指定jar名称
+    archiveFileName = 'lgsa-preIncrease-mgr-0.0.1-SNAPSHOT.jar'
+}
+
+~~~
+
