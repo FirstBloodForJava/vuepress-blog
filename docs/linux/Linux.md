@@ -1459,6 +1459,26 @@ ifconfig | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
 
 
 
+##### telnet
+
+~~~bash
+telnet ip port
+
+~~~
+
+
+
+
+
+##### nc
+
+~~~bash
+nv -zv ip port
+
+~~~
+
+
+
 
 
 
