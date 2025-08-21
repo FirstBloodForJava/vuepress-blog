@@ -2096,7 +2096,7 @@ message.downconversion.enable=true # 消息向下转换,不太懂?
 
 ~~~properties
 #acks=0 生产者将根本不等待来自服务器的任何确认,retries配置失效,为每条记录返回的偏移量将始终设置为-1
-#acks=1 leader副本将记录写入其本地日志，但无需等待所有follower副本的完全确认即可响应,如果leader在响应之后，没有复制sollower完之前失败,则出现数据丢失
+#acks=1 leader副本将记录写入其本地日志，但无需等待所有follower副本的完全确认即可响应,如果在 leader 响应之后，follower 没有复制完成之前失败,则出现数据丢失
 #acks=all leader将等待同步副本的完整集合来确认记录.这保证只要至少有一个同步副本保持活动状态,记录就不会丢失.效果等同-1配置
 #启用幂等性需要这个配置值为“all”。如果设置了冲突的配置，并且幂等性没有显式启用，则幂等性被禁用
 acks=all # [all, -1, 0, 1]
@@ -2105,7 +2105,8 @@ key.serializer=className # 实现org.apache.kafka.common.serializ.Serializer 接
 value.serializer=className # 实现org.apache.kafka.common.serializ.Serializer 接口的class
 # Kafka服务端地址
 bootstrap.servers=list 
-# 生产者用于缓存等待发送到服务器的内存字节数。如果记录发送速度大于记录被提交到服务器的速度，缓存将耗尽，阻塞max.block.ms之后，则发送异常。RecordTooLargeException
+# 生产者用于缓存等待发送到服务器的内存字节数。如果记录发送速度大于记录被提交到服务器的速度，缓存将耗尽，
+# 阻塞 max.block.ms 之后，则发生异常: RecordTooLargeException
 buffer.memory=33554432
 # 阻塞最大时间
 max.block.ms=60000 

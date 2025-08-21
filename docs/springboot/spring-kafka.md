@@ -416,14 +416,14 @@ spring.kafka.consumer.properties.partition.assignment.strategy=org.apache.kafka.
 
 **2.3版本之前enable.auto.commit默认true，之后则默认false。**
 
-false的确认默认模式(AckMode)：
+enable.auto.commit=false，可配置的默认模式(AckMode)：
 
 1. RECORD：监听器处理完消息提交。
 2. BATCH：当poll()返回的所有记录都处理完成提交，**默认模式**。
 3. TIME：当poll()返回的所有记录都处理完成，并超过上一次ackTime时间。
 4. COUNT：当poll()返回的所有记录都处理完成，并超过一定数量。
 5. COUNT_TIME：TIME或COUNT任意满足则提交。
-6. MANUAL：使用Acknowledgment手动提交。
+6. MANUAL：使用 Acknowledgment 手动提交。
 7. MANUAL_IMMEDIATE：调用Acknowledgment.acknowledge()后立即提交。
 
 
@@ -1301,7 +1301,7 @@ public ConsumerAwareListenerErrorHandler listen10ErrorHandler() {
 
 
 
-**容器错误处理：**提供了ErrorHandler和BatchErrorHandler对消息监听错误处理。
+**容器错误处理：**提供了`ErrorHandler`和`BatchErrorHandler`对消息监听错误处理。
 
 默认情况下，当未使用事务时，仅记录错误。使用事务时，默认情况下不会配置错误处理程序，以便异常将回滚事务。如果您在使用事务时提供自定义错误处理程序，并且您希望回滚事务，它必须引发异常。
 
