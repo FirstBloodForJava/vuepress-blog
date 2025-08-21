@@ -1947,6 +1947,40 @@ A<String> a = new A<>();
 a.doSome("aafa");
 ~~~
 
+
+
+#### ? extends 和 ? super
+
+`? extends T` 上界通配符，表示泛型是 T 或 T 的子类。允许只读操作，可以保证取出来的类型至少是 T；限制写入，只能写入 null。
+
+`? super T` 下界通配符，表示泛型是 T 或 T 的父类。允许写入 T 或 T 的子类，读取限制，返回结果是 Object 类型。
+
+~~~bash
+class A {
+
+}
+class B extends A {
+
+}
+class C extends B {
+
+}
+
+List<? extends B> producer = new ArrayList<>();
+List<? super B> consumer = new ArrayList<>();
+
+consumer.add(new C());
+consumer.add(new B());
+
+// 强制转换
+producer = (List<? extends B>) consumer;
+
+~~~
+
+
+
+
+
 ### TreeSet集合
 
 底层用的是TreeMap集合
