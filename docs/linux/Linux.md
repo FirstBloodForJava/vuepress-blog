@@ -1068,6 +1068,12 @@ du -sm /*
 # 查询指定目录下一级目录的磁盘占用情况
 du -h --max-depth=1 /www/log/
 
+sort -rh
+-r: 反向排序
+-h: 以人们较易阅读的 GBytes, MBytes, KBytes 等格式自行显示；
+# 查询 / 目录下磁盘占用前 10 目录
+du -h / | sort -rh | head -n 10
+
 ~~~
 
 ![image-20250402110904273](http://47.101.155.205/image-20250402110904273.png)
