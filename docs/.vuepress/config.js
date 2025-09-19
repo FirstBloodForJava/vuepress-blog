@@ -511,6 +511,10 @@ export default defineUserConfig({
           {
             text: 'git',
             link: 'git'
+          },
+          {
+            text: 'WebService',
+            link: 'WebService'
           }
         ]
       }
