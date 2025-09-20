@@ -2289,11 +2289,17 @@ Swap 工作原理：当 RAM 空间不足时，操作系统会将一些不常用�
 top [option]
 
 -d <num>：更新间隔
--n <num>：允许多少次退出
+-n <num>: 允许多少次退出
 -u <username>：某个用户的进程
 -p <pid>：某个pid进程
 
 top -p <pid>
+
+# 计算进程占用总内存
+# NR>7 表示跳过 top 摘要信息
+top -b -n 1 | awk 'NR>7 {sum+=$6} END {print sum/1024 " MB"}'
+ps -eo rss= | awk '{sum+=$1} END {print sum/1024 " MB"}'
+
 
 ~~~
 
@@ -2315,28 +2321,29 @@ wa等待I/O操作CPU时间0.0%，hi硬件中断消耗CPU时间0.0%，si软件中
 内容描述：
 PID：进程ID
 USER：进程所有者
-PR：进程优先级
-NI：进程的nice值（影响优先级）
-VIRT：进程占用的虚拟内存总量
-RES：进程占用的物理内存总量
-SHR：进程使用的共享内存量
-S：进程状态(R:运行,S:睡眠,D:不可中断睡眠,Z:僵尸,T:停止)
-%CPU：进程消耗的CPU时间百分比
-%MEM：进程占用的物理内存百分比
-TIME+：进程运行的总CPU时间(格式mm:ss)
-COMMAND：启动进程的命令名称
+PR: Priority, 进程优先级
+NI: Nice Value, 进程的 nice 值（影响优先级）
+VIRT: Virtual Image, 访问的虚拟地址空间的总大小，并不是指实际存在的物理内存或硬盘空间。
+RES: Resident Size, 进程真正使用的物理内存量
+SHR：Shared Memory, 进程使用的共享内存量
+S: Process Status, 进程状态(R:运行,S:睡眠,D:不可中断睡眠,Z:僵尸,T:停止)
+%CPU: CPU Usage, 进程消耗的 CPU 时间百分比
+%MEM: Memory Usage (RES),进程占用的物理内存百分比
+TIME+: CPU Time, hundredths, 进程运行的总 CPU 时间(格式mm:ss)
+COMMAND: 启动进程的命令名称
 
 进入程序键盘作用
-q：退出
-P(shift+p)：按%CPU排序，默认就是
-M(shift+m)：按%MEM排序
-T(shift+T)：按TIME+排序
-1：显示所有cpu使用情况
-s：默认3s刷新，按下后输入值更新多级刷新
-o：输入条件过滤进程信息
-f：编辑页面显示哪些选项
+q: 退出
+P(shift+p): 按 %CPU 排序，默认就是
+M(shift+m): 按 %MEM 排序
+T(shift+T): 按 TIME+ 排序
+1: 显示所有 cpu 使用情况
+s: 默认3s刷新，按下后输入值更新多级刷新
+o: 输入条件过滤进程信息
+f: 编辑页面显示哪些选项
 
-E：调整内存显示的单位,W可以报错设置
+E: Shift+E, 切换顶部内存显示单位
+e: 切换进程列表内存显示单位
 
 ~~~
 
@@ -2355,7 +2362,7 @@ jstack -l <pid> | grep 'nid对于的16进制' -A 20
 
 
 
-虚拟内存是一种内存管理技术，允许操作系统使用硬盘空间作为扩展的内存，从而使系统可以运行比物理内存（RAM）更大的程序。以下是虚拟内存的主要特点和工作原理：
+虚拟内存是一种内存管理技术，允许操作系统使用硬盘空间作为扩展的内存，从而使系统可以运行比物理内存(RAM)更大的程序。以下是虚拟内存的主要特点和工作原理：
 
 **主要特点：**
 
