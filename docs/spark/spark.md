@@ -97,6 +97,8 @@ linesWithSpark.cache()
 
 ### 自定义 Application
 
+gradle 和 gradle 项目可以通过 `shadow` 插件将项目依赖打包至 jar中。
+
 将 `examples\src\main\java` 代码拷贝至新的 maven 项目中。
 
 maven 项目配置如下。
@@ -117,6 +119,8 @@ maven 项目配置如下。
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 控制 spark 依赖范围, 本地启动需要为 compile, 其它可为 provided -->
+        <dependency.scope>compile</dependency.scope>
     </properties>
 
     <dependencies>
@@ -124,14 +128,14 @@ maven 项目配置如下。
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.12</artifactId>
             <version>3.5.6</version>
-            <scope>provided</scope>
+            <scope>${dependency.scope}</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib_2.12</artifactId>
             <version>3.5.6</version>
-            <scope>provided</scope>
+            <scope>${dependency.scope}</scope>
         </dependency>
 
         <dependency>
@@ -140,6 +144,7 @@ maven 项目配置如下。
             <version>3.5.6</version>
         </dependency>
 
+        <!--  examples\jars 中的 jar-->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-examples_2.12</artifactId>
@@ -176,6 +181,85 @@ D:\spark\spark-3.5.6-bin-hadoop3\bin\spark-submit.cmd --class org.apache.spark.e
 
 
 
+## spark-submit
+
+自定义的 Spark Application 打包成 jar 后，可以使用 `spark-submit` 启动
+
+~~~bash
+# linux 启动格式
+./bin/spark-submit \
+  --class <main-class> \
+  --master <master-url> \
+  --deploy-mode <deploy-mode> \
+  --conf <key>=<value> \
+  ... # other options
+  <application-jar> \
+  [application-arguments]
+
+~~~
+
+以上参数说明：
+
+- `--class`：自定义 Application 的入口，main 所在的类。
+- `--master`：集群的地址，`local[2]` 本地模式；`spark://23.195.26.187:7077` 表示 spark 集群模式地址。
+- `--deploy-mode`：driver 部署的位置，`cluster` 表示集群的工作节点；`client`(默认) 在本地作为外部客户端。
+- `--conf`：key=value 指定 spark 配置，配置中携带空格，使用 "key=value" 格式；多个参数配置格式：`--conf key=value --conf key2=value2`。
+- `application-jar`：启动 main 方法所有依赖的 jar 路径；执行的路径必须在集群的各个节点都可见。
+- `application-arguments`：可选，传递给 main 方法的参数。
+
+
+
+### master
+
+master 支持的 url 格式：
+
+| master url                      | 说明                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| local                           | 使用一个本地工作线程运行 Spark                               |
+| local[K]                        | 使用 K 个本地工作线程运行 Spark                              |
+| local[K,F]                      | 使用 K 个工作线程和 F 个 maxFailures(最大失败次数) 在本地运行 Spark |
+| local[*]                        | 以本地计算机逻辑核心数工作线程本地运行 Spark                 |
+| local[*,F]                      | 以本地计算机逻辑核心数工作线程本地运行 Spark，运行 F 个 maxFailures |
+| local-cluster[N,C,M]            | 用于测试的本地集群模式，在单个 JVM 中模拟一个分布式集群，该集群有 N 个工作线程、每个工作线程有 C 个核心，每个工作线程有 M MB 内存 |
+| spark://HOST:PORT               | 连接到 Spark standalone 集群主节点                           |
+| spark://HOST1:PORT1,HOST2:PORT2 | 通过 Zookeeper 连接到给定的 Spark 独立集群。                 |
+| mesos://HOST:PORT               | 连接到给定的 Mesos 集群                                      |
+| yarn                            | 根据 --deploy-mode ，以 client 或 cluster 连接 YARN 集群。将根据 HADOOP_CONF_DIR 或 YARN_CONF_DIR 变量查找集群位置 |
+| k8s://HOST:PORT                 | 根据 --deploy-mode ，以 client 或 cluster 连接 k8s集群。HOST和 PORT 指的是 Kubernetes API Server。默认情况下，它使用 TLS 连接。为了强制使用不安全的连接，使用 k8s://http://HOST:PORT |
+
+
+
+### 从文件加载配置
+
+spark 配置说明：https://spark.apache.org/docs/3.5.6/configuration.html
+
+`spark-submit` 可以从 properties 文件中加载 Spark Configuration。默认情况下，从 Spark 目录中的 `conf/spark-defaults.conf` 中读取配置。
+
+**文件中的配置优先级高于命令行的配置。**
+
+可以使用 `--verbose` 打印更多配置信息。
+
+
+
+### 依赖管理
+
+使用 `spark-submit` 时，启动 jar 和 `--jar` 指定的 jar 会自定传输到集群。`--jar` 指定的 jar url 地址必须由 `,` 分割。
+
+Spark 支持使用不同的 url 协议传播 jar：
+
+- `file:`：在 driver 所在文件系统加载。
+- `hdfs:,http:,https:,ftp:`：根据指定的协议拉取 jar。
+- `local:`：在工作节点的文件系统加载。
+
+
+
+**jars 和文件被复制到执行器节点的工作目录，会占用一定的空间。使用 YARN 部署，会自动进行清理。Spark standalone 模式，可以通过 spark.worker.cleanup.appDataTtl(worker) 配置自动清理。**
+
+
+
+也可以通过 `--packages groupId:artifactId:version` 从仓库下载依赖。
+
+
 
 ## 运行模式
 
@@ -189,6 +273,43 @@ D:\spark\spark-3.5.6-bin-hadoop3\bin\spark-submit.cmd --class org.apache.spark.e
 
 ### Spark standalone
 
+Spark 提供的简单的独立集群。
+
+
+
+**手动启动集群命令：**
+
+~~~bash
+# 默认 Spark master 端口 7077, UI 端口 8080
+./sbin/start-master.sh
+
+# 启动工作节点连接到 master
+./sbin/start-worker.sh <master-spark-URL>
+
+~~~
+
+master 和 worker 启动可配置的参数：
+
+| 参数                    | 作用                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| -h host, --host host    | 监听的主机                                                   |
+| -p port, --port port    | 服务监听的端口，master 默认7077；worker 随机                 |
+| --webui-port port       | web UI 端口，master 默认 8080；worker 默认 8081              |
+| -c cores, --cores cores | 仅 worker 生效，Spark 应用允许使用的 CPU 内核数，默认所有可用 |
+| -m mem, --memory mem    | 仅 worker 生效，Spark 应用允许使用的内存总量，默认总 RAM -1G |
+| -d dir, --work-dir dir  | 仅 worker 生效，日志输出和 jar保存 目录，默认 SPARK_HOME/work |
+| --properties-file file  | 加载自定义 spark 配置文件路径，默认 conf/spark-defaults.conf |
+
+
+
+#### 集群启动脚本
+
+`conf/workers` 中可以配置 `worker` 的服务器列表。默认情况，ssh 是并行，配置的服务器需要设置无密码(使用私钥)访问。可以通过设置环境变量 `SPARK_SSH_FOREGROUND =yes`，为每个 ssh 串行提供密码。
+
+
+
+
+
 
 
 ### Hadoop YARN
@@ -196,4 +317,3 @@ D:\spark\spark-3.5.6-bin-hadoop3\bin\spark-submit.cmd --class org.apache.spark.e
 
 
 ### Kubernetes
-
