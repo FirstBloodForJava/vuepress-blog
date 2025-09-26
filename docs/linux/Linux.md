@@ -650,9 +650,12 @@ head -n <num> <file>
 # 输出文件的后几行
 tail [option]... [file]...
 
+tail -fn 20 file : 实时监控最后 20 行内容
+
 # 参数
 -n num：显示后面多少行，结束
--f num：显示后面多少号，不结束，有结果则继续输出
+-n +num: 第 num 行开始显示内容
+-f file: 实时监控文件内容变化
 
 ~~~
 
