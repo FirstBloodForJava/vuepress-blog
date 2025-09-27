@@ -304,11 +304,74 @@ master 和 worker 启动可配置的参数：
 
 #### 集群启动脚本
 
-`conf/workers` 中可以配置 `worker` 的服务器列表。默认情况，ssh 是并行，配置的服务器需要设置无密码(使用私钥)访问。可以通过设置环境变量 `SPARK_SSH_FOREGROUND =yes`，为每个 ssh 串行提供密码。
+`conf/workers` 中可以配置 `worker` 的服务器列表，。默认情况，ssh 是并行，配置的服务器需要设置无密码(使用私钥)访问。可以通过设置环境变量 `SPARK_SSH_FOREGROUND =yes`，操作每个 ssh 的 worker 串行提供密码。
+
+配置 `conf/workers` 文件后，可以通过以下脚本启动或停止集群：
+
+- `sbin/start-master.sh`：启动 master。
+- `sbin/start-workers.sh`：启动 `conf/workers` 配置的所有 workers。
+- `sbin/start-worker.sh`：启动 worker。
+- `sbin/start-connect-server.sh`：启动 Spark Connect。
+- `sbin/start-all.sh`：启动 master 和 配置的 workers。
+- `sbin/stop-master.sh`：停止 `start-master.sh` 启动的 master。
+- `sbin/stop-worker.sh`：停止所有 workers。
+- `sbin/stop-workers.sh`：停止 `conf/workers` 配置的 workers。
+- `sbin/stop-connect-server.sh`：停止 Spark Connect。
+- `sbin/stop-all.sh`：停止 master 和所有 workers。
 
 
 
+`conf/spark-env.sh` 可以配置 Spark 集群。模板文件名 `conf/spark-env.sh.template`。
 
+| 变量名                    | 作用                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| `SPARK_MASTER_HOST`       | master 监听的地址                                            |
+| `SPARK_MASTER_PORT`       | master 启动的端口 (默认 7077)                                |
+| `SPARK_MASTER_WEBUI_PORT` | master web UI (默认 8080)                                    |
+| `SPARK_MASTER_OPTS`       | 配置 master 参数，格式 "-Dx=y" (默认 none)                   |
+| `SPARK_LOCAL_DIRS`        | master                                                       |
+| `SPARK_WORKER_CORES`      | Spark 应用可使用的核心数 (默认 all available cores)          |
+| `SPARK_WORKER_MEMORY`     | worker 分配的内存                                            |
+| `SPARK_WORKER_PORT`       | worker 启动占用的端口 (默认 random)                          |
+| `SPARK_WORKER_WEBUI_PORT` | worker web UI (默认 8081)                                    |
+| `SPARK_WORKER_DIR`        | worker 日志和 jar 的缓存目录 (默认 SPARK_HOME/work)          |
+| `SPARK_WORKER_OPTS`       | 配置 worker 参数，格式 "-Dx=y" (默认 none)                   |
+| `SPARK_DAEMON_MEMORY`     | master 和 worker 进程分配的内存 (默认 1g)                    |
+| `SPARK_DAEMON_JAVA_OPTS`  | master 和 worker 进程 JVM 启动参数，格式 "-Dx=y" (默认 none) |
+| `SPARK_DAEMON_CLASSPATH`  | master 和 worker 进程的类路径(默认 none)                     |
+| `SPARK_PUBLIC_DNS`        | Spark master 和 worker 的公共 DNS 名称 (默认 none)           |
+
+`SPARK_MASTER_OPTS` 支持的参数
+
+| 属性                                           | 默认值     | 说明                                                         |
+| ---------------------------------------------- | ---------- | ------------------------------------------------------------ |
+| `spark.master.ui.port`                         | `8080`     |                                                              |
+| `spark.master.ui.decommission.allow.mode`      | `LOCAL`    | master Web UI  /workers/kill 功能配置. `LOCAL`  `DENY` `ALLOW` |
+| `spark.master.rest.enabled`                    | `false`    | 是否使用 Master REST API                                     |
+| `spark.master.rest.port`                       | `6066`     | Master REST API 端口                                         |
+| `spark.deploy.retainedApplications`            | 200        | 显示的已完成应用程序的最大数目，旧的删除                     |
+| `spark.deploy.retainedDrivers`                 | 200        | 显示的已完成 driver 的最大数目，旧的删除                     |
+| `spark.deploy.spreadOut`                       | true       | spread                                                       |
+| `spark.deploy.defaultCores`                    | (infinite) | CPU core 相关                                                |
+| `spark.deploy.maxExecutorRetries`              | 10         | 执行失败次数相关                                             |
+| `spark.worker.timeout`                         | 60         | master 和 worker 之间的心跳间隔时间                          |
+| `spark.worker.resource.{name}.amount`          | (none)     |                                                              |
+| `spark.worker.resource.{name}.discoveryScript` | (none)     | worker 启动查询特点脚本                                      |
+| `spark.worker.resourcesFile`                   | (none)     |                                                              |
+
+
+
+`SPARK_WORKER_OPTS`  支持配置项
+
+| 属性名                                             | 默认值  | 说明                 |
+| -------------------------------------------------- | ------- | -------------------- |
+| `spark.worker.cleanup.enabled`                     | false   | 是否自动清理工作目录 |
+| `spark.worker.cleanup.interval`                    | 1800s   | 清理间隔时间         |
+| `spark.worker.cleanup.appDataTtl`                  | 604800s | 文件有效期           |
+| `spark.shuffle.service.db.enabled`                 | true    |                      |
+| `spark.shuffle.service.db.backend`                 | LEVELDB |                      |
+| `spark.storage.cleanupFilesAfterExecutorExit`      | true    |                      |
+| `spark.worker.ui.compressedLogFileLengthCacheSize` | 100     |                      |
 
 
 
