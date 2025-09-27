@@ -517,6 +517,16 @@ export default defineUserConfig({
             link: 'WebService'
           }
         ]
+      },
+      {
+        text: 'spark',
+        prefix: '/spark',
+        children: [
+          {
+            text: 'spark',
+            link: 'spark'
+          }
+        ]
       }
     ],
     // 修改主题的footer
