@@ -1,5 +1,9 @@
 # Scala
 
+[Scala 官网](https://scala-lang.org/)
+
+[菜鸟教程](https://www.runoob.com/scala/scala-tutorial.html)
+
 Scala(Scalable Language) 是一种多范式编程语言。运行在 JVM 上：可以调用 Java 库，也可以被 Java 调用。
 
 两大范式特点：
