@@ -288,11 +288,11 @@ Spark 提供的简单的独立集群。
 
 ~~~
 
-master 和 worker 启动可配置的参数：
+master 和 worker 启动可配置的参数：**master 启动 host 是主机名，worker 启动的地址需要是主机名或当前 ip，127.0.0.1 无法注册上。** 
 
 | 参数                    | 作用                                                         |
 | ----------------------- | ------------------------------------------------------------ |
-| -h host, --host host    | 监听的主机                                                   |
+| -h host, --host host    | 监听的主机，默认主机名                                       |
 | -p port, --port port    | 服务监听的端口，master 默认7077；worker 随机                 |
 | --webui-port port       | web UI 端口，master 默认 8080；worker 默认 8081              |
 | -c cores, --cores cores | 仅 worker 生效，Spark 应用允许使用的 CPU 内核数，默认所有可用 |
