@@ -4,6 +4,8 @@
 
 [菜鸟教程](https://www.runoob.com/scala/scala-tutorial.html)
 
+[Scala 在线代码编写](https://scastie.scala-lang.org/)
+
 Scala(Scalable Language) 是一种多范式编程语言。运行在 JVM 上：可以调用 Java 库，也可以被 Java 调用。
 
 两大范式特点：
@@ -245,6 +247,26 @@ val str1 = raw"hello\n$name"
 println(str1)
 
 ~~~
+
+
+
+### Type
+
+在 Scala 中，所有值都有一个类型，包括数值和函数。如下图类的结构：
+
+![image-20250930111020781](http://47.101.155.205/image-20250930111020781.png)
+
+
+
+`Any` 是所有类型的超类，和 Java 的 Object 类一样定义了通用方法，例如：`equals`，`hashCode`，`toString`。
+
+`Any` 有一个子类型 `Matchable`，用于匹配模式下的类型匹配。不能直接使用 `Any` 类型进行模式匹配，只能对 `Matchable` 的子类型的值进行模式匹配。
+
+`Matchable` 有两个子类型：`AnyVal` 和 `AnyRef`。
+
+`AnyVal` 表示值类型，几种已经定义的值类型，是不可为 `null` 的：`Double`，`Float`，`Long`，`Int`，`Short`，`Byte`，`Char`，`Unit`，`Boolean`。`Unit` 是一个不携带任何信息的值类型。只有一个 `Unit` 的实例，可以用 `()` 表示。
+
+
 
 
 
@@ -645,6 +667,18 @@ FP 编程，两个核心概念：
 
 
 
+**函数式方法指的是使用函数式编程(FP)的风格或特性来编写代码的方法。函数式编程是一种编程范式，它将计算视为数学函数的求值，并避免使用程序状态和可变数据。在函数式编程中，函数是一等公民，意味着函数可以作为参数传递，也可以作为返回值返回（HOF），并且常常使用不可变数据和无副作用的函数。函数式方法特点：**
+
+- 不可变性(Immutability)：数据一旦创建，就不能被改变。任何修改都会创建一个新的数据副本。
+- 纯函数(Pure Functions)：函数的输出只依赖于输入，并且不会产生副作用（例如修改全局变量、修改输入参数等）。
+- 高阶函数(Higher-order Functions)：函数可以作为参数传递给其他函数，也可以作为函数的返回值。
+- 递归(Recursion)：用递归来代替循环，因为循环通常需要改变循环变量（状态）。
+- 函数组合(Function Composition)：将多个函数组合成一个新的函数。
+
+
+
+
+
 **Sum Type 和类型：**一个类型有不同的情况，或关系。3 种大的类型：CrustSize、CrustType、Topping。
 
 ::: tabs
@@ -767,6 +801,140 @@ extension (s: String)
 "1".makeInt(2)      // Int = 1
 "10".makeInt(2)     // Int = 2
 "100".makeInt(2)    // Int = 4
+
+~~~
+
+
+
+## 函数
+
+Scala 具有函数式编程中的大多数功能：
+
+- Lambdas-匿名函数
+- HOF-高阶函数：可以接受其他函数作为参数，或者将函数作为返回值的函数。
+- 不可变的集合
+
+
+
+## 单例对象
+
+单例对象(Singleton)是一种设计模式，它确保一个类只有一个实例，并提供一个全局访问点来访问该实例。
+
+在 Scala 中，`object` 关键字创建一个单例对象，`object` 定义的 `class` 只有一个实例。
+
+这种对象的作用：
+
+- 工具类方法的集合：方法的访问像 Java 的 `static method`一样。
+- companion object：在一个文件中，class 类和 object 类有相同的名称，class 类能访问 object 的方法。
+- 实现 `trait` 创建对象。
+
+
+
+## 集合
+
+**创建不可变集合：**
+
+~~~scala
+val a = List(1, 2, 3)           // a: List[Int] = List(1, 2, 3)
+
+val b = (1 to 5).toList         // b: List[Int] = List(1, 2, 3, 4, 5)
+val c = (1 to 10 by 2).toList   // c: List[Int] = List(1, 3, 5, 7, 9)
+val e = (1 until 5).toList      // e: List[Int] = List(1, 2, 3, 4)
+val f = List.range(1, 5)        // f: List[Int] = List(1, 2, 3, 4)
+val g = List.range(1, 10, 3)    // g: List[Int] = List(1, 4, 7)
+
+~~~
+
+**集合方法：**
+
+~~~scala
+val a = List(10, 20, 30, 40, 10)      // List(10, 20, 30, 40, 10)
+
+a.drop(2)                             // List(30, 40, 10) 
+a.dropWhile(_ < 25)                   // List(30, 40, 10) 分界点
+a.filter(_ < 25)                      // List(10, 20, 10) 所有匹配
+a.slice(2,4)                          // List(30, 40) 
+a.tail                                // List(20, 30, 40, 10) 去头
+a.take(3)                             // List(10, 20, 30)
+a.takeWhile(_ < 30)                   // List(10, 20) 分界点
+
+// flatten
+val a = List(List(1,2), List(3,4))
+a.flatten                             // List(1, 2, 3, 4)
+
+// map, flatMap
+val nums = List("one", "two")
+nums.map(_.toUpperCase)               // List("ONE", "TWO")
+nums.flatMap(_.toUpperCase)           // List('O', 'N', 'E', 'T', 'W', 'O')
+
+
+// foldLeft reduceLeft
+val firstTen = (1 to 10).toList
+firstTen.reduceLeft(_ + _)                 // 55
+firstTen.foldLeft(100)(_ + _)              // 155 (100 is a “seed” value)
+
+~~~
+
+**Tuple：**将不同的类型放入一个容器集合，2-22 元素。
+
+~~~scala
+case class Person(name: String)
+
+val t = (11, "eleven", Person("Eleven"))
+t(0)
+// 提取 tuple 中的值到变量
+val (num, str, person) = t
+
+~~~
+
+
+
+## Contextual Abstraactions
+
+在某些情况下，省略一些被视为重复的方法参数调用。
+
+~~~scala
+val addresses: List[Address] = ...
+
+addresses.sortBy(address => (address.city, address.street))
+// 省略了排序比较的逻辑
+// Scala 2
+addresses.sortBy(address => (address.city, address.street))(Ordering.Tuple2(Ordering.String, Ordering.String))
+// Scala 3
+addresses.sortBy(address => (address.city, address.street))(using Ordering.Tuple2(Ordering.String, Ordering.String))
+
+~~~
+
+
+
+## Toplevel Definitions
+
+在 Scala 3 中，在源代码的顶层编写以下代码。
+
+~~~scala
+import scala.collection.mutable.ArrayBuffer
+
+enum Topping:
+  case Cheese, Pepperoni, Mushrooms
+
+import Topping.*
+class Pizza:
+  val toppings = ArrayBuffer[Topping]()
+
+val p = Pizza()
+
+extension (s: String)
+  def capitalizeAllWords = s.split(" ").map(_.capitalize).mkString(" ")
+
+val hwUpper = "hello, world".capitalizeAllWords
+
+type Money = BigDecimal
+
+// more definitions here as desired ...
+
+@main def myApp =
+  p.toppings += Cheese
+  println("show me the code".capitalizeAllWords)
 
 ~~~
 
