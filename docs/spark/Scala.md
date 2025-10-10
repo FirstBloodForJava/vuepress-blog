@@ -6,6 +6,10 @@
 
 [Scala 在线代码编写](https://scastie.scala-lang.org/)
 
+[Scala API 文档](https://www.scala-lang.org/api/current/index.html)
+
+
+
 Scala(Scalable Language) 是一种多范式编程语言。运行在 JVM 上：可以调用 Java 库，也可以被 Java 调用。
 
 两大范式特点：
@@ -180,19 +184,33 @@ val x = 1 // 隐式声明
 
 
 
-**内置数据类型**：在 Scala 中所有类型都是成熟的对象。
+**内置数据类型**：是类对应的对象，不是原始数据类型。
 
-1. Boolean：true/false。
-2. Byte：8-bit，-2^7~2^7-1。
-3. Short：16-bit，
-4. Int：32-bit，
-5. Long：64-bit，隐式声明数值携带后缀 `L`。
-6. Double：64-bit，隐式声明数值携带后缀 `D`。
-7. Float：32-bit，隐式声明数值携带后缀 `F`。
-8. BigInt：
-9. BigDecimal：
-10. Char：16-bit，`val c = 'c'`。
-11. String：支持字符串插值；创建多行字符串方便。
+1. `Boolean`：true/false。
+2. `Byte`：8-bit，-2^7~2^7-1。
+3. `Short`：16-bit，
+4. `Int`：32-bit，可以用进制法表示数值 `0xACE`。
+5. `Long`：64-bit，隐式声明数值携带后缀 `L`。
+6. `Double`：64-bit，隐式声明数值携带后缀 `D`。
+7. `Float`：32-bit，隐式声明数值携带后缀 `F`。
+8. `Char`：16-bit，`val c = 'c'`。
+9. `String`：支持字符串插值；创建多行字符串方便。
+
+![image-20251010112619373](http://47.101.155.205/image-20251010112619373.png)
+
+~~~scala
+// 只能在没有精度丢失情况下才可转换
+val x: Long = 987654321
+val y: Float = x.toFloat
+
+~~~
+
+
+
+大数值类型：
+
+1. `BigInt`：大整数，`BigInt(1234567890)`。
+2. `BigDecimal`：`BigDecimal(123456.789)`。
 
 Int 和 Double 是默认数字类型，`val i = 1` 和 `val i = 1.0` 分别被推断成 `Int` 和 `Double` 类型。
 
@@ -225,7 +243,7 @@ println(s"""{"name":"James"}""")
 
 
 
-**f 插值**：字符串前面添加 `f` 允许简单的格式化字符串，类似 printf(String format, Object ... args) 方法。会进行类型校验。
+**f 插值**：字符串前面添加 `f` 允许简单的格式化字符串，类似 printf(String format, Object ... args) 方法。会进行类型校验。变量后不接类型，默认使用 `%s`。
 
 ~~~scala
 val height = 1.8d
@@ -266,13 +284,75 @@ println(str1)
 
 `AnyVal` 表示值类型，几种已经定义的值类型，是不可为 `null` 的：`Double`，`Float`，`Long`，`Int`，`Short`，`Byte`，`Char`，`Unit`，`Boolean`。`Unit` 是一个不携带任何信息的值类型。只有一个 `Unit` 的实例，可以用 `()` 表示。
 
+`Nothing` 是所有类型的子类型，被称为底层类型。用于发出非终止信号，例如：抛出异常，程序退出，无限循环。
 
+`Null` 是所有引用类型的子类型。用 `null` 关键字表示值，在 Scala 中几乎不使用。
+
+
+
+### 自定义插值表达式
+
+自定义一个 p-插值表达式，`p"1,-2"` 转换成 `Point` 对象。
+
+~~~scala
+case class Point(x: Double, y: Double)
+
+val pt = p"1,-2"     // Point(1.0,-2.0)
+
+~~~
+
+
+
+::: tabs
+
+@tab Scala 2
+
+创建隐式类
+
+~~~scala
+// 创建模板
+implicit class PointHelper(val sc: StringContext) extends AnyVal {
+  def p(args: Any*): Point = ???
+}
+
+// 具体实现逻辑
+implicit class PointHelper(val sc: StringContext) extends AnyVal {
+  def p(args: Double*): Point = {
+    // 使用 s-插值表达式解析然后使用 ',' 分割
+    val pts = sc.s(args: _*).split(",", 2).map { _.toDoubleOption.getOrElse(0.0) }
+    Point(pts(0), pts(1))
+  }
+}
+
+~~~
+
+@tab Scala 3
+
+使用 `extension` 方法
+
+~~~scala
+// 创建模板
+extension (sc: StringContext)
+  def p(args: Any*): Point = ???
+
+// 具体实现逻辑
+extension (sc: StringContext)
+  def p(args: Double*): Point = {
+    val pts = sc.s(args: _*).split(",", 2).map { _.toDoubleOption.getOrElse(0.0) }
+    Point(pts(0), pts(1))
+  }
+
+~~~
+
+:::
 
 
 
 ## 控制语句
 
-**if/else**
+**EOP(expression-oriented programming)**：编写的表达式返回一个值时，这样的称为面向表达式编程。不返回值的称为语句。
+
+### if/else
 
 ::: tabs
 
@@ -280,6 +360,7 @@ println(str1)
 
 ~~~scala
 if (x < 0) {
+  // 语句
   println("negative")
 } else if (x == 0) {
   println("zero")
@@ -287,14 +368,25 @@ if (x < 0) {
   println("positive")
 }
 
-// 返回值, 类似三目运算符
+// 返回值, 类似三目运算符, EOP
 val x = if (a < b) { a } else { b }
+
+// 作为方法主体返回值
+def compare(a: Int, b: Int): Int =
+  if (a < b)
+    -1
+  else if (a == b)
+    0
+  else
+    1
 
 ~~~
 
 
 
 @tab Scala 3
+
+与 Scala 2对比，用 then 替换了 {}。
 
 ~~~scala
 if x < 0 then
@@ -304,8 +396,23 @@ else if x == 0 then
 else
   println("positive")
 
-// 返回值, 类似三目运算符
+// 返回值, 类似三目运算符, EOP
 val x = if a < b then a else b
+
+// 仅 Scala 3 支持，在表达结尾添加 end if
+if x == 1 then
+  println("x is 1, as you can see:")
+  println(x)
+end if
+
+// 作为方法主体
+def compare(a: Int, b: Int): Int =
+  if a < b then
+    -1
+  else if a == b then
+    0
+  else
+    1
 
 ~~~
 
@@ -313,21 +420,33 @@ val x = if a < b then a else b
 
 
 
-**for 循环**
+### for 循环
 
 ::: tabs
 
 @tab Scala 2
 ~~~scala
 val ints = List(1, 2, 3, 4, 5)
-// p <- e
-for (i <- ints) println(i)
+// p <- e, for 循环生成模板
+for (i <- ints) {
+  val x = i * 2
+  println(s"i = $i, x = $x")
+}
 
-// 增加条件
+// 嵌套 for 循环, 执行 2x2x2 = 8 次. 注意: () 变成 {}
+for {
+  i <- 1 to 2
+  j <- 'a' to 'b'
+  k <- 1 to 10 by 5
+} {
+  println(s"i = $i, j = $j, k = $k")
+}
+
+// 循环中增加条件, 支持多条件
 for (i <- ints if i > 2)
   println(i)
 
-// 使用多个 p <- e, 注意: () 变成 {}, 循环体增加 {}
+// 嵌套 for 循环 + 条件
 for {
   i <- 1 to 3
   j <- 'a' to 'c'
@@ -337,15 +456,30 @@ for {
   println(s"i = $i, j = $j")   // prints: "i = 2, j = b"
 }
 
-// for yield 返回新的结果
+// for 表达式, EOP. for yield 返回新的结果
 val doubles = for (i <- ints) yield i * 2
 val doubles = for (i <- ints) yield (i * 2)
 val doubles = for { i <- ints } yield (i * 2)
-
 // for if yield
 val fruits = List("apple", "banana", "lime", "orange")
 val fruitLengths =
   for (f <- fruits if f.length > 4) yield f.length
+// 作为方法体返回结果
+def between3and10(xs: List[Int]): List[Int] =
+  for {
+    x <- xs
+    if x >= 3
+    if x <= 10
+  } yield x
+between3and10(List(1, 3, 7, 11))
+
+// Map for 循环
+val states = Map(
+  "AK" -> "Alaska",
+  "AL" -> "Alabama", 
+  "AZ" -> "Arizona"
+)
+for ((abbrev, fullName) <- states) println(s"$abbrev: $fullName")
 
 ~~~
 
@@ -355,17 +489,25 @@ val fruitLengths =
 
 ~~~scala
 val ints = List(1, 2, 3, 4, 5)
-
+// p <- e, for 循环生成模板
 for i <- ints do println(i)
 
-// 增加条件
+// 嵌套 for 循环, 执行 2x2x2 = 8 次
+for
+  i <- 1 to 2
+  j <- 'a' to 'b'
+  k <- 1 to 10 by 5
+do
+  println(s"i = $i, j = $j, k = $k")
+
+// 循环中增加条件, 支持多条件
 for
   i <- ints
   if i > 2
 do
   println(i)
 
-// 使用多个 p <- e
+// 嵌套 for 循环 + 条件
 for
   i <- 1 to 3
   j <- 'a' to 'c'
@@ -379,7 +521,6 @@ val doubles = for i <- ints yield i * 2
 val doubles = for (i <- ints) yield i * 2
 val doubles = for (i <- ints) yield (i * 2)
 val doubles = for { i <- ints } yield (i * 2)
-
 // for if yield
 val fruits = List("apple", "banana", "lime", "orange")
 val fruitLengths = for
@@ -387,6 +528,22 @@ val fruitLengths = for
   if f.length > 4
 yield
   f.length
+// 作为方法体返回结果
+def between3and10(xs: List[Int]): List[Int] =
+  for
+    x <- xs
+    if x >= 3
+    if x <= 10
+  yield x
+between3and10(List(1, 3, 7, 11))
+
+// Map for 循环
+val states = Map(
+  "AK" -> "Alaska",
+  "AL" -> "Alabama", 
+  "AZ" -> "Arizona"
+)
+for (abbrev, fullName) <- states do println(s"$abbrev: $fullName")
 
 ~~~
 
@@ -394,36 +551,103 @@ yield
 
 
 
-**match 表达式**
+### while 循环
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+var x = 1
+
+while (x < 3) {
+  println(x)
+  x += 1
+}
+~~~
+
+
+@tab Scala 3
+~~~scala
+var x = 1
+
+while
+  x < 3
+do
+  println(x)
+  x += 1
+~~~
+
+
+:::
+
+
+
+### match 表达式
+
+match 表达式支持匹配的类型：
+
+- 普通常量：`case 3 =>`
+- 集合：`case List(els : _*) =>`
+- Tuple：`case (x, y) =>`
+- 构造方法：`case Person(first, last) =>`
+- 类：`case p: Person =>`
 
 ::: tabs
 
 @tab Scala 2
 ~~~scala
 val i = 1
-
+// 作为表达式返回结果
+val result = i match {
+  case 1 => "one"
+  case 2 => "two"
+  // _ 表示任意
+  case _ => "other"
+}
 i match {
   case 1 => println("one")
   case 2 => println("two")
   case _ => println("other")
 }
-// 作为表达式返回结果
-val result = i match {
-  case 1 => "one"
-  case 2 => "two"
-  case _ => "other"
+
+// 变量匹配(变量名大写) + 获取未匹配的变量值
+val N = 42
+i match {
+  case 0 => println("1")
+  case 1 => println("2")
+  case N => println("42")
+  case n => println(s"You gave me: $n" )
 }
-// 其它数据类型匹配
+
+// 多种情况匹配 
+val evenOrOdd = i match {
+  case 1 | 3 | 5 | 7 | 9 => println("odd")
+  case 2 | 4 | 6 | 8 | 10 => println("even")
+  case _ => println("some other number")
+}
+
+// 结合 if 匹配
+i match {
+  case 1 => println("one, a lonely number")
+  case x if x == 2 || x == 3 => println("two’s company, three’s a crowd")
+  case x if x > 3 => println("4+, that’s a party")
+  case _ => println("i’m guessing your number is zero or less")
+}
+// 范围匹配
+i match {
+  case a if 0 to 9 contains a => println(s"0-9 range: $a")
+  case b if 10 to 19 contains b => println(s"10-19 range: $b")
+  case c if 20 to 29 contains c => println(s"20-29 range: $c")
+  case _ => println("Hmmm...")
+}
+// 类型匹配
 val p = Person("Fred")
 p match {
-  case Person(name) if name == "Fred" =>
-    println(s"$name says, Yubba dubba doo")
-
-  case Person(name) if name == "Bam Bam" =>
-    println(s"$name says, Bam bam!")
-
+  case Person(name) if name == "Fred" => println(s"$name says, Yubba dubba doo")
+  case Person(name) if name == "Bam Bam" => println(s"$name says, Bam bam!")
   case _ => println("Watch the Flintstones!")
 }
+
 // 作为方法体
 def getClassAsString(x: Any): String = x match {
   case s: String => s"'$s' is a String"
@@ -436,7 +660,68 @@ getClassAsString(1)
 getClassAsString("hello")
 getClassAsString(List(1, 2, 3))
 
+// 将匹配的值绑定到变量
+trait Animal {
+  val name: String
+}
+case class Cat(name: String) extends Animal {
+  def meow: String = "Meow"
+}
+case class Dog(name: String) extends Animal {
+  def bark: String = "Bark"
+}
+
+def speak(animal: Animal) = animal match {
+  case c @ Cat(name) if name == "Felix" => println(s"$name says, ${c.meow}!")
+  case d @ Dog(name) if name == "Rex" => println(s"$name says, ${d.bark}!")
+  case _ => println("I don't know you!")
+}
+speak(Cat("Felix")) // "Felix says, Meow!"
+speak(Dog("Rex"))   // "Rex says, Bark!"
+
 ~~~
+
+
+
+~~~scala
+def pattern(x: Matchable): String = x match {
+
+  // constant patterns
+  case 0 => "zero"
+  case true => "true"
+  case "hello" => "you said 'hello'"
+  case Nil => "an empty List"
+
+  // sequence patterns
+  case List(0, _, _) => "a 3-element list with 0 as the first element"
+  case List(1, _*) => "list, starts with 1, has any number of elements"
+  case Vector(1, _*) => "vector, starts w/ 1, has any number of elements"
+
+  // tuple patterns
+  case (a, b) => s"got $a and $b"
+  case (a, b, c) => s"got $a, $b, and $c"
+
+  // constructor patterns
+  case Person(first, "Alexander") => s"Alexander, first name = $first"
+  case Dog("Zeus") => "found a dog named Zeus"
+
+  // type test patterns
+  case s: String => s"got a string: $s"
+  case i: Int => s"got an int: $i"
+  case f: Float => s"got a float: $f"
+  case a: Array[Int] => s"array of int: ${a.mkString(",")}"
+  case as: Array[String] => s"string array: ${as.mkString(",")}"
+  case d: Dog => s"dog: ${d.name}"
+  case list: List[?] => s"got a List: $list"
+  case m: Map[?, ?] => m.toString
+
+  // the default wildcard pattern
+  case _ => "Unknown"
+}
+
+~~~
+
+
 
 @tab Scala 3
 
@@ -444,23 +729,50 @@ getClassAsString(List(1, 2, 3))
 
 ~~~scala
 val i = 1
-i match
-  case 1 => println("one")
-  case 2 => println("two")
-  case _ => println("other")
 // 作为表达式返回结果
 val result = i match
   case 1 => "one"
   case 2 => "two"
+  // _ 表示任意
   case _ => "other"
-// 其它数据类型匹配
+i match
+  case 1 => println("one")
+  case 2 => println("two")
+  case _ => println("other")
+
+// 变量匹配(变量名大写) + 获取未匹配的变量值
+val N = 42
+i match
+  case 0 => println("1")
+  case 1 => println("2")
+  case N => println("42")
+  case n => println(s"You gave me: $n" )
+
+// 多种情况匹配 
+val evenOrOdd = i match
+  case 1 | 3 | 5 | 7 | 9 => println("odd")
+  case 2 | 4 | 6 | 8 | 10 => println("even")
+  case _ => println("some other number")
+
+// 结合 if 匹配
+i match
+  case 1 => println("one, a lonely number")
+  case x if x == 2 || x == 3 => println("two’s company, three’s a crowd")
+  case x if x > 3 => println("4+, that’s a party")
+  case _ => println("i’m guessing your number is zero or less")
+// 范围匹配
+i match
+  case a if 0 to 9 contains a => println(s"0-9 range: $a")
+  case b if 10 to 19 contains b => println(s"10-19 range: $b")
+  case c if 20 to 29 contains c => println(s"20-29 range: $c")
+  case _ => println("Hmmm...")
+// 类型匹配
 val p = Person("Fred")
 p match
-  case Person(name) if name == "Fred" =>
-    println(s"$name says, Yubba dubba doo")
-  case Person(name) if name == "Bam Bam" =>
-    println(s"$name says, Bam bam!")
+  case Person(name) if name == "Fred" => println(s"$name says, Yubba dubba doo")
+  case Person(name) if name == "Bam Bam" => println(s"$name says, Bam bam!")
   case _ => println("Watch the Flintstones!")
+
 // 作为方法体
 def getClassAsString(x: Matchable): String = x match
   case s: String => s"'$s' is a String"
@@ -471,14 +783,89 @@ def getClassAsString(x: Matchable): String = x match
 getClassAsString(1)
 getClassAsString("hello")
 getClassAsString(List(1, 2, 3))
+
+// 将匹配的值绑定到变量
+trait Animal:
+  val name: String
+case class Cat(name: String) extends Animal:
+  def meow: String = "Meow"
+case class Dog(name: String) extends Animal:
+  def bark: String = "Bark"
+
+def speak(animal: Animal) = animal match
+  case c @ Cat(name) if name == "Felix" => println(s"$name says, ${c.meow}!")
+  case d @ Dog(name) if name == "Rex" => println(s"$name says, ${d.bark}!")
+  case _ => println("I don't know you!")
+
+speak(Cat("Felix")) // "Felix says, Meow!"
+speak(Dog("Rex"))   // "Rex says, Bark!"
+
 ~~~
 
+~~~scala
+def pattern(x: Matchable): String = x match
+
+  // constant patterns
+  case 0 => "zero"
+  case true => "true"
+  case "hello" => "you said 'hello'"
+  case Nil => "an empty List"
+
+  // sequence patterns
+  case List(0, _, _) => "a 3-element list with 0 as the first element"
+  case List(1, _*) => "list, starts with 1, has any number of elements"
+  case Vector(1, _*) => "vector, starts w/ 1, has any number of elements"
+
+  // tuple patterns
+  case (a, b) => s"got $a and $b"
+  case (a, b, c) => s"got $a, $b, and $c"
+
+  // constructor patterns
+  case Person(first, "Alexander") => s"Alexander, first name = $first"
+  case Dog("Zeus") => "found a dog named Zeus"
+
+  // type test patterns
+  case s: String => s"got a string: $s"
+  case i: Int => s"got an int: $i"
+  case f: Float => s"got a float: $f"
+  case a: Array[Int] => s"array of int: ${a.mkString(",")}"
+  case as: Array[String] => s"string array: ${as.mkString(",")}"
+  case d: Dog => s"dog: ${d.name}"
+  case list: List[?] => s"got a List: $list"
+  case m: Map[?, ?] => m.toString
+
+  // the default wildcard pattern
+  case _ => "Unknown"
+
+~~~
+
+**仅 Scala 3 支持**
+
+~~~scala
+// 链式匹配
+i match
+  case odd: Int if odd % 2 == 1 => "odd"
+  case even: Int if even % 2 == 0 => "even"
+  case _ => "not an integer"
+match
+  case "even" => true
+  case _ => false
+
+// 属性 match
+List(1, 2, 3)
+  .map(_ * 2)
+  .headOption
+  .match
+    case Some(value) => println(s"The head is: $value")
+    case None => println("The list is empty")
+
+~~~
 
 :::
 
 
 
-**try/catch/finally**
+### try/catch/finally
 
 ::: tabs
 
@@ -515,40 +902,658 @@ finally
 
 
 
-**while 循环**
 
-::: tabs
-
-@tab Scala 2
-~~~scala
-var x = 1
-
-while (x < 3) {
-  println(x)
-  x += 1
-}
-~~~
-
-
-@tab Scala 3
-~~~scala
-var x = 1
-
-while
-  x < 3
-do
-  println(x)
-  x += 1
-~~~
-
-
-:::
 
 
 
 ## Domain Modeling
 
 
+
+### Tools
+
+Scala 提供了许多结构，以便进行建模。
+
+- Class
+- Object
+- Companion Object
+- Trait
+- Abstract Class
+- Enum（**仅Scala 3**）
+- Case Class
+- Case Object
+
+
+
+#### Class
+
+定义一个 `Class` 的语法，`var` 表示属性可变的，使用 `val` 表示属性仅可读。
+
+~~~scala
+class Person(var name: String, var vocation: String)
+class Book(var title: String, var author: String, var year: Int)
+class Movie(var name: String, var director: String, var year: Int)
+
+~~~
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+val p = new Person("oycm", "Java Development")
+p.name
+p.vocation
+// 修改
+p.name = "zs"
+p.vocation = "C++ Development"
+
+~~~
+
+@tab Scala 3
+~~~scala
+val p = Person("oycm", "Java Development")
+p.name
+p.vocation
+// 修改
+p.name = "zs"
+p.vocation = "C++ Development"
+
+~~~
+
+:::
+
+
+
+**定义属性和方法**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+class Person(var firstName: String, var lastName: String) {
+
+  println("initialization begins")
+  val fullName = firstName + " " + lastName
+
+  def printFullName: Unit =
+    println(fullName)
+
+  printFullName
+  println("initialization ends")
+}
+
+~~~
+
+@tab Scala 3
+~~~scala
+class Person(var firstName: String, var lastName: String):
+
+  println("initialization begins")
+  val fullName = firstName + " " + lastName
+
+  def printFullName: Unit =
+    println(fullName)
+
+  printFullName
+  println("initialization ends")
+
+~~~
+
+:::
+
+
+
+**定义属性默认参数值**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+class Socket(val timeout: Int = 5000, val linger: Int = 5000) {
+  override def toString = s"timeout: $timeout, linger: $linger"
+}
+
+// 创建对象的方式
+val s = new Socket()                  // timeout: 5000, linger: 5000
+val s = new Socket(2500)              // timeout: 2500, linger: 5000
+val s = new Socket(10000, 10000)      // timeout: 10000, linger: 10000
+val s = new Socket(timeout = 10000)   // timeout: 10000, linger: 5000
+val s = new Socket(linger = 10000)    // timeout: 5000, linger: 10000
+
+~~~
+
+@tab Scala 3
+~~~scala
+class Socket(val timeout: Int = 5000, val linger: Int = 5000):
+  override def toString = s"timeout: $timeout, linger: $linger"
+// 创建对象的方式
+val s = Socket()                  // timeout: 5000, linger: 5000
+val s = Socket(2500)              // timeout: 2500, linger: 5000
+val s = Socket(10000, 10000)      // timeout: 10000, linger: 10000
+val s = Socket(timeout = 10000)   // timeout: 10000, linger: 5000
+val s = Socket(linger = 10000)    // timeout: 5000, linger: 10000
+
+~~~
+
+:::
+
+
+
+**多种构造方法**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+import java.time._
+
+// 主要的构造方法
+class Student(
+  var name: String,
+  var govtId: String
+) {
+  private var _applicationDate: Option[LocalDate] = None
+  private var _studentId: Int = 0
+
+  // 构造方法, 也可以执行参数默认值
+  def this(
+    name: String,
+    govtId: String,
+    applicationDate: LocalDate
+  ) = {
+    this(name, govtId)
+    _applicationDate = Some(applicationDate)
+  }
+
+  def this(
+    name: String,
+    govtId: String,
+    studentId: Int
+  ) = {
+    this(name, govtId)
+    _studentId = studentId
+  }
+}
+
+~~~
+
+@tab Scala 3
+~~~scala
+import java.time.*
+
+// [1] the primary constructor
+class Student(
+  var name: String,
+  var govtId: String
+):
+  private var _applicationDate: Option[LocalDate] = None
+  private var _studentId: Int = 0
+
+  // [2] a constructor for when the student has completed
+  // their application
+  def this(
+    name: String,
+    govtId: String,
+    applicationDate: LocalDate
+  ) =
+    this(name, govtId)
+    _applicationDate = Some(applicationDate)
+
+  // [3] a constructor for when the student is approved
+  // and now has a student id
+  def this(
+    name: String,
+    govtId: String,
+    studentId: Int
+  ) =
+    this(name, govtId)
+    _studentId = studentId
+
+~~~
+
+:::
+
+
+
+#### Object
+
+Object 是只有一个实例的类。在访问其成员时才进行初始化。
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+object StringUtils {
+  def truncate(s: String, length: Int): String = s.take(length)
+  def containsWhitespace(s: String): Boolean = s.matches(".*\\s.*")
+  def isNullOrEmpty(s: String): Boolean = s == null || s.trim.isEmpty
+}
+
+// 使用方式
+StringUtils.truncate("Chuck Bartowski", 5)
+// 导入所有成员使用
+import StringUtils._
+truncate("Chuck Bartowski", 5)       // "Chuck"
+containsWhitespace("Sarah Walker")   // true
+isNullOrEmpty("John Casey")          // false
+// 导入指定的成员使用
+import StringUtils.{truncate, containsWhitespace}
+truncate("Charles Carmichael", 7)       // "Charles"
+containsWhitespace("Captain Awesome")   // true
+
+// 访问属性
+object MathConstants {
+  val PI = 3.14159
+  val E = 2.71828
+}
+
+println(MathConstants.PI)   // 3.14159
+
+~~~
+
+@tab Scala 3
+~~~scala
+object StringUtils:
+  def truncate(s: String, length: Int): String = s.take(length)
+  def containsWhitespace(s: String): Boolean = s.matches(".*\\s.*")
+  def isNullOrEmpty(s: String): Boolean = s == null || s.trim.isEmpty
+
+// 使用方式
+StringUtils.truncate("Chuck Bartowski", 5)
+// 导入所有成员使用
+import StringUtils.*
+truncate("Chuck Bartowski", 5)       // "Chuck"
+containsWhitespace("Sarah Walker")   // true
+isNullOrEmpty("John Casey")          // false
+// 导入指定的成员使用
+import StringUtils.{truncate, containsWhitespace}
+truncate("Charles Carmichael", 7)       // "Charles"
+containsWhitespace("Captain Awesome")   // true
+
+// 访问属性
+object MathConstants:
+  val PI = 3.14159
+  val E = 2.71828
+
+println(MathConstants.PI)   // 3.14159
+
+~~~
+
+:::
+
+
+
+#### Companion Object
+
+在声明一个类的文件中，还有一个 Object 类，两个类的名称一致。class 类能访问 object 类私有的成员。
+
+Companion Object 对象用法：
+
+- 一个命名空间下的静态方法组
+-  `apply` 方法，构建对象的工厂模式
+- `unapply`，结构对象，用于匹配模式。[使用介绍](https://docs.scala-lang.org/scala3/reference/changed-features/pattern-matching.html)
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+// 为了导入 Pi, pow
+import scala.math._
+
+class Circle(val radius: Double) {
+  def area: Double = Circle.calculateArea(radius)
+}
+
+object Circle {
+  private def calculateArea(radius: Double): Double = Pi * pow(radius, 2.0)
+}
+
+val circle1 = new Circle(5.0)
+circle1.area
+
+// apply 方法应用
+class Person {
+  var name = ""
+  var age = 0
+  override def toString = s"$name is $age years old"
+}
+
+object Person {
+  // factory method
+  def apply(name: String): Person = {
+    var p = new Person
+    p.name = name
+    p
+  }
+    
+  def apply(name: String, age: Int): Person = {
+    var p = new Person
+    p.name = name
+    p.age = age
+    p
+  }
+}
+
+val joe = Person("Joe")
+val fred = Person("Fred", 29)
+
+~~~
+
+@tab Scala 3
+~~~scala
+// 为了导入 Pi, pow
+import scala.math.*
+
+class Circle(val radius: Double):
+  def area: Double = Circle.calculateArea(radius)
+
+object Circle:
+  private def calculateArea(radius: Double): Double = Pi * pow(radius, 2.0)
+
+val circle1 = Circle(5.0)
+circle1.area
+
+// apply 方法应用
+class Person:
+  var name = ""
+  var age = 0
+  override def toString = s"$name is $age years old"
+
+object Person:
+
+  // factory method
+  def apply(name: String): Person =
+    var p = new Person
+    p.name = name
+    p
+
+  def apply(name: String, age: Int): Person =
+    var p = new Person
+    p.name = name
+    p.age = age
+    p
+
+end Person
+
+val joe = Person("Joe")
+val fred = Person("Fred", 29)
+
+~~~
+
+:::
+
+
+
+#### Trait
+
+类似 Java8 中的接口，有以下特征：
+
+- 抽象方法和属性
+- 实例方法和属性
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+// 作为接口，定义其它实现类的抽象成员
+trait Employee {
+  def id: Int
+  def firstName: String
+  def lastName: String
+}
+
+// 定义抽象成员+实例成员
+trait HasLegs {
+  def numLegs: Int
+  def walk(): Unit
+  def stop() = println("Stopped walking")
+}
+trait HasTail {
+  def tailColor: String
+  def wagTail() = println("Tail is wagging")
+  def stopTail() = println("Tail is stopped")
+}
+// 类实现
+class IrishSetter(name: String) extends HasLegs with HasTail {
+  val numLegs = 4
+  val tailColor = "Red"
+  def walk() = println("I’m walking")
+  override def toString = s"$name is a Dog"
+}
+
+~~~
+
+@tab Scala 3
+~~~scala
+// 作为接口，定义其它实现类的抽象成员
+trait Employee:
+  def id: Int
+  def firstName: String
+  def lastName: String
+
+// 定义抽象成员+实例成员
+trait HasLegs:
+  def numLegs: Int
+  def walk(): Unit
+  def stop() = println("Stopped walking")
+trait HasTail:
+  def tailColor: String
+  def wagTail() = println("Tail is wagging")
+  def stopTail() = println("Tail is stopped")
+// 类实现
+class IrishSetter(name: String) extends HasLegs, HasTail:
+  val numLegs = 4
+  val tailColor = "Red"
+  def walk() = println("I’m walking")
+  override def toString = s"$name is a Dog"
+
+~~~
+
+:::
+
+
+
+#### Abstract Class
+
+一个类需要有抽象成员，可以定义 Trait 或 Abstract 类。大多数情况下使用 Trait 类，两种情况下使用 Abstract 类：
+
+- 使用构造方法参数创建对象
+- 代码将会被 java 使用
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+abstract class Pet(name: String) {
+  def greeting: String
+  def age: Int
+  override def toString = s"My name is $name, I say $greeting, and I’m $age"
+}
+
+class Dog(name: String, var age: Int) extends Pet(name) {
+  val greeting = "Woof"
+}
+
+val d = new Dog("Fido", 1)
+~~~
+
+@tab Scala 3
+~~~scala
+abstract class Pet(name: String):
+  def greeting: String
+  def age: Int
+  override def toString = s"My name is $name, I say $greeting, and I’m $age"
+
+class Dog(name: String, var age: Int) extends Pet(name):
+  val greeting = "Woof"
+
+val d = Dog("Fido", 1)
+
+~~~
+
+**在 Scala 3中，Trait 也可以携带参数**
+
+~~~scala
+trait Pet(name: String):
+  def greeting: String
+  def age: Int
+  override def toString = s"My name is $name, I say $greeting, and I’m $age"
+
+class Dog(name: String, var age: Int) extends Pet(name):
+  val greeting = "Woof"
+
+val d = Dog("Fido", 1)
+
+~~~
+
+:::
+
+
+
+#### Enum(Scala 3)
+
+enum 用于定义一组有限命名值组成的类型。
+
+用于定义 披萨特征的枚举：
+
+~~~scala
+enum CrustSize:
+  case Small, Medium, Large
+
+enum CrustType:
+  case Thin, Thick, Regular
+
+enum Topping:
+  case Cheese, Pepperoni, BlackOlives, GreenOlives, Onions
+
+~~~
+
+**枚举的特征：属性和方法**
+
+~~~scala
+enum Color(val rgb: Int):
+  case Red   extends Color(0xFF0000)
+  case Green extends Color(0x00FF00)
+  case Blue  extends Color(0x0000FF)
+
+enum Planet(mass: Double, radius: Double):
+  private final val G = 6.67300E-11
+  def surfaceGravity = G * mass / (radius * radius)
+  def surfaceWeight(otherMass: Double) =
+    otherMass * surfaceGravity
+
+  case Mercury extends Planet(3.303e+23, 2.4397e6)
+  case Earth   extends Planet(5.976e+24, 6.37814e6)
+
+~~~
+
+**Scala 枚举应用到 Java：继承 java.lang.Enum**
+
+~~~scala
+enum Color extends Enum[Color] { case Red, Green, Blue }
+
+~~~
+
+
+
+#### Case Class
+
+`case class` 定义类的属性都是不可变的。
+
+~~~scala
+case class Person(name: String, relation: String)
+
+val christina = Person("Christina", "niece")
+~~~
+
+由于 case 字段的不可变性，Scala 编译器为该类生成了许多方法：
+
+- `unapply` 方法，可以直接用于匹配模式，`case Person(n, r) => ...)`
+- `copy ` 方法创建实例的修改副本
+- 重写 `equals` 和 `hashcode` 方法
+- 生成默认的 `toString` 方法
+
+
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+// match 匹配模式
+christina match {
+  case Person(n, r) => println("name is " + n)
+}
+
+// 重写 equals 和 hashcode 方法
+val hannah = Person("Christina", "niece")
+christina == hannah       // true
+
+// 默认 toString 方法
+println(christina)        // Person(Christina,niece)
+
+// copy
+val o = hannah.copy(name = "oycm")
+
+~~~
+
+@tab Scala 3
+~~~scala
+christina match
+  case Person(n, r) => println("name is " + n)
+
+val hannah = Person("Christina", "niece")
+christina == hannah       // true
+
+println(christina)        // Person(Christina,niece)
+
+// copy
+val o = hannah.copy(name = "oycm")
+
+~~~
+
+:::
+
+
+
+#### Case Object
+
+case object 用于传递不可变的消息。同时也具有 `case class` 的功能。
+
+**定义消息的类型**
+
+~~~scala
+sealed trait Message
+case class PlaySong(name: String) extends Message
+case class IncreaseVolume(amount: Int) extends Message
+case class DecreaseVolume(amount: Int) extends Message
+case object StopPlaying extends Message
+
+~~~
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+def handleMessages(message: Message): Unit = message match {
+  case PlaySong(name)         => playSong(name)
+  case IncreaseVolume(amount) => changeVolume(amount)
+  case DecreaseVolume(amount) => changeVolume(-amount)
+  case StopPlaying            => stopPlayingSong()
+}
+
+~~~
+
+@tab Scala 3
+~~~scala
+def handleMessages(message: Message): Unit = message match
+  case PlaySong(name)         => playSong(name)
+  case IncreaseVolume(amount) => changeVolume(amount)
+  case DecreaseVolume(amount) => changeVolume(-amount)
+  case StopPlaying            => stopPlayingSong()
+
+~~~
+
+:::
 
 ### OOP
 
