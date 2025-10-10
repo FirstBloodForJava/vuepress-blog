@@ -1456,23 +1456,23 @@ class Worker implements Runnable {
 | acquire() | 获取许可证，如果可用立即返回，不可用则线程进如休眠状态，直到Semaphore释放release信号量，或者当前线程被其他线程中断。 |
 | release() | 释放一个许可证，将其返回至Semaphore                          |
 
-**acquire()：**获取一个可用凭证，没有获取到则阻塞(实际线程状态时WAITING)。
+**acquire()**：获取一个可用凭证，没有获取到则阻塞(实际线程状态时WAITING)。
 
-**acquire(int)：**获取指定的可用凭证数量，没有获取到则阻塞(实际线程状态时WAITING)。
+**acquire(int)**：获取指定的可用凭证数量，没有获取到则阻塞(实际线程状态时WAITING)。
 
 ![image-20241113132216496](http://47.101.155.205/image-20241113132216496.png)
 
-**tryAcquire()：**获取一个可用的的凭证，成功返回true，失败返回false(不阻塞)。
+**tryAcquire()**：获取一个可用的的凭证，成功返回true，失败返回false(不阻塞)。
 
-**tryAcquire(int)：**获取指定数量的可用凭证，成功返回true，失败返回false(不阻塞)。
+**tryAcquire(int)**：获取指定数量的可用凭证，成功返回true，失败返回false(不阻塞)。
 
 ![image-20241113133115035](http://47.101.155.205/image-20241113133115035.png)
 
 
 
-**release()：**添加一个可用的凭证，避免凭证数量的溢出。
+**release()**：添加一个可用的凭证，避免凭证数量的溢出。
 
-**release(int)：**添加指定数量的可用凭证。
+**release(int)**：添加指定数量的可用凭证。
 
 ![image-20241113134003493](http://47.101.155.205/image-20241113134003493.png)
 
