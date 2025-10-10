@@ -33,7 +33,7 @@ Scala(Scalable Language) 是一种多范式编程语言。运行在 JVM 上：�
 
 
 
-**Coursier 安装方式: **
+**Coursier 安装方式**
 
 1. [Coursier 之间下载地址](https://github.com/coursier/coursier/releases/latest/download/cs-x86_64-pc-win32.zip)；[Coursier Github 地址](https://github.com/coursier/coursier)；
 2. 下载解压后，双击 exe，根据命令行窗口提示配置环境变量：JAVA(`%JAVA_HOME%\bin`)、Coursier(`%USERPROFILE%\AppData\Local\Coursier\data\bin`)；
@@ -198,7 +198,7 @@ Int 和 Double 是默认数字类型，`val i = 1` 和 `val i = 1.0` 分别被�
 
  
 
-**s 插值：**字符串前面添加 `s` 允许之间在字符串中使用变量。
+**s 插值**：字符串前面添加 `s` 允许之间在字符串中使用变量。
 
 ~~~scala
 val name = "zs"
@@ -225,7 +225,7 @@ println(s"""{"name":"James"}""")
 
 
 
-**f 插值：**字符串前面添加 `f` 允许简单的格式化字符串，类似 printf(String format, Object ... args) 方法。会进行类型校验。
+**f 插值**：字符串前面添加 `f` 允许简单的格式化字符串，类似 printf(String format, Object ... args) 方法。会进行类型校验。
 
 ~~~scala
 val height = 1.8d
@@ -239,7 +239,7 @@ println(f"$name%s is $height%2.2f meters tall, %%")
 
 
 
-**raw 插值：**不对转义字符转义，`\n` 就是 `\n` 字符。
+**raw 插值**：不对转义字符转义，`\n` 就是 `\n` 字符。
 
 ~~~scala
 val name = "cm"
