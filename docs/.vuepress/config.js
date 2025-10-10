@@ -525,6 +525,10 @@ export default defineUserConfig({
           {
             text: 'spark',
             link: 'spark'
+          },
+          {
+            text: 'Scala2/3',
+            link: 'Scala'
           }
         ]
       }
