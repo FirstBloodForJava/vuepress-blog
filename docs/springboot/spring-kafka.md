@@ -1155,7 +1155,7 @@ ConsumerFactory cf = new DefaultKafkaConsumerFactory(myConsumerConfigs,
 
 
 
-**消息类型转换：**通过指定`MessageConverter`消息转换器，可以在消费端得到对应类型的消息。
+**消息类型转换**：通过指定`MessageConverter`消息转换器，可以在消费端得到对应类型的消息。
 
 在消费者端，可以配置一个`JsonMessageConverter`；它可以处理类型`byte[]`， `Bytes`和`String`的ConsumerRecord value，因此应该与`ByteArrayDeserializer`， `BytesDeserializer`或`StringDeserializer`一起使用。（byte[]和Bytes更有效，因为它们避免了不必要的byte[]到String的转换）。如果愿意，还可以配置`JsonMessageConverter`对应于反序列化器的特定子类。
 
@@ -1301,7 +1301,7 @@ public ConsumerAwareListenerErrorHandler listen10ErrorHandler() {
 
 
 
-**容器错误处理：**提供了`ErrorHandler`和`BatchErrorHandler`对消息监听错误处理。
+**容器错误处理**：提供了`ErrorHandler`和`BatchErrorHandler`对消息监听错误处理。
 
 默认情况下，当未使用事务时，仅记录错误。使用事务时，默认情况下不会配置错误处理程序，以便异常将回滚事务。如果您在使用事务时提供自定义错误处理程序，并且您希望回滚事务，它必须引发异常。
 
@@ -1332,7 +1332,7 @@ public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Integer,
 
 
 
-**ConsumerAwareErrorHandler和ConsumerAwareBatchErrorHandler：**可以根据需要根据失败的数据重置偏移量。
+**ConsumerAwareErrorHandler和ConsumerAwareBatchErrorHandler**：可以根据需要根据失败的数据重置偏移量。
 
 
 

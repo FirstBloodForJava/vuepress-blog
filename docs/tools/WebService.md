@@ -22,7 +22,7 @@ SOAPAction = http://tempuri.org/OperationName
 
 **SOAP 的服务操作名，需要根据 WebService 接口来调整。**
 
-**请求体 xml 配置（根据 WebService接口文档调整）：**使用 `CDATA` 避免转移 xml文本。
+**请求体 xml 配置（根据 WebService接口文档调整）**：使用 `CDATA` 避免转移 xml文本。
 
 ~~~xml
 <?xml version="1.0" encoding="utf-8"?>

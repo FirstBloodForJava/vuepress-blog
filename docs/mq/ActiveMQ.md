@@ -619,7 +619,7 @@ ActiveMQ 支持跨消费者的队列上消息的可靠高性能负载平衡。�
 
 JMS 上下文中最常见的集群思维模型是存在一组 JMS 代理，并且 JMS 客户端将连接到其中一个；那么如果 JMS 代理出现故障，它将自动重新连接到另一个代理。
 
-我们在 JMS 客户端中使用 `failover://` 协议来实现这一点。有关如何配置故障转移协议的详细信息，请参阅[故障转移传输参考](https://activemq.apache.org/failover-transport-reference)页面。 **注意：**ActiveMQ 3.x 中的`reliable://`协议现已更改为`failover://` 协议
+我们在 JMS 客户端中使用 `failover://` 协议来实现这一点。有关如何配置故障转移协议的详细信息，请参阅[故障转移传输参考](https://activemq.apache.org/failover-transport-reference)页面。 **注意**：ActiveMQ 3.x 中的`reliable://`协议现已更改为`failover://` 协议
 
 如果我们只是在网络上运行多个代理并使用 [静态发现](https://activemq.apache.org/static-transport-reference) 或 ，然后客户端可以轻松地从一个代理故障转移到另一个代理。然而，独立经纪商并不了解其他经纪商的消费者；因此，如果某个代理上没有消费者，消息可能会堆积起来而不会被消耗。我们有一个突出的[功能请求](http://issues.apache.org/activemq/browse/AMQ-816)来在客户端解决这个问题 - 但目前这个问题的解决方案是创建一个代理网络来存储和转发代理之间的消息。
 

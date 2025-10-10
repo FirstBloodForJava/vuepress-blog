@@ -81,17 +81,17 @@ implementation 'io.micrometer:micrometer-registry-prometheus'
 
 Micrometer包含一个带有仪表SPI的核心模块、一组包含各种监控系统实现的模块（每个都称为注册表）和一个测试套件。您需要了解监控系统的三个重要特征：
 
-**维度Dimensionality：**系统是否支持使用标签键值对来丰富指标名称。如果系统不是维度的，它就是分层(Hierarchical)的。
+**维度Dimensionality**：系统是否支持使用标签键值对来丰富指标名称。如果系统不是维度的，它就是分层(Hierarchical)的。
 
 - Dimensionality：AppOptics, Atlas, Azure Monitor, Cloudwatch, Datadog, Datadog StatsD, Dynatrace, Elastic, Humio, Influx, KairosDB, New Relic, Prometheus, SignalFx, Sysdig StatsD, Telegraf StatsD, Wavefront
 - Hierarchical：Graphite, Ganglia, JMX, Etsy StatsD
 
-**速率聚合Rate Aggregation：**指的是在规定的时间间隔内聚合一组样本。
+**速率聚合Rate Aggregation**：指的是在规定的时间间隔内聚合一组样本。
 
 - Client-side：AppOptics, Atlas, Azure Monitor, Datadog, Dynatrace, Elastic, Graphite, Ganglia, Humio, Influx, JMX, Kairos, New Relic, all StatsD flavors, SignalFx
 - Server-side：Prometheus, Wavefront
 
-**发布Publishing：**有些系统在空闲时轮询应用程序以获取指标，另一些系统则定期将指标推送给它们。
+**发布Publishing**：有些系统在空闲时轮询应用程序以获取指标，另一些系统则定期将指标推送给它们。
 
 - Client pushes：AppOptics, Atlas, Azure Monitor, Datadog, Dynatrace, Elastic, Graphite, Ganglia, Humio, Influx, JMX, Kairos, New Relic, SignalFx, Wavefront
 - Server polls：Prometheus, all StatsD flavors
@@ -256,7 +256,7 @@ Tag的值必须是非null的。
 
 注意来自用户提供源的标记值可能会破坏度量的基数。应该始终小心地对用户提供的输入进行规范化并添加边界。考虑用于在服务端点上记录HTTP请求的URI标记。如果我们不将404限制为NOT_FOUND这样的值，则度量的维度将随着无法找到的每个资源而增长。
 
-**基数：**指标下所有唯一标签组合（Tag Set）的数量。例如：一个指标有标签`uri=/api/user`和`status=200`，构成一个唯一的标签组合。如果有100 个不同的uri和5个不同的status，则基数为500。
+**基数**：指标下所有唯一标签组合（Tag Set）的数量。例如：一个指标有标签`uri=/api/user`和`status=200`，构成一个唯一的标签组合。如果有100 个不同的uri和5个不同的status，则基数为500。
 
 每个唯一的标签组合都会在监控系统中生成一个新的时间序列（Time Series）。监控系统的存储、查询性能会因基数爆炸急剧下降（如 Prometheus 默认限制单指标基数为10000）。高基数指标可能导致监控系统内存/存储过载，甚至崩溃。
 
@@ -1087,8 +1087,8 @@ LongTaskTimer longTaskTimer = LongTaskTimer
 
 计时器和分布摘要支持收集数据以观察其百分位数分布。查看百分位数有两种主要方法：
 
-- **百分位柱状图(Percentile histograms)：**Micrometer将值累积到底柱状方图中，并将一组预先确定的桶发送到监控系统。监控系统的查询语言负责计算该柱状图的百分位数。目前，只有Prometheus、Atlas和Wavefront分别通过histogram_quantile、:percentile和hs()支持基于直方图的百分位数近似值。如果您的目标是Prometheus、Atlas或Wavefront，则更喜欢这种方法，因为您可以跨维度聚合柱状图（通过将一组维度上的桶的值相加），并从柱状图中获得可聚合的百分位数。
-- **客户端百分位数(Client-side percentiles)：**Micrometer计算每个Meter ID（一组名称和标签）的百分位数近似值，并将百分位数值发送到监控系统。这并不像百分位数直方图那样灵活，因为不可能在标签之间汇总百分位数近似值。然而，对于不支持基于直方图的服务器端百分位数计算的监控系统，它提供了对百分位数分布的某种程度的了解。
+- **百分位柱状图(Percentile histograms)**：Micrometer将值累积到底柱状方图中，并将一组预先确定的桶发送到监控系统。监控系统的查询语言负责计算该柱状图的百分位数。目前，只有Prometheus、Atlas和Wavefront分别通过histogram_quantile、:percentile和hs()支持基于直方图的百分位数近似值。如果您的目标是Prometheus、Atlas或Wavefront，则更喜欢这种方法，因为您可以跨维度聚合柱状图（通过将一组维度上的桶的值相加），并从柱状图中获得可聚合的百分位数。
+- **客户端百分位数(Client-side percentiles)**：Micrometer计算每个Meter ID（一组名称和标签）的百分位数近似值，并将百分位数值发送到监控系统。这并不像百分位数直方图那样灵活，因为不可能在标签之间汇总百分位数近似值。然而，对于不支持基于直方图的服务器端百分位数计算的监控系统，它提供了对百分位数分布的某种程度的了解。
 
 **使用Timer构建的柱状图：**
 

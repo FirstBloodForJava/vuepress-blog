@@ -304,7 +304,7 @@ HandlerMapping能处理拦截器，拦截器org.springframework.web.servlet.Hand
 
 
 
-**拦截器链：**可以通过实现HandlerExceptionResolver接口来自定义拦截器，order属性可以定义顺序。
+**拦截器链**：可以通过实现HandlerExceptionResolver接口来自定义拦截器，order属性可以定义顺序。
 
 
 
@@ -2172,17 +2172,17 @@ SpringMVC引入Servlet异步介绍：https://spring.io/blog/2012/05/07/spring-mv
 
 
 
-**异常处理：**当使用DeferredResult时，可以选择是否调用带有异常的setResult或setErrorResult。在这两种情况下，Spring MVC都将请求分派回Servlet容器以完成处理。然后将其视为控制器方法返回给定值或产生给定异常。然后异常经过常规异常处理机制（例如，调用@ExceptionHandler方法）。
+**异常处理**：当使用DeferredResult时，可以选择是否调用带有异常的setResult或setErrorResult。在这两种情况下，Spring MVC都将请求分派回Servlet容器以完成处理。然后将其视为控制器方法返回给定值或产生给定异常。然后异常经过常规异常处理机制（例如，调用@ExceptionHandler方法）。
 
 当您使用 Callable 时，会出现类似的处理逻辑，主要区别在于结果是从 Callable 返回的，或者它引发了异常。
 
-**拦截：**HandlerInterceptor对象可以是AsyncHandlerInterceptor类型，以接收 afterConcurrentHandlingStarted 启动异步处理的初始请求的 callback（而不是 postHandle 和 afterCompletion）。
+**拦截**：HandlerInterceptor对象可以是AsyncHandlerInterceptor类型，以接收 afterConcurrentHandlingStarted 启动异步处理的初始请求的 callback（而不是 postHandle 和 afterCompletion）。
 
 HandlerInterceptor实现还可以注册CallableProcessingInterceptor 或 a DeferredResultProcessingInterceptor ，以便更深入地与 异步请求的生命周期（例如，处理超时事件）
 
 DeferredResult 提供 onTimeout（Runnable） 和 onCompletion（Runnable） 回调。Callable 可以替换为 WebAsyncTask，后者公开了超时和完成回调的其他方法。
 
-**与WebFlux对比：**Servlet API 最初是为通过 Filter-Servlet 链进行一次传递而构建的。Servlet 3.0 中添加的异步请求处理允许应用程序退出 Filter-Servlet 链，但使响应保持打开状态以供进一步处理。Spring MVC 异步支持是围绕该机制构建的。当控制器返回 DeferredResult 时，将退出 Filter-Servlet 链，并释放 Servlet 容器线程。稍后，当设置 DeferredResult 时，将进行 ASYNC 调度（到同一 URL），在此期间，控制器将再次映射，但不是调用它，而是使用 DeferredResult 值（就像控制器返回它一样）来恢复处理。
+**与WebFlux对比**：Servlet API 最初是为通过 Filter-Servlet 链进行一次传递而构建的。Servlet 3.0 中添加的异步请求处理允许应用程序退出 Filter-Servlet 链，但使响应保持打开状态以供进一步处理。Spring MVC 异步支持是围绕该机制构建的。当控制器返回 DeferredResult 时，将退出 Filter-Servlet 链，并释放 Servlet 容器线程。稍后，当设置 DeferredResult 时，将进行 ASYNC 调度（到同一 URL），在此期间，控制器将再次映射，但不是调用它，而是使用 DeferredResult 值（就像控制器返回它一样）来恢复处理。
 
 相比之下，Spring WebFlux 既不是基于 Servlet API 构建的，也不需要这样的异步请求处理功能，因为它在设计上是异步的。异步处理内置于所有框架协定中，并且在请求处理的所有阶段都受到内部支持。
 
