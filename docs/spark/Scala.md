@@ -163,14 +163,14 @@ REPL(Read-Evaluate-Print-Loop) 是一个命令行解释器。
 
 ## 变量和数据类型
 
-**两种变量类型：**
+**两种变量类型**：
 
 - val：创建一个不可变的变量，和 Java 的 final 一样。
 - var：创建一个可变变量，当且仅当变量随着时间变化才使用。
 
 
 
-**变量声明：**显示声明变量类型或因式声明编译器推断类型。
+**变量声明**：显示声明变量类型或因式声明编译器推断类型。
 
 ~~~scala
 val x: Int = 1 // 显示声明
@@ -180,7 +180,7 @@ val x = 1 // 隐式声明
 
 
 
-**内置数据类型：**在 Scala 中所有类型都是成熟的对象。
+**内置数据类型**：在 Scala 中所有类型都是成熟的对象。
 
 1. Boolean：true/false。
 2. Byte：8-bit，-2^7~2^7-1。
@@ -679,7 +679,7 @@ FP 编程，两个核心概念：
 
 
 
-**Sum Type 和类型：**一个类型有不同的情况，或关系。3 种大的类型：CrustSize、CrustType、Topping。
+**Sum Type(和类型)**：一个类型有不同的情况，或关系。3 种大的类型：CrustSize(大小)、CrustType(类型)、Topping(加料)。
 
 ::: tabs
 
@@ -730,7 +730,7 @@ enum Topping:
 
 
 
-**Product Type 积类型：**一个类型由多个字段组合而成，与关系。Scala 中 case 对象可以用来表示单例对象，可访问但不可变的结构，也可以用 case class 表示
+**Product Type(积类型)**：一个类型由多个字段组合而成，与关系。Scala 中 case 对象可以用来表示单例对象，可访问但不可变的结构，也可以用 case class 表示
 
 ~~~scala
 // 定义 case class
@@ -791,7 +791,7 @@ makeConnection(
 
 
 
-**仅 scala 3 支持：**extension 关键字扩展方法，
+**仅 scala 3 支持**：`extension` 关键字扩展方法，
 
 ~~~scala
 // 定义的参数, 作为调用入口,也作为方法参数
@@ -875,7 +875,7 @@ firstTen.foldLeft(100)(_ + _)              // 155 (100 is a “seed” value)
 
 ~~~
 
-**Tuple：**将不同的类型放入一个容器集合，2-22 元素。
+**Tuple**：将不同的类型放入一个容器集合，2-22 元素。
 
 ~~~scala
 case class Person(name: String)
