@@ -172,14 +172,12 @@ REPL(Read-Evaluate-Print-Loop) 是一个命令行解释器。
 - val：创建一个不可变的变量，和 Java 的 final 一样。
 - var：创建一个可变变量，当且仅当变量随着时间变化才使用。
 
-
-
-**变量声明**：显示声明变量类型或因式声明编译器推断类型。
+**变量声明**：显示声明变量类型或隐式声明编译器推断类型。
 
 ~~~scala
 val x: Int = 1 // 显示声明
 val x = 1 // 隐式声明
-
+val m = Map(1 -> "one", 2 -> "two")
 ~~~
 
 
@@ -345,6 +343,75 @@ extension (sc: StringContext)
 ~~~
 
 :::
+
+
+
+### Generic
+
+泛型 `class/trait` 将类型作为 `[...]` 中的参数。Scala 约定使用单个字母命名参数。可以作用在类中的方法参数或返回值上。
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+class Stack[A] {
+  private var elements: List[A] = Nil
+  def push(x: A): Unit =
+    elements = elements.prepended(x)
+  def peek: A = elements.head
+  def pop(): A = {
+    val currentTop = peek
+    elements = elements.tail
+    currentTop
+  }
+}
+
+val stack = new Stack[Int]
+stack.push(1)
+println(stack.pop())
+~~~
+
+@tab Scala 3
+~~~scala
+class Stack[A]:
+  private var elements: List[A] = Nil
+  def push(x: A): Unit =
+    elements = elements.prepended(x)
+  def peek: A = elements.head
+  def pop(): A =
+    val currentTop = peek
+    elements = elements.tail
+    currentTop
+
+val stack = Stack[Int]
+stack.push(1)
+println(stack.pop())
+~~~
+
+:::
+
+
+
+### Intersection Type
+
+在类型上使用 `&` 运算符创建交集类型(Intersection Type)。`A & B` 表示值同时属于类型 A 和类型 B。
+
+**仅 Scala 3**
+
+~~~scala
+trait Resettable:
+  def reset(): Unit
+
+trait Growable[A]:
+  def add(a: A): Unit
+// 参数 x 需要同时是 Resettable 和 Growable[String] 类型
+def f(x: Resettable & Growable[String]): Unit =
+  x.reset()
+  x.add("first")
+
+~~~
+
+
 
 
 
@@ -1667,6 +1734,268 @@ val p = Person("John", "Stephens")
 
 
 :::
+
+
+
+#### Trait
+
+Scala 中用 `trait` 来分解具体。
+
+- 抽象成员要求子类必须实现
+- 实例成员可以提供给子类使用
+- 抽象方法 `def m(): T`
+- 抽象属性 `val x: T`
+- 泛型抽象属性 `type T`，边界泛型 `type T <: S`
+- **Scala 3**：给的抽象类型 `given t: T`
+
+
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+trait Showable {
+  def show: String
+  def showHtml = "<p>" + show + "</p>"
+}
+// Document 继承 Showable
+class Document(text: String) extends Showable {
+  def show = text
+}
+
+~~~
+
+@tab Scala 3
+~~~scala
+trait Showable:
+  def show: String
+  def showHtml = "<p>" + show + "</p>"
+// Document 继承 Showable
+class Document(text: String) extends Showable:
+  def show = text
+
+~~~
+
+:::
+
+
+
+#### Mixin Composition
+
+Scala 的 `trait` 不仅支持抽象和具体的定义，还支持组合多个 `trait`，这称为 `Mixin Composition`。
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+trait GreetingService {
+  def translate(text: String): String
+  def sayHello = translate("Hello")
+}
+
+trait TranslationService {
+  def translate(text: String): String = "..."
+}
+// ComposedService 组合了 2 个 trait
+trait ComposedService extends GreetingService with TranslationService
+
+~~~
+
+@tab Scala 3
+~~~scala
+trait GreetingService:
+  def translate(text: String): String
+  def sayHello = translate("Hello")
+
+trait TranslationService:
+  def translate(text: String): String = "..."
+// ComposedService 组合了 2 个 trait
+trait ComposedService extends GreetingService, TranslationService
+
+~~~
+
+:::
+
+
+
+#### Class
+
+`class` 与 `trait` 一样，可以 `extends` 多个 `trait`，但是只能由一个 `super class`。
+
+::: tabs
+
+@tab Scala 2
+
+| class             | 语法                           |
+| ----------------- | ------------------------------ |
+| trait             | trait T1, trait T2, trait T3   |
+| Composition trait | S1 extends T1 with T2 with ... |
+| class             | C extends S1 with T2 with ...  |
+| 实例              | new C()                        |
+| 实例              | new C() with T3                |
+
+@tab Scala 3
+
+**支持 open class**
+
+| class             | 语法                         |
+| ----------------- | ---------------------------- |
+| trait             | trait T1, trait T2, trait T3 |
+| Composition trait | S1 extends T1, T2, ...       |
+| class             | C extends S1, T2, ...        |
+| 实例              | C()                          |
+
+~~~scala
+// 仅 Scala 3 支持
+open class Person(name: String)
+~~~
+
+:::
+
+
+
+#### Access Modifier
+
+在 Scala 中，默认所有的成员定义都是 `public`。要隐藏具体的定义，可以使用 `private` 或 `protected` 修饰成员(method, field, type)。`private` 成员仅对 `class/trait` 自己可见，以及 `companion object` 可见。`protected` 对类的子类可见。
+
+
+
+#### Example
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+trait SubjectObserver {
+
+  type S <: Subject
+  type O <: Observer
+
+  trait Subject { self: S =>
+    private var observers: List[O] = List()
+    def subscribe(obs: O): Unit = {
+      observers = obs :: observers
+    }
+    def publish() = {
+      for ( obs <- observers ) obs.notify(this)
+    }
+  }
+
+  trait Observer {
+    def notify(sub: S): Unit
+  }
+}
+~~~
+
+`SubjectObserver` 中定义了 2 个 `trait`：`Subject`，`Observer`。
+
+`type S <: Subject` 表示上界，S 是 `Subject` 的子类。
+
+`self: S =>` self 是 `this` 的别名(自引用)，附带一个类型约束，当使用 this 或 self，表示的静态类型是 `S`。必须是 `S` 的子类型。
+
+~~~scala
+object SensorReader extends SubjectObserver {
+  type S = Sensor
+  type O = Display
+
+  class Sensor(val label: String) extends Subject {
+    private var currentValue = 0.0
+    def value = currentValue
+    def changeValue(v: Double) = {
+      currentValue = v
+      publish()
+    }
+  }
+
+  class Display extends Observer {
+    def notify(sub: Sensor) =
+      println(s"${sub.label} has value ${sub.value}")
+  }
+}
+~~~
+
+定义了一个单例类 `SensorReader`。
+
+~~~scala
+import SensorReader._
+
+val s1 = new Sensor("sensor1")
+val s2 = new Sensor("sensor2")
+val d1 = new Display()
+val d2 = new Display()
+s1.subscribe(d1)
+s1.subscribe(d2)
+s2.subscribe(d1)
+
+s1.changeValue(2)
+s2.changeValue(3)
+~~~
+
+
+
+@tab Scala 3
+
+~~~scala
+trait SubjectObserver:
+
+  type S <: Subject
+  type O <: Observer
+
+  trait Subject:
+    self: S =>
+      private var observers: List[O] = List()
+      def subscribe(obs: O): Unit =
+        observers = obs :: observers
+      def publish() =
+        for obs <- observers do obs.notify(this)
+
+  trait Observer:
+    def notify(sub: S): Unit
+~~~
+
+`SubjectObserver` 中定义了 2 个 `trait`：`Subject`，`Observer`。
+
+`type S <: Subject` 表示上界，S 是 `Subject` 的子类。
+
+`self: S =>` self 是 `this` 的别名(自引用)，附带一个类型约束，当使用 this 或 self，表示的静态类型是 `S`。必须是 `S` 的子类型。
+
+~~~scala
+object SensorReader extends SubjectObserver:
+  type S = Sensor
+  type O = Display
+
+  class Sensor(val label: String) extends Subject:
+    private var currentValue = 0.0
+    def value = currentValue
+    def changeValue(v: Double) =
+      currentValue = v
+      publish()
+
+  class Display extends Observer:
+    def notify(sub: Sensor) =
+      println(s"${sub.label} has value ${sub.value}")
+~~~
+
+定义了一个单例类 `SensorReader`。
+
+~~~scala
+import SensorReader.*
+
+val s1 = Sensor("sensor1")
+val s2 = Sensor("sensor2")
+val d1 = Display()
+val d2 = Display()
+s1.subscribe(d1)
+s1.subscribe(d2)
+s2.subscribe(d1)
+
+s1.changeValue(2)
+s2.changeValue(3)
+~~~
+
+:::
+
+
 
 
 
