@@ -1517,7 +1517,14 @@ val o = hannah.copy(name = "oycm")
 
 #### Case Object
 
-case object 用于传递不可变的消息。同时也具有 `case class` 的功能。
+`case object` 就像 `object` 类，像 `case class` 比 `class` 类多一些特点。`case object` 有以下特点：
+
+- 可序列化
+- 有默认的 `hashCode` 实现
+- `toString` 实现
+- 用于创建枚举
+- 不能有构造方法参数
+- 用于传递不可变的消息
 
 **定义消息的类型**
 
