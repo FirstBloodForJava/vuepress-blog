@@ -411,6 +411,250 @@ def f(x: Resettable & Growable[String]): Unit =
 
 ~~~
 
+::: tabs
+
+Scala 3 交集类型定义的 f 方法支持 Resettable 和 Growable 子类型的实例，下面的方法只支持 Both 及其子类的实例。
+
+@tab Scala 2
+~~~scala
+trait Both[A] extends Resettable with Growable[A]
+def f(x: Both[String]): Unit
+~~~
+
+@tab Scala 3
+~~~scala
+trait Both[A] extends Resettable, Growable[A]
+def f(x: Both[String]): Unit
+~~~
+
+:::
+
+
+
+### Union Type(Scala 3)
+
+在类型上使用 `|` 运算符创建 Union Type(联合类型)。`A | B` 表示参数可以是 A 或 B 类型。
+
+~~~scala
+case class Username(name: String)
+case class Password(hash: Int)
+
+def help(id: Username | Password) =
+  val user = id match
+    case Username(name) => lookupName(name)
+    case Password(hash) => lookupPassword(hash)
+~~~
+
+抽象替代联合类型
+
+~~~scala
+trait UsernameOrPassword
+case class Username(name: String) extends UsernameOrPassword
+case class Password(hash: Int) extends UsernameOrPassword
+def help(id: UsernameOrPassword) =
+
+~~~
+
+使用枚举标记并集。Username 不是 UsernameOrPassword 的子类型，需要显示
+
+~~~scala
+enum UsernameOrPassword:
+  case IsUsername(u: Username)
+  case IsPassword(p: Password)
+
+def help(id: UsernameOrPassword) =
+  val user = id match
+    case UsernameOrPassword.IsUsername(u) => lookupName(u.name)
+    case UsernameOrPassword.IsPassword(p) => lookupPassword(p.hash)
+~~~
+
+
+
+### Algebraic Data Type
+
+可以使用 `enum` 构建 Algebraic Data Type(ADT，代数数据类型)。是一种通过组合积类型（`product type`）及和类型（`sum type`）构建数据结构的方式。
+
+**Scala 3 通过 enum 简化了 ADT。**
+
+**Sum Type(和类型)**：一个类型有不同的情况，或关系。3 种大的类型：CrustSize(大小)、CrustType(类型)、Topping(加料)。
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+sealed abstract class CrustSize
+// 大小由不同的表示
+object CrustSize {
+  case object Small extends CrustSize
+  case object Medium extends CrustSize
+  case object Large extends CrustSize
+}
+
+sealed abstract class CrustType
+object CrustType {
+  case object Thin extends CrustType
+  case object Thick extends CrustType
+  case object Regular extends CrustType
+}
+
+sealed abstract class Topping
+object Topping {
+  case object Cheese extends Topping
+  case object Pepperoni extends Topping
+  case object BlackOlives extends Topping
+  case object GreenOlives extends Topping
+  case object Onions extends Topping
+}
+
+~~~
+
+
+@tab Scala 3
+~~~scala
+enum CrustSize:
+  case Small, Medium, Large
+
+enum CrustType:
+  case Thin, Thick, Regular
+
+enum Topping:
+  case Cheese, Pepperoni, BlackOlives, GreenOlives, Onions
+
+~~~
+
+
+:::
+
+
+
+**Product Type(积类型)**：一个类型由多个字段组合而成，与关系。Scala 中 case 对象可以用来表示单例对象，可访问但不可变的结构，也可以用 case class 表示
+
+~~~scala
+// 定义 case class
+case class Person(
+  name: String,
+  vocation: String
+)
+
+// case 对象创建
+val p = Person("Reginald Kenneth Dwight", "Singer")
+
+// 默认的 toString 方法
+p              
+
+// 可访问，不可变
+p.name           
+// p.name = "Joe" 不能修改数据
+
+// 需要更新返回一个新的对象
+val p2 = p.copy(name = "Elton John")
+~~~
+
+
+
+### Virance(型变)
+
+Scala 支持 3 种型变方式：
+
+- Invariant Type：不变，既生产又消费。`Array[T]`。
+- Covariant Type：协变，只产生类型 T。`List[+T]`。
+- Contravariant Type：逆变，只消费类型 T。`Function[-A, +B]`。
+
+~~~scala
+trait Item { def productNumber: Int }
+trait Buyable extends Item { def price: Int }
+trait Book extends Buyable { def isbn: String }
+
+class RedBook extends Book {
+    def productNumber: Int  = 1
+    def price: Int = 2
+    def isbn: String = "RedBook"
+}
+~~~
+
+
+
+**Invariant Type(不变类型)**
+
+~~~scala
+// invariant type, Pipeline[T] 参数指定类型不可变
+trait Pipeline[T]:
+  def process(t: T): T
+
+object PipelineUtil:
+  def oneOf(p1: Pipeline[Buyable], p2: Pipeline[Buyable], b: Buyable): Buyable =
+    val b1 = p1.process(b)
+    val b2 = p2.process(b)
+    if b1.price < b2.price then b1 else b2
+
+val p1 = new Pipeline[Buyable]{
+    def process(t: Buyable): Buyable = t
+}
+val p2 = new Pipeline[Book]{
+    def process(t: Book): Book = t
+}
+val b = new Buyable(){
+    def productNumber: Int  = 1
+    def price: Int = 2
+}
+
+~~~
+
+p1，p2 的类型只能是 `Pipeline[Buyable]`。虽然`Book <: Buyable <: Item`，但`Pipeline[Buyable]` 和 `Pipeline[Book]` 没有任何关系 。
+
+![image-20251013160445359](http://47.101.155.205/image-20251013160445359.png)
+
+
+
+**Covariant Type(协变类型)**：可以是该类型或其子类型，该参数类型只能作用**在方法返回类型有效**。**val 作用在构造方法上有效**。
+
+~~~scala
+// covariant type, Producer[+T] 参数指定类型, 可以为其类型或子类型
+trait Producer[+T]:
+  def make: T
+
+object PipelineUtil:
+  def makeTwo(p: Producer[Buyable]): Int = 
+    p.make.price + p.make.price
+
+// Producer[RedBook] <: Producer[Buyable], 父 = 子
+// 方法返回值, 返回的类型为 T 的子类型, 不影响 Producer 不影响 T 方法编译
+val pr = new Producer[RedBook]{
+    def make: RedBook = RedBook()
+}
+val pb: Producer[Buyable] = pr
+
+PipelineUtil.makeTwo(pr)
+~~~
+
+
+
+**Contravariant Type(逆变类型)**：该参数类型在**方法参数上**才有效。
+
+~~~scala
+// contravariant type, Consumer[-T] 参数指定类型
+trait Consumer[-T]:
+  def take(t: T): Unit
+
+val buy: Consumer[Buyable] = new Consumer[Buyable]{
+    def take(t: Buyable): Unit = print("Buyable: " + t.price)
+}
+// Consumer[Buyable] <: Consumer[Book], 父 = 子
+// 方法参数, 接收类型为 T, Consumer[Buyable] 转为 Consumer[Book], 意味着该方法参数需要 Book 类型
+// Consumer[Buyable] <: Consumer[Book] 转换关系, 但是类型需要为 T 的子类型
+val book: Consumer[Book] = buy
+
+trait Function[-A, +B]:
+  def apply(a: A): B
+
+val f: Function[Buyable, Buyable] = b => b
+
+val g: Function[Buyable, Item] = f
+
+val h: Function[Book, Buyable] = f
+
+~~~
+
 
 
 
@@ -1486,6 +1730,11 @@ enum 用于定义一组有限命名值组成的类型。
 ~~~scala
 enum CrustSize:
   case Small, Medium, Large
+// 相当于下面的简写
+enum CrustSize:
+  case Small extends CrustSize
+  case Medium extends CrustSize
+  case Large extends CrustSize
 
 enum CrustType:
   case Thin, Thick, Regular
@@ -2020,81 +2269,7 @@ FP 编程，两个核心概念：
 
 
 
-**Sum Type(和类型)**：一个类型有不同的情况，或关系。3 种大的类型：CrustSize(大小)、CrustType(类型)、Topping(加料)。
 
-::: tabs
-
-@tab Scala 2
-~~~scala
-sealed abstract class CrustSize
-// 大小由不同的表示
-object CrustSize {
-  case object Small extends CrustSize
-  case object Medium extends CrustSize
-  case object Large extends CrustSize
-}
-
-sealed abstract class CrustType
-object CrustType {
-  case object Thin extends CrustType
-  case object Thick extends CrustType
-  case object Regular extends CrustType
-}
-
-sealed abstract class Topping
-object Topping {
-  case object Cheese extends Topping
-  case object Pepperoni extends Topping
-  case object BlackOlives extends Topping
-  case object GreenOlives extends Topping
-  case object Onions extends Topping
-}
-
-~~~
-
-
-@tab Scala 3
-~~~scala
-enum CrustSize:
-  case Small, Medium, Large
-
-enum CrustType:
-  case Thin, Thick, Regular
-
-enum Topping:
-  case Cheese, Pepperoni, BlackOlives, GreenOlives, Onions
-
-~~~
-
-
-:::
-
-
-
-**Product Type(积类型)**：一个类型由多个字段组合而成，与关系。Scala 中 case 对象可以用来表示单例对象，可访问但不可变的结构，也可以用 case class 表示
-
-~~~scala
-// 定义 case class
-case class Person(
-  name: String,
-  vocation: String
-)
-
-// case 对象创建
-val p = Person("Reginald Kenneth Dwight", "Singer")
-
-// 默认的 toString 方法
-p              
-
-// 可访问，不可变
-p.name           
-// p.name = "Joe" 不能修改数据
-
-// 需要更新返回一个新的对象
-val p2 = p.copy(name = "Elton John")
-p2               // : Person = Person(Elton John,Singer)
-
-~~~
 
 
 
