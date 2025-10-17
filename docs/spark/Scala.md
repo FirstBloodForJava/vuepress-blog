@@ -657,6 +657,172 @@ val h: Function[Book, Buyable] = f
 
 
 
+### Opaque Type(不透明类型)(Scala 3)
+
+将 Double 封装成对数（3就是以10为底，1000的对数），引入一个新的类型。
+
+**为什么使用 REPL 控制执行的结果不符合预期？**
+
+~~~scala
+// protected 隐藏 underlying, 使用 Logarithm(2), underlying = log 2; new Logarithm(2), underlying = 2
+// underlying 就是以常数 e 为底, d 的对数
+class Logarithm(protected val underlying: Double) {
+    // 对数还原成 d
+  def toDouble: Double = math.exp(underlying)
+
+  def +(that: Logarithm): Logarithm =
+    // 调用 companion object apply 方法, 省略方法名
+    Logarithm(this.toDouble + that.toDouble)
+
+  def *(that: Logarithm): Logarithm =
+    new Logarithm(this.underlying + that.underlying)
+
+  def logE: Double = underlying
+}
+
+object Logarithm {
+  def apply(d: Double): Logarithm = new Logarithm(math.log(d))
+}
+
+val l2 = Logarithm(2);
+val l3 = Logarithm(3);
+println(s"x = ${l2.toDouble}, y = ${l2.logE}")
+println(s"x = ${l3.toDouble}, y = ${l3.logE}")
+println(s"l2 + l3 = ${(l2 + l3).toDouble}")
+println(s"l2 * l3 = ${(l2 * l3).toDouble}")
+(l2 * l3).toDouble // 6.0
+(l2 + l3).toDouble // 5.0
+~~~
+
+![image-20251017112338507](http://47.101.155.205/image-20251017112338507.png)
+
+![image-20251017112533052](http://47.101.155.205/image-20251017112533052.png)
+
+**使用 Logarithm 存储 Double 的对数，但是每次运算都带来了性能开销（抽象开销）：每次运算都需要提取 underlying 值，然后创建 Logarithm 对象。**
+
+
+
+使用模块化抽象，来解决对象频繁创建的问题。但是 `LogarithmsImpl` 实现的 `type Logarithm` 固定为 `Double` 类型。
+
+**问题：出现了定义的 + 和 * 运算没有生效的情况。**
+
+~~~scala
+trait Logarithms {
+
+  // 以 e 为底, d 的对数值
+  type Logarithm
+
+  def add(x: Logarithm, y: Logarithm): Logarithm
+
+  def mul(x: Logarithm, y: Logarithm): Logarithm
+
+  def make(d: Double): Logarithm
+
+  def extract(x: Logarithm): Double
+
+  extension (x: Logarithm)
+    def +(y: Logarithm): Logarithm = add(x, y)
+    def *(y: Logarithm): Logarithm = mul(x, y)
+}
+
+object LogarithmsImpl extends Logarithms {
+  type Logarithm = Double
+
+  def add(x: Logarithm, y: Logarithm): Logarithm = make(extract(x) + extract(y))
+
+  def mul(x: Logarithm, y: Logarithm): Logarithm = x + y
+
+  def make(d: Double): Logarithm = math.log(d)
+
+  def extract(x: Logarithm): Double = math.exp(x)
+}
+~~~
+
+![image-20251017150934812](http://47.101.155.205/image-20251017150934812.png)
+
+
+
+**Opaque Type（不透明类型）**
+
+~~~scala
+object Logarithms:
+  // 定义不透明类型
+  // Logarithm 和 Double 类型相等，仅在 Logarithm 作用域可知，改作用域应用在 Logarithms，且 extension Logarithm 的方法
+  opaque type Logarithm = Double
+
+  object Logarithm:
+    def apply(d: Double): Logarithm = math.log(d)
+
+  extension (x: Logarithm)
+    def extract: Double = math.exp(x)
+    def + (y: Logarithm): Logarithm = Logarithm(math.exp(x) + math.exp(y))
+    def * (y: Logarithm): Logarithm = x + y
+~~~
+
+![image-20251017152535556](http://47.101.155.205/image-20251017152535556.png)
+
+
+
+### Structural Type(Scala 3)
+
+**使用语法**：仅包含抽象成员的结构
+
+~~~scala
+type MyType = {
+  def m1(x: Int): String
+  val name: String
+}
+// 函数参数内联定义
+def printName(x: { val name: String }): Unit =
+  println(x.name)
+~~~
+
+
+
+~~~scala
+class Record(elems: (String, Any)*) extends Selectable:
+  private val fields = elems.toMap
+  def selectDynamic(name: String): Any = fields(name)
+
+type Person = Record {
+  val name: String
+  val age: Int
+}
+
+val person = Record(
+  "name" -> "Emma",
+  "age" -> 42
+).asInstanceOf[Person]
+
+println(s"${person.name} is ${person.age} years old.")
+person.selectDynamic("name").asInstanceOf[String]
+person.selectDynamic("age").asInstanceOf[Int]
+~~~
+
+~~~scala
+type Book = Record {
+  val title: String
+  val author: String
+  val year: Int
+  val rating: Double
+}
+
+val book = Record(
+  "title" -> "The Catcher in the Rye",
+  "author" -> "J. D. Salinger",
+  "year" -> 1951,
+  "rating" -> 4.5
+).asInstanceOf[Book]
+~~~
+
+
+
+### Dependent Function Type(Scala 3)
+
+
+
+
+
 
 
 ## 控制语句
@@ -1501,7 +1667,7 @@ println(MathConstants.PI)   // 3.14159
 Companion Object 对象用法：
 
 - 一个命名空间下的静态方法组
--  `apply` 方法，构建对象的工厂模式
+-  `apply` 方法，构建对象的工厂模式。**调用该方法可以省略方法名**。
 - `unapply`，结构对象，用于匹配模式。[使用介绍](https://docs.scala-lang.org/scala3/reference/changed-features/pattern-matching.html)
 
 ::: tabs
@@ -1878,7 +2044,7 @@ def handleMessages(message: Message): Unit = message match
 
 :::
 
-### OOP
+### OOP Modeling
 
 OOP 主要使用 `trait` 和 `class` 关键字。
 
@@ -2248,7 +2414,7 @@ s2.changeValue(3)
 
 
 
-### FP
+### FP Modeling
 
 FP 编程，两个核心概念：
 
