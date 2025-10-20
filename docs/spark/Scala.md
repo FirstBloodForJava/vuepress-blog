@@ -94,8 +94,6 @@ scala hello
 
 
 
-
-
 @tab Scala 3
 
 **scala jdk 版本有要求，3.7.3 要求 jdk 17**
@@ -2433,15 +2431,217 @@ FP 编程，两个核心概念：
 
 
 
+#### Data Model
+
+**sum type(和类型)**：CrustSize、CrustType、Topping。
+
+~~~scala
+enum CrustSize:
+  case Small, Medium, Large
+
+enum CrustType:
+  case Thin, Thick, Regular
+
+enum Topping:
+  case Cheese, Pepperoni, BlackOlives, GreenOlives, Onions
+~~~
+
+**product type(积类型)**：Pizza。
+
+~~~scala
+import CrustSize.*
+import CrustType.*
+import Topping.*
+
+case class Pizza(
+  // Pizza 大小
+  crustSize: CrustSize,
+  // Pizza 类型
+  crustType: CrustType,
+  toppings: Seq[Topping]
+)
+~~~
+
+~~~scala
+// 地址
+case class Address(
+  street1: String,
+  street2: Option[String],
+  city: String,
+  state: String,
+  zipCode: String
+)
+// 客户
+case class Customer(
+  name: String,
+  phone: String,
+  address: Address
+)
+// 订单
+case class Order(
+  pizzas: Seq[Pizza],
+  customer: Customer
+)
+~~~
 
 
 
+#### Operation Model
+
+~~~scala
+def pizzaPrice(p: Pizza): Double = p match {
+  case Pizza(crustSize, crustType, toppings) => {
+    val base  = 6.00
+    val crust = crustPrice(crustSize, crustType)
+    val tops  = toppings.map(toppingPrice).sum
+    base + crust + tops
+  }
+}
+// Topping 的价格函数
+def toppingPrice(t: Topping): Double = t match {
+  case Cheese | Onions => 0.5
+  case Pepperoni | BlackOlives | GreenOlives => 0.75
+}
+// 面包的价格
+def crustPrice(s: CrustSize, t: CrustType): Double =
+  (s, t) match {
+    // Small | Medium 大小, 任意大小固定
+    case (Small | Medium, _) => 0.25
+    case (Large, Thin) => 0.50
+    case (Large, Regular) => 0.75
+    case (Large, Thick) => 1.00
+  }
+~~~
+
+
+
+#### 功能规划
+
+~~~scala
+case class Pizza(
+  crustSize: CrustSize,
+  crustType: CrustType,
+  toppings: Seq[Topping]
+)
+
+object Pizza {
+  def price(p: Pizza): Double = p match {
+  case Pizza(crustSize, crustType, toppings) => {
+    val base  = 6.00
+    val crust = crustPrice(crustSize, crustType)
+    val tops  = toppings.map(price).sum
+    base + crust + tops
+  }
+}
+
+
+sealed abstract class Topping
+
+object Topping {
+  case object Cheese extends Topping
+  case object Pepperoni extends Topping
+  case object BlackOlives extends Topping
+  case object GreenOlives extends Topping
+  case object Onions extends Topping
+
+  def price(t: Topping): Double = 
+    (s, t) match {
+    // Small | Medium 大小, 任意大小固定
+    case (Small | Medium, _) => 0.25
+    case (Large, Thin) => 0.50
+    case (Large, Regular) => 0.75
+    case (Large, Thick) => 1.00
+  }
+}
+
+~~~
+
+
+
+#### Extension Method
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+case class Pizza(
+  crustSize: CrustSize,
+  crustType: CrustType,
+  toppings: Seq[Topping]
+)
+// 隐式类
+implicit class PizzaOps(p: Pizza) {
+  def price: Double =
+    pizzaPrice(p) // implementation from above
+
+  def addTopping(t: Topping): Pizza =
+    p.copy(toppings = p.toppings :+ t)
+
+  def removeAllToppings: Pizza =
+    p.copy(toppings = Seq.empty)
+
+  def updateCrustSize(cs: CrustSize): Pizza =
+    p.copy(crustSize = cs)
+
+  def updateCrustType(ct: CrustType): Pizza =
+    p.copy(crustType = ct)
+}
+~~~
+
+@tab Scala 3
+~~~scala
+case class Pizza(
+  crustSize: CrustSize,
+  crustType: CrustType,
+  toppings: Seq[Topping]
+)
+
+extension (p: Pizza)
+  def price: Double =
+    pizzaPrice(p) // implementation from above
+
+  def addTopping(t: Topping): Pizza =
+    p.copy(toppings = p.toppings :+ t)
+
+  def removeAllToppings: Pizza =
+    p.copy(toppings = Seq.empty)
+
+  def updateCrustSize(cs: CrustSize): Pizza =
+    p.copy(crustSize = cs)
+
+  def updateCrustType(ct: CrustType): Pizza =
+    p.copy(crustType = ct)
+~~~
+
+:::
 
 
 
 ## 方法
 
-class、case class、trait、enum 和 object 都可以包含方法，语法如下：
+### 方法定义
+
+在 Scala 2中，class、case class、trait、object和 case object 中都可以方法。在 Scala 3中，可以在这些结构之外定义，可以称为 `top-level`。方法定义语法如下：
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+def methodName(param1: Type1, param2: Type2): ReturnType = {
+  // 方法体
+}
+~~~
+
+@tab Scala 3
+~~~scala
+def methodName(param1: Type1, param2: Type2): ReturnType =
+  // 方法体
+end methodName   // 可选
+~~~
+
+:::
+
+
 
 ~~~scala
 def methodName(param1: Type1, param2: Type2): ReturnType =
@@ -2469,6 +2669,10 @@ makeConnection(
   timeout = 2500
 )
 
+// 无参数方法, 在不执行其它代码的情况下, 可以省略 (); 例如集合的 size
+
+
+
 ~~~
 
 
@@ -2488,13 +2692,145 @@ extension (s: String)
 
 
 
+### main
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+object happyBirthday {
+  private def happyBirthday(age: Int, name: String, others: String*) = {
+    ... // same as before
+  }
+  def main(args: Array[String]): Unit =
+    // :_* 用于传递可变参数
+    happyBirthday(args(0).toInt, args(1), args.drop(2).toIndexedSeq:_*)
+}
+~~~
+
+@tab Scala 3
+
+Scala 3 支持向方法添加 `@main` 注解，将其作为可执行程序的入口。文件名不用匹配方法名。
+
+~~~scala
+@main def hello() = println("Hello, World")
+
+// scala run Hello.scala 启动命令
+~~~
+
+**命令添加参数**
+
+~~~scala
+// String* 表示 可变 String 参数
+@main def happyBirthday(age: Int, name: String, others: String*) =
+  val suffix = (age % 100) match
+    case 11 | 12 | 13 => "th"
+    case _ => (age % 10) match
+      case 1 => "st"
+      case 2 => "nd"
+      case 3 => "rd"
+      case _ => "th"
+
+  val sb = StringBuilder(s"Happy $age$suffix birthday, $name")
+  for other <- others do sb.append(" and ").append(other)
+  println(sb.toString)
+// scala run happyBirthday.scala -- 23 Lisa Peter -- 后添加参数
+~~~
+
+**自定义参数类型**
+
+~~~scala
+enum Color:
+  case Red, Green, Blue
+
+// scala.util.CommandLineParser.FromString 会解析 run 方法参数为 Color 类型
+given CommandLineParser.FromString[Color] with
+  def fromString(value: String): Color = Color.valueOf(value)
+
+@main def run(color: Color): Unit =
+  println(s"The color is ${color.toString}")
+~~~
+
+
+
+**@main 注解运行原理**：`happyBirthday` 的等价代码
+
+~~~scala
+final class happyBirthday {
+  import scala.util.{CommandLineParser as CLP}
+  // static 表示静态方法, 不适用自己编写的代码
+  <static> def main(args: Array[String]): Unit =
+    try
+      happyBirthday(
+          CLP.parseArgument[Int](args, 0),
+          CLP.parseArgument[String](args, 1),
+          CLP.parseRemainingArguments[String](args, 2)*)
+    catch {
+      case error: CLP.ParseError => CLP.showError(error)
+    }
+}
+
+~~~
+
+
+
+
+
+:::
+
+
+
 ## 函数
+
+Scala 支持的函数：匿名函数(anonymous function)、部分函数(partial function)、高阶函数(higher-order function)。
 
 Scala 具有函数式编程中的大多数功能：
 
 - Lambdas-匿名函数
 - HOF-高阶函数：可以接受其他函数作为参数，或者将函数作为返回值的函数。
 - 不可变的集合
+
+
+
+### 匿名函数
+
+~~~scala
+val ints = List(1, 2, 3)
+// 自定义匿名函数
+val doubledInts = ints.map(_ * 2)
+
+~~~
+
+**匿名函数长格式写法**
+
+~~~scala
+val doubledInts = ints.map((i: Int) => i * 2)
+val doubledInts = ints.map((i) => i * 2)
+val doubledInts = ints.map(i => i * 2)
+~~~
+
+**缩短匿名函数**
+
+~~~scala
+// 最完整写法
+val doubledInts = ints.map((i: Int) => i * 2)
+// Scala 支持类型推断，可以省略 Int 类型
+val doubledInts = ints.map((i) => i * 2)
+// 只有一个参数，可以省略 ()
+val doubledInts = ints.map(i => i * 2)
+// Scala 中支持 _ 替代变量名称, 当参数在函数中仅使用一次
+val doubledInts = ints.map(_ * 2)
+
+ints.foreach((i: Int) => println(i))
+ints.foreach(i => println(i))
+ints.foreach(println(_))
+// 匿名函数只接收一个参数, 且被要给方法调用
+ints.foreach(println)
+~~~
+
+
+
+
 
 
 
