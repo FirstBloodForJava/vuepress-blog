@@ -529,6 +529,10 @@ export default defineUserConfig({
           {
             text: 'Scala2/3',
             link: 'Scala'
+          },
+          {
+            text: 'Scala-集合',
+            link: 'Scala-Collection'
           }
         ]
       }
