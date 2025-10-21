@@ -615,7 +615,7 @@ object PipelineUtil:
   def makeTwo(p: Producer[Buyable]): Int = 
     p.make.price + p.make.price
 
-// Producer[RedBook] <: Producer[Buyable], 父 = 子
+// Producer[RedBook] <: Producer[Buyable], 父(Producer[Buyable]) = 子(Producer[RedBook])
 // 方法返回值, 返回的类型为 T 的子类型, 不影响 Producer 不影响 T 方法编译
 val pr = new Producer[RedBook]{
     def make: RedBook = RedBook()
@@ -623,6 +623,20 @@ val pr = new Producer[RedBook]{
 val pb: Producer[Buyable] = pr
 
 PipelineUtil.makeTwo(pr)
+~~~
+
+**协变不能作为方法参数的原因**：
+
+~~~scala
+class Box[+A] {
+  def set(value: A): Unit = ???
+}
+Cat <: Animal => Box[Cat] <: Box[Animal]
+// 所以
+val catBox: Box[Cat] = new Box[Cat]
+val animalBox: Box[Animal] = catBox
+// 这里逻辑上就会有问题
+animalBox.set(new Dog())
 ~~~
 
 
@@ -637,7 +651,7 @@ trait Consumer[-T]:
 val buy: Consumer[Buyable] = new Consumer[Buyable]{
     def take(t: Buyable): Unit = print("Buyable: " + t.price)
 }
-// Consumer[Buyable] <: Consumer[Book], 父 = 子
+// Consumer[Buyable] <: Consumer[Book], 父(Consumer[Book]) = 子(Consumer[Buyable])
 // 方法参数, 接收类型为 T, Consumer[Buyable] 转为 Consumer[Book], 意味着该方法参数需要 Book 类型
 // Consumer[Buyable] <: Consumer[Book] 转换关系, 但是类型需要为 T 的子类型
 val book: Consumer[Book] = buy
@@ -652,6 +666,22 @@ val g: Function[Buyable, Item] = f
 val h: Function[Book, Buyable] = f
 
 ~~~
+
+**逆变类型不能作为返回值的原因**
+
+~~~scala
+class Box[+A] {
+  def make(): A = ???
+}
+Cat <: Animal => Box[Animal] <: Box[Cat]
+// 则
+val animalBox: Box[Animal] = new Box[Animal]
+val catBox: Box[Cat] = animalBox
+// 这里逻辑上就会有问题
+catBox.make()
+~~~
+
+
 
 
 
@@ -2782,6 +2812,8 @@ final class happyBirthday {
 
 ## 函数
 
+**方法和函数的主要区别在于：函数是一个对象，即它是一个类的实例，并且有自己的方法。**
+
 Scala 支持的函数：匿名函数(anonymous function)、部分函数(partial function)、高阶函数(higher-order function)。
 
 Scala 具有函数式编程中的大多数功能：
@@ -2829,6 +2861,333 @@ ints.foreach(println)
 ~~~
 
 
+
+### 函数变量
+
+将匿名函数作为一个变量赋值给变量。
+
+~~~scala
+val double = (i: Int) => i * 2
+val triple = (i: Int) => i * 3
+
+// 使用 List Map 存储
+val functionList = List(double, triple)
+val functionMap = Map(
+  "2x" -> double,
+  "3x" -> triple
+)
+~~~
+
+
+
+### 部分函数
+
+部分函数是不会为其参数类型定义类型的函数。在 Scala 中，部分函数是实现 `PartialFunction[A, B]` trait 的一元函数，其中 A 是参数类型，B 是结果类型。
+
+~~~scala
+val doubledOdds: PartialFunction[Int, Int] = {
+  case i if i % 2 == 1 => i * 2
+}
+// 使用 isDefinedAt 为参数检查是否定义了部分函数
+doubledOdds.isDefinedAt(3)  // true
+doubledOdds.isDefinedAt(4)  // false
+~~~
+
+**部分函数使用**
+
+~~~scala
+// 作为参数使用
+val res = List(1, 2, 3).collect({ case i if i % 2 == 1 => i * 2 }) // List(2, 6)
+// 参数不匹配时执行逻辑
+doubledOdds.applyOrElse(4, _ + 1)
+
+// 两个部分函数通过 orElse 组合
+val incrementedEvens: PartialFunction[Int, Int] = {
+  case i if i % 2 == 0 => i + 1
+}
+
+val res2 = List(1, 2, 3).collect(doubledOdds.orElse(incrementedEvens)) // List(2, 3, 6)
+~~~
+
+
+
+### ETA-Expansion
+
+~~~scala
+// Scala List 中 map 函数定义
+// f 表示应用于每个元素的函数, 背后的过程就是 ETA-Expansion
+def map[B](f: A => B): List[B]
+
+// 方法
+def times10(i: Int) = i * 10
+// 方法不是一个可以传递的值, 只能通过 times(10) 来调用
+// 通过创建一个函数值将方法转换为值, 该函数值在提供所需参数时调用该方法, 这个过程就是 ETA-Expansion
+List(1, 2, 3).map(times10)
+// 自动将 方法引用(不需要参数) 转换为调用该方法的匿名函数
+List(1, 2, 3).map(x => times10(x))
+~~~
+
+`ETA-Expansion` 是依赖上下文的语法糖。
+
+**在 Scala 2 中，只有当预期类型是函数类型时，ETA-Expansion 才会发生。**
+
+**在 Scala 3 中，方法可以在任何地方作为值使用**
+
+~~~scala
+def isLessThan(x: Int, y: Int): Boolean = x < y
+// Scala 2 中将报错
+val methods = List(isLessThan)
+~~~
+
+**手动使用 ETA-Expansion**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+val methodsA = List(isLessThan _)               // way 1: Scala 3 不支持
+val methodsB = List(isLessThan(_, _))           // way 2: 通配符扩展
+val methodsC = List((x, y) => isLessThan(x, y)) // way 3: 匿名函数
+~~~
+
+@tab Scala 3
+~~~scala
+val methodsA = List(isLessThan(_, _))           // way 1: 通配符扩展
+val methodsB = List((x, y) => isLessThan(x, y)) // way 2: 匿名函数
+~~~
+
+:::
+
+
+
+### HOF
+
+~~~scala
+// p 表示方法接收名为 p 的函数
+// List[+A] 的 A 类型能在函数中使用, 是因为函数 Function1[-T1,+R] 定义
+def filter(p: A => Boolean): List[A]
+
+~~~
+
+**自定义 HOF**
+
+~~~scala
+def sayHello(f: () => Unit): Unit = f()
+def helloJoe(): Unit = println("Hello, Joe")
+// sayHello 调用
+sayHello(helloJoe)
+
+// 函数和其它参数一起使用
+def operation(f: (Int, Int) => Int, i: Int, j: Int): Int = f(i, j)
+def add(a: Int, b: Int): Int = a + b
+def subtract(a: Int, b: Int): Int = a - b
+def multiply(a: Int, b: Int): Int = a * b
+operation(add, 1, 3)
+
+def executeNTimes(f: () => Unit, n: Int): Unit =
+  for i <- 1 to n do f()
+executeNTimes(helloJoe, 3)
+~~~
+
+**函数变量和函数参数的关系**
+
+~~~scala
+// 定义一个函数变量
+val f: (Int, Int) => Int = (a, b) => a + b
+// 定义一个接收函数的参数
+def operation(f: (Int, Int) => Int, ...
+~~~
+
+**自定义 map 方法**
+
+~~~scala
+// List[Int] => 转换成任意类型
+def map[A](f: (Int) => A, xs: List[Int]): List[A] = for x <- xs yield f(x)
+
+def map[A, B](f: A => B, xs: List[A]): List[B] = 
+  for x <- xs yield f(x)
+
+def double(i : Int): Int = i * 2
+map(double, List(1, 2, 3))
+
+def strlen(s: String): Int = s.length
+map(strlen, List("a", "bb", "ccc"))
+~~~
+
+**方法返回一个函数**
+
+~~~scala
+// greet 方法返回一个函数, 接收一个 Stirng 参数, 并打印它
+def greet(): String => Unit = 
+  (name: String) => println(s"Hello, $name")
+
+val greetFunction = greet()
+greetFunction("World !")
+
+// 改进方法
+def greet(theGreeting: String): String => Unit = 
+  (name: String) => println(s"$theGreeting, $name")
+val hello = greet("Hello")
+hello("World !")
+
+// 函数工厂, 根据方法的参数类型, 返回不同的函数
+~~~
+
+
+
+## package 和 import
+
+Scala 使用 package 创建命名空间，支持模块化编程，编码命名空间的冲突。Scala 支持使用 Java 的命名格式，以及 `C++` 和 `C#` 等语言使用 `{}` 表示命名空间。
+
+Scala 的 import 和 Java 类似，并且更灵活：
+
+- import package、class、object、trait、method；
+- import 支持在任意位置；
+- 隐藏和重命名导入的成员。
+
+
+
+### package
+
+包名称应全部为小写，命名约定：top-level-domain.domain-name.project-name.module-name
+
+~~~scala
+package com.oycm.example.model
+
+class Person ...
+~~~
+
+**在同一个文件中定义多个包，注意缩进**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+package users {
+
+  package administrators {  // the full name of this package is users.administrators
+    class AdminUser        // the full name of this class users.administrators.AdminUser
+  }
+  package normalusers {     // the full name of this package is users.normalusers
+    class NormalUser       // the full name of this class is users.normalusers.NormalUser
+  }
+}
+~~~
+
+@tab Scala 3
+~~~scala
+package users:
+
+  package administrators:  // users.administrators
+    class AdminUser        // users.administrators.AdminUser
+
+  package normalusers:     // users.normalusers
+    class NormalUser       // users.normalusers.NormalUser
+~~~
+
+:::
+
+
+
+### import
+
+import 语句用于导入其它包的实体。导入语法与 Java 类似，但略有不同。导入语句分为两类：
+
+- import class、trait、object、function、method；
+- import given clauses。
+
+**默认导入**：
+
+- `java.lang.*`
+- `scala.*`
+- Scala 对象的 `Predef` 成员也会导入，这是能直接使用 Scala 的 List、Map 等对象的原因
+
+**普通 Import**
+
+::: tabs
+
+@tab Scala 2
+~~~scala
+import users._                            // 从 users 包导入所有内容
+import users.User                         // 只导入 User Class
+import users.{User, UserPreferences}      // 只导入 2 个指定的 Class
+import users.{UserPreferences => UPrefs}  // 导入后重命名
+import java.util.{Random => _, _}         // 隐藏 java.util.Random 并导入 java.util 的其它内容
+import java.util.{List => _, Map => _, Set => _, _}
+
+// 在 class 中 使用
+class ClassA {
+  import scala.util.Random
+  def printRandom(): Unit = {
+    val r = new Random
+    // more code here...
+  }
+}
+
+// 静态导入, 直接使用 Math 的成员
+import java.lang.Math._
+
+// 解决命名冲突, 从根目录导入内容
+package accounts
+import _root_.accounts._
+~~~
+
+@tab Scala 3
+~~~scala
+import users.*                            // 从 users 包导入所有内容
+import users.User                         // 只导入 User Class
+import users.{User, UserPreferences}      // 只导入 2 个指定的 Class
+import users.{UserPreferences as UPrefs}  // 导入后重命名
+import java.util.{Random as _, *}         // 隐藏 java.util.Random 并导入 java.util 的其它内容
+import java.util.{List as _, Map as _, Set as _, *}
+
+// 在 class 中 使用
+class ClassA:
+  import scala.util.Random
+  def printRandom(): Unit =
+    val r = new Random
+
+// 静态导入, 直接使用 Math 的成员
+import java.lang.Math.*
+
+// 解决命名冲突, 从根目录导入内容
+package accounts
+import _root_.accounts.*
+~~~
+
+:::
+
+
+
+**Import given(Scala 3)**
+
+~~~scala
+object A:
+  class TC
+  given tc: TC
+  def f(using TC) = ???
+
+object B:
+  import A.*       // 导入所有 non-given 成员
+  import A.given   // 导入所有 given 成员
+// 合并写法
+object B:
+  import A.{given, *}
+
+// 按给定类型导入
+import A.{given TC}
+import A.{given T1, ..., given Tn}
+
+object Instances:
+  given intOrd: Ordering[Int]
+  given listOrd[T: Ordering]: Ordering[List[T]]
+  given ec: ExecutionContext = ...
+  given im: Monoid[Int]
+// 导入了 intOrd、listOrd、ec
+import Instances.{given Ordering[?], given ExecutionContext}
+// 类型和名称同时使用，类型放后面
+import Instances.{im, given Ordering[?]}
+~~~
 
 
 
