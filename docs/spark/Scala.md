@@ -118,6 +118,14 @@ scala run hello.scala
 
 
 
+## IDEA
+
+![Scala 插件配置](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110544492.png)
+
+![Scala 编译器配置](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110326422.png)
+
+![项目配置 scala](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110821914.png)
+
 ## REPL
 
 REPL(Read-Evaluate-Print-Loop) 是一个命令行解释器。
@@ -1096,6 +1104,8 @@ match 表达式支持匹配的类型：
 - Tuple：`case (x, y) =>`
 - 构造方法：`case Person(first, last) =>`
 - 类：`case p: Person =>`
+
+**match 的类型没用和 case 中的类型匹配，则会抛出 MatchError。**
 
 ::: tabs
 
