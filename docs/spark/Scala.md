@@ -120,11 +120,11 @@ scala run hello.scala
 
 ## IDEA
 
-![Scala 插件配置](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110544492.png)
+![Scala 插件配置](http://47.101.155.205/image-20251022110544492.png)
 
-![Scala 编译器配置](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110326422.png)
+![Scala 编译器配置](http://47.101.155.205/image-20251022110326422.png)
 
-![项目配置 scala](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20251022110821914.png)
+![项目配置 scala](http://47.101.155.205/image-20251022110821914.png)
 
 ## REPL
 
