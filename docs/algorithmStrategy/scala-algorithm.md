@@ -50,23 +50,23 @@ abc
 1. [1456.定长子串中元音的最大数目](https://leetcode.cn/problems/maximum-number-of-vowels-in-a-substring-of-given-length/description/) 1263 √
 2. [643.子数组最大平均数 I](https://leetcode.cn/problems/maximum-average-subarray-i/description/) √
 3. [1343.大小为 K 且平均值大于等于阈值的子数组数目](https://leetcode.cn/problems/number-of-sub-arrays-of-size-k-and-average-greater-than-or-equal-to-threshold/description/) 1317 √
-4. [2090.半径为 k 的子数组平均值](https://leetcode.cn/problems/k-radius-subarray-averages/description/) 1358
-5. [2379.得到 K 个黑块的最少涂色次数](https://leetcode.cn/problems/minimum-recolors-to-get-k-consecutive-black-blocks/) 1360
-6. [2841.几乎唯一子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-almost-unique-subarray/) 1546
-7. [2461.长度为 K 子数组中的最大和](https://leetcode.cn/problems/maximum-sum-of-distinct-subarrays-with-length-k/) 1553
-8. [1423.可获得的最大点数](https://leetcode.cn/problems/maximum-points-you-can-obtain-from-cards/) 1574
+4. [2090.半径为 k 的子数组平均值](https://leetcode.cn/problems/k-radius-subarray-averages/description/) 1358 √
+5. [2379.得到 K 个黑块的最少涂色次数](https://leetcode.cn/problems/minimum-recolors-to-get-k-consecutive-black-blocks/) 1360 √
+6. [2841.几乎唯一子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-almost-unique-subarray/) 1546 √
+7. [2461.长度为 K 子数组中的最大和](https://leetcode.cn/problems/maximum-sum-of-distinct-subarrays-with-length-k/) 1553 √
+8. [1423.可获得的最大点数](https://leetcode.cn/problems/maximum-points-you-can-obtain-from-cards/) 1574 √
 
 
 
 #### 进阶
 
-1. [3679.使库存平衡的最少丢弃次数](https://leetcode.cn/problems/minimum-discards-to-balance-inventory/) 1639
-2. [1052.爱生气的书店老板](https://leetcode.cn/problems/grumpy-bookstore-owner/)
-3. [3439.重新安排会议得到最多空余时间 I](https://leetcode.cn/problems/reschedule-meetings-for-maximum-free-time-i/) 1729
-4. [3694.删除子字符串后不同的终点](https://leetcode.cn/problems/distinct-points-reachable-after-substring-removal/) 1739
-5. [3652.按策略买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-using-strategy/)
-6. [2134.最少交换次数来组合所有的 1 II](https://leetcode.cn/problems/minimum-swaps-to-group-all-1s-together-ii/) 1748
-7. [1652.拆炸弹](https://leetcode.cn/problems/defuse-the-bomb/) 做到 O(n)
+1. [3679.使库存平衡的最少丢弃次数](https://leetcode.cn/problems/minimum-discards-to-balance-inventory/) 1639 √
+2. [1052.爱生气的书店老板](https://leetcode.cn/problems/grumpy-bookstore-owner/) √
+3. [3439.重新安排会议得到最多空余时间 I](https://leetcode.cn/problems/reschedule-meetings-for-maximum-free-time-i/) 1729 √
+4. [3694.删除子字符串后不同的终点](https://leetcode.cn/problems/distinct-points-reachable-after-substring-removal/) 1739 √
+5. [3652.按策略买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-using-strategy/) √
+6. [2134.最少交换次数来组合所有的 1 II](https://leetcode.cn/problems/minimum-swaps-to-group-all-1s-together-ii/) 1748 √
+7. [1652.拆炸弹](https://leetcode.cn/problems/defuse-the-bomb/) 做到 O(n) √
 8. [1297.子串的最大出现次数](https://leetcode.cn/problems/maximum-number-of-occurrences-of-a-substring/) 1748
 9. [2653.滑动子数组的美丽值](https://leetcode.cn/problems/sliding-subarray-beauty/) 1786
 10. [1888.使二进制字符串字符交替的最少反转次数](https://leetcode.cn/problems/minimum-number-of-flips-to-make-the-binary-string-alternating/) 2006
@@ -99,16 +99,16 @@ abc
 
 **基础**
 
-1. [3.无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)
-2. [3090.每个字符最多出现两次的最长子字符串](https://leetcode.cn/problems/maximum-length-substring-with-two-occurrences/) 1329
-3. [1493.删掉一个元素以后全为 1 的最长子数组](https://leetcode.cn/problems/longest-subarray-of-1s-after-deleting-one-element/) 1423
-4. 3634.使数组平衡的最少移除数目 1453
-5. 1208.尽可能使字符串相等 1497
-6. 904.水果成篮 1516
-7. 1695.删除子数组的最大得分 1529
-8. 2958.最多 K 个重复元素的最长子数组 1535
-9. 2024.考试的最大困扰度 1643
-10. 1004.最大连续 1 的个数 III 1656
+1. [3.无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/) √
+2. [3090.每个字符最多出现两次的最长子字符串](https://leetcode.cn/problems/maximum-length-substring-with-two-occurrences/) 1329 √
+3. [1493.删掉一个元素以后全为 1 的最长子数组](https://leetcode.cn/problems/longest-subarray-of-1s-after-deleting-one-element/) 1423 √
+4. [3634.使数组平衡的最少移除数目](https://leetcode.cn/problems/minimum-removals-to-balance-array/) 1453 √
+5. [1208.尽可能使字符串相等](https://leetcode.cn/problems/get-equal-substrings-within-budget/) 1497
+6. [904.水果成篮](https://leetcode.cn/problems/fruit-into-baskets/) 1516
+7. [1695.删除子数组的最大得分](https://leetcode.cn/problems/maximum-erasure-value/) 1529
+8. [2958.最多 K 个重复元素的最长子数组](https://leetcode.cn/problems/length-of-longest-subarray-with-at-most-k-frequency/) 1535
+9. [2024.考试的最大困扰度](https://leetcode.cn/problems/maximize-the-confusion-of-an-exam/) 1643
+10. [1004.最大连续 1 的个数](https://leetcode.cn/problems/max-consecutive-ones-iii/) III 1656
 11. [1658.将 x 减到 0 的最小操作数](https://leetcode.cn/problems/minimum-operations-to-reduce-x-to-zero/) 1817
 
 **进阶**
