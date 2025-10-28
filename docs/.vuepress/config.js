@@ -463,6 +463,10 @@ export default defineUserConfig({
             link: 'Oracle'
           },
           {
+            text: 'MongoDB',
+            link: 'MongoDB'
+          },
+          {
             text: 'InfluxDB',
             link: 'InfluxDB'
           },
