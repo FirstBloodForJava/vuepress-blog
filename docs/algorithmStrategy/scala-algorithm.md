@@ -169,6 +169,15 @@ abc
 
 **恰好型**
 
+恰好问题可以转换成：
+
+- 至多问题：至多 k - 至多 (k-1)。字符串越短越符合答案，求最长。
+- 至少问题：至少 k - 至少 (k+1)。字符串越长越符合答案，求最短。
+
+班级有 10 人年龄至少 20 岁，3 人年龄至少 21，恰好 20 的人数 = 10 - 7。
+
+班级有 10 人年龄至多 20 岁，3 人年龄至多 19，恰好 20 的人数 = 10 - 7。
+
 1. [930.和相同的二元子数组](https://leetcode.cn/problems/binary-subarrays-with-sum/) 1592
 2. [1248.统计「优美子数组」](https://leetcode.cn/problems/count-number-of-nice-subarrays/) 1624
 3. [3306.元音辅音字符串计数 II](https://leetcode.cn/problems/count-of-substrings-containing-every-vowel-and-k-consonants-ii/) 2200
