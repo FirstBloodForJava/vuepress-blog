@@ -67,8 +67,8 @@ abc
 5. [3652.按策略买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-using-strategy/) √
 6. [2134.最少交换次数来组合所有的 1 II](https://leetcode.cn/problems/minimum-swaps-to-group-all-1s-together-ii/) 1748 √
 7. [1652.拆炸弹](https://leetcode.cn/problems/defuse-the-bomb/) 做到 O(n) √
-8. [1297.子串的最大出现次数](https://leetcode.cn/problems/maximum-number-of-occurrences-of-a-substring/) 1748
-9. [2653.滑动子数组的美丽值](https://leetcode.cn/problems/sliding-subarray-beauty/) 1786
+8. [1297.子串的最大出现次数](https://leetcode.cn/problems/maximum-number-of-occurrences-of-a-substring/) 1748 √
+9. [2653.滑动子数组的美丽值](https://leetcode.cn/problems/sliding-subarray-beauty/) 1786 √
 10. [1888.使二进制字符串字符交替的最少反转次数](https://leetcode.cn/problems/minimum-number-of-flips-to-make-the-binary-string-alternating/) 2006
 11. [567.字符串的排列](https://leetcode.cn/problems/permutation-in-string/)
 12. [438.找到字符串中所有字母异位词](https://leetcode.cn/problems/find-all-anagrams-in-a-string/)
@@ -146,21 +146,21 @@ abc
 
 #### 求子数组个数
 
-**越短越合法**
+**越短越合法**：求最大
 
-1. [713.乘积小于 K 的子数组](https://leetcode.cn/problems/subarray-product-less-than-k/)
-2. [3258.统计满足 K 约束的子字符串数量 I](https://leetcode.cn/problems/count-substrings-that-satisfy-k-constraint-i/) 做到 O(n)
-3. [2302.统计得分小于 K 的子数组数目](https://leetcode.cn/problems/count-subarrays-with-score-less-than-k/) 1808
-4. [2762.不间断子数组](https://leetcode.cn/problems/continuous-subarrays/) 1940
+1. [713.乘积小于 K 的子数组](https://leetcode.cn/problems/subarray-product-less-than-k/) √
+2. [3258.统计满足 K 约束的子字符串数量 I](https://leetcode.cn/problems/count-substrings-that-satisfy-k-constraint-i/) 做到 O(n) √
+3. [2302.统计得分小于 K 的子数组数目](https://leetcode.cn/problems/count-subarrays-with-score-less-than-k/) 1808 √
+4. [2762.不间断子数组](https://leetcode.cn/problems/continuous-subarrays/) 1940 √
 5. [LCP 68.美观的花束](https://leetcode.cn/problems/1GxJYY/)
 
 
 
-**越长越合法**
+**越长越合法**：求最小
 
-1. [1358.包含所有三种字符的子字符串数目](https://leetcode.cn/problems/number-of-substrings-containing-all-three-characters/) 1646
-2. [2962.统计最大元素出现至少 K 次的子数组](https://leetcode.cn/problems/count-subarrays-where-max-element-appears-at-least-k-times/) 1701
-3. [3325.字符至少出现 K 次的子字符串 I 做到](https://leetcode.cn/problems/count-substrings-with-k-frequency-characters-i/) O(n)
+1. [1358.包含所有三种字符的子字符串数目](https://leetcode.cn/problems/number-of-substrings-containing-all-three-characters/) 1646 √
+2. [2962.统计最大元素出现至少 K 次的子数组](https://leetcode.cn/problems/count-subarrays-where-max-element-appears-at-least-k-times/) 1701 √
+3. [3325.字符至少出现 K 次的子字符串 I 做到](https://leetcode.cn/problems/count-substrings-with-k-frequency-characters-i/) O(n) √
 4. [2799.统计完全子数组的数目](https://leetcode.cn/problems/count-complete-subarrays-in-an-array/) 做到 O(n)
 5. [2537.统计好子数组的数目](https://leetcode.cn/problems/count-the-number-of-good-subarrays/) 1892
 6. [3298.统计重新排列后包含另一个字符串的子字符串数目 II](https://leetcode.cn/problems/count-substrings-that-can-be-rearranged-to-contain-a-string-ii/) 1909 同 76 题
@@ -178,19 +178,161 @@ abc
 
 班级有 10 人年龄至多 20 岁，3 人年龄至多 19，恰好 20 的人数 = 10 - 7。
 
-1. [930.和相同的二元子数组](https://leetcode.cn/problems/binary-subarrays-with-sum/) 1592
-2. [1248.统计「优美子数组」](https://leetcode.cn/problems/count-number-of-nice-subarrays/) 1624
-3. [3306.元音辅音字符串计数 II](https://leetcode.cn/problems/count-of-substrings-containing-every-vowel-and-k-consonants-ii/) 2200
-4. [992.K 个不同整数的子数组](https://leetcode.cn/problems/subarrays-with-k-different-integers/) 2210
+1. [930.和相同的二元子数组](https://leetcode.cn/problems/binary-subarrays-with-sum/) 1592 √题解
+2. [1248.统计「优美子数组」](https://leetcode.cn/problems/count-number-of-nice-subarrays/) 1624 √
+3. [3306.元音辅音字符串计数 II](https://leetcode.cn/problems/count-of-substrings-containing-every-vowel-and-k-consonants-ii/) 2200 √题解
+4. [992.K 个不同整数的子数组](https://leetcode.cn/problems/subarrays-with-k-different-integers/) 2210 √
 
 
 
 #### 其它
 
-1. [825.适龄的朋友](https://leetcode.cn/problems/friends-of-appropriate-ages/) 1697
-2. [2401.最长优雅子数组](https://leetcode.cn/problems/longest-nice-subarray/) 1750
+1. [825.适龄的朋友](https://leetcode.cn/problems/friends-of-appropriate-ages/) 1697 √ 题解
+2. [2401.最长优雅子数组](https://leetcode.cn/problems/longest-nice-subarray/) 1750 √ 题解
 3. [1156.单字符重复子串的最大长度](https://leetcode.cn/problems/swap-for-longest-repeated-character-substring/) 1787 有简单做法
 4. [424.替换后的最长重复字符](https://leetcode.cn/problems/longest-repeating-character-replacement/)
 5. [438.找到字符串中所有字母异位词](https://leetcode.cn/problems/find-all-anagrams-in-a-string/) 有定长滑窗/不定长滑窗两种写法
 6. [1712.将数组分成三个子数组的方案数](https://leetcode.cn/problems/ways-to-split-array-into-three-subarrays/) 2079
 7. [LCR 180.文件组合](https://leetcode.cn/problems/he-wei-sde-lian-xu-zheng-shu-xu-lie-lcof/)
+
+
+
+## 双指针
+
+### 1. 单序列双指针
+
+#### 相向双指针
+
+两个指针 left = 0，right = n - 1，在数组的两端，向中间移动。
+
+1. [344.反转字符串](https://leetcode.cn/problems/reverse-string/)
+2. [3643.垂直翻转子矩阵](https://leetcode.cn/problems/flip-square-submatrix-vertically/) 1235
+3. [345.反转字符串中的元音字母](https://leetcode.cn/problems/reverse-vowels-of-a-string/)
+4. [125.验证回文串](https://leetcode.cn/problems/valid-palindrome/)
+5. [1750.删除字符串两端相同字符后的最短长度](https://leetcode.cn/problems/minimum-length-of-string-after-deleting-similar-ends/) 1502
+6. [2105. 给植物浇水 II](https://leetcode.cn/problems/watering-plants-ii/) 1507
+7. [977. 有序数组的平方](https://leetcode.cn/problems/squares-of-a-sorted-array/) 做到 O(*n*)
+8. [658. 找到 K 个最接近的元素](https://leetcode.cn/problems/find-k-closest-elements/)
+9. [1471. 数组中的 K 个最强值](https://leetcode.cn/problems/the-k-strongest-values-in-an-array/) 用双指针解决
+10. [167. 两数之和 II - 输入有序数组](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/)
+11. [633. 平方数之和](https://leetcode.cn/problems/sum-of-square-numbers/)
+12. [2824. 统计和小于目标的下标对数目](https://leetcode.cn/problems/count-pairs-whose-sum-is-less-than-target/)
+13. [2563. 统计公平数对的数目](https://leetcode.cn/problems/count-the-number-of-fair-pairs/)
+14. [LCP 28. 采购方案](https://leetcode.cn/problems/4xy4Wx/) 同 2824 题
+15. [15. 三数之和](https://leetcode.cn/problems/3sum/)
+16. [16. 最接近的三数之和](https://leetcode.cn/problems/3sum-closest/)
+17. [18. 四数之和](https://leetcode.cn/problems/4sum/)
+18. [611. 有效三角形的个数](https://leetcode.cn/problems/valid-triangle-number/)
+19. [1577. 数的平方等于两数乘积的方法数](https://leetcode.cn/problems/number-of-ways-where-square-of-number-is-equal-to-product-of-two-numbers/) 用双指针实现
+20. [923. 三数之和的多种可能](https://leetcode.cn/problems/3sum-with-multiplicity/) 1711
+21. [948. 令牌放置](https://leetcode.cn/problems/bag-of-tokens/) 1762
+22. [11. 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/)
+23. [42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/)
+24. [1616. 分割两个字符串得到回文串](https://leetcode.cn/problems/split-two-strings-to-make-palindrome/) 1868
+25. [1498. 满足条件的子序列数目](https://leetcode.cn/problems/number-of-subsequences-that-satisfy-the-given-sum-condition/) 2276
+26. [1782. 统计点对的数目](https://leetcode.cn/problems/count-pairs-of-nodes/) 2457
+
+
+
+#### 同向双指针
+
+两个指针的移动方向相同，滑动窗口。
+
+1. [611. 有效三角形的个数](https://leetcode.cn/problems/valid-triangle-number/)
+2. [3649. 完美对的数目](https://leetcode.cn/problems/number-of-perfect-pairs/) 1716
+3. [1574. 删除最短的子数组使剩余数组有序](https://leetcode.cn/problems/shortest-subarray-to-be-removed-to-make-array-sorted/) 1932
+4. [2972. 统计移除递增子数组的数目 II](https://leetcode.cn/problems/count-the-number-of-incremovable-subarrays-ii/) 2153
+5. [2122. 还原原数组](https://leetcode.cn/problems/recover-the-original-array/) 2159
+6. [2234. 花园的最大总美丽值](https://leetcode.cn/problems/maximum-total-beauty-of-the-gardens/) 2562
+7. [581. 最短无序连续子数组](https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/)
+
+
+
+
+
+
+
+#### 背向双指针
+
+两个指针从数组的同一位置出发，一个向左，一个向右。
+
+1. [1793. 好子数组的最大分数](https://leetcode.cn/problems/maximum-score-of-a-good-subarray/) 1946
+2. [976. 三角形的最大周长](https://leetcode.cn/problems/largest-perimeter-triangle/) 思考题：改成最小周长（原题不是背向双指针，思考题是）
+
+
+
+#### 原地修改
+
+1. [27. 移除元素](https://leetcode.cn/problems/remove-element/)
+2. [26. 删除有序数组中的重复项](https://leetcode.cn/problems/remove-duplicates-from-sorted-array/)
+3. [80. 删除有序数组中的重复项 II](https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/)
+4. [2273. 移除字母异位词后的结果数组](https://leetcode.cn/problems/find-resultant-array-after-removing-anagrams/)
+5. [3684. 至多 K 个不同元素的最大和](https://leetcode.cn/problems/maximize-sum-of-at-most-k-distinct-elements/)
+6. [283. 移动零](https://leetcode.cn/problems/move-zeroes/)
+7. [905. 按奇偶排序数组](https://leetcode.cn/problems/sort-array-by-parity/)
+8. [922. 按奇偶排序数组 II](https://leetcode.cn/problems/sort-array-by-parity-ii/)
+9. [3467. 将数组按照奇偶性转化](https://leetcode.cn/problems/transform-array-by-parity/)
+10. [2460. 对数组执行操作](https://leetcode.cn/problems/apply-operations-to-an-array/)
+11. [1089. 复写零](https://leetcode.cn/problems/duplicate-zeros/)
+12. [75. 颜色分类](https://leetcode.cn/problems/sort-colors/)
+
+
+
+#### 思维拓展
+
+1. [1920. 基于排列构建数组](https://leetcode.cn/problems/build-array-from-permutation/)
+2. [442. 数组中重复的数据](https://leetcode.cn/problems/find-all-duplicates-in-an-array/)
+3. [448. 找到所有数组中消失的数字](https://leetcode.cn/problems/find-all-numbers-disappeared-in-an-array/)
+4. [41. 缺失的第一个正数](https://leetcode.cn/problems/first-missing-positive/)
+
+
+
+### 2. 双序列双指针
+
+#### 双指针
+
+1. [2109. 向字符串添加空格](https://leetcode.cn/problems/adding-spaces-to-a-string/) 1315
+2. [2540. 最小公共值](https://leetcode.cn/problems/minimum-common-value/) 做到 O(*n*+*m*)
+3. [88. 合并两个有序数组](https://leetcode.cn/problems/merge-sorted-array/) 做到 O(*n*+*m*)
+4. [2570. 合并两个二维数组 - 求和法](https://leetcode.cn/problems/merge-two-2d-arrays-by-summing-values/) 做到 O(*n*+*m*)
+5. [350. 两个数组的交集 II](https://leetcode.cn/problems/intersection-of-two-arrays-ii/) 解决进阶问题
+6. [LCP 18. 早餐组合](https://leetcode.cn/problems/2vYnGI/)
+7. [1855. 下标对中的最大距离](https://leetcode.cn/problems/maximum-distance-between-a-pair-of-values/) 1515
+8. [1385. 两个数组间的距离值](https://leetcode.cn/problems/find-the-distance-value-between-two-arrays/)
+9. [925. 长按键入](https://leetcode.cn/problems/long-pressed-name/) 做到 O(*n*+*m*)
+10. [809. 情感丰富的文字](https://leetcode.cn/problems/expressive-words/) 1605
+11. [2337. 移动片段得到字符串](https://leetcode.cn/problems/move-pieces-to-obtain-a-string/) 1693
+12. [777. 在 LR 字符串中交换相邻字符](https://leetcode.cn/problems/swap-adjacent-in-lr-string/) 同 2337 题
+13. [844. 比较含退格的字符串](https://leetcode.cn/problems/backspace-string-compare/) 做到 O(1) 额外空间
+14. [986. 区间列表的交集](https://leetcode.cn/problems/interval-list-intersections/) 做到 O(*n*+*m*)
+15. [面试题 16.06. 最小差](https://leetcode.cn/problems/smallest-difference-lcci/)
+16. [1537. 最大得分](https://leetcode.cn/problems/get-the-maximum-score/) 1961
+
+
+
+#### 判断子序列
+
+1. [392. 判断子序列](https://leetcode.cn/problems/is-subsequence/)
+2. [524. 通过删除字母匹配到字典里最长单词](https://leetcode.cn/problems/longest-word-in-dictionary-through-deleting/)
+3. [2486. 追加字符以获得子序列](https://leetcode.cn/problems/append-characters-to-string-to-make-subsequence/) 1363
+4. [2825. 循环增长使字符串子序列等于另一个字符串](https://leetcode.cn/problems/make-string-a-subsequence-using-cyclic-increments/) 1415
+5. [1023. 驼峰式匹配](https://leetcode.cn/problems/camelcase-matching/) 1537
+6. [3132. 找出与数组相加的整数 II](https://leetcode.cn/problems/find-the-integer-added-to-array-ii/) 1620
+7. [522. 最长特殊序列 II](https://leetcode.cn/problems/longest-uncommon-subsequence-ii/) 约 1700
+8. [1898. 可移除字符的最大数目](https://leetcode.cn/problems/maximum-number-of-removable-characters/) 1913
+9. [2565. 最少得分子序列](https://leetcode.cn/problems/subsequence-with-the-minimum-score/) 2432
+10. [3302. 字典序最小的合法序列](https://leetcode.cn/problems/find-the-lexicographically-smallest-valid-sequence/) 2474
+
+
+
+### 3. 三指针
+
+1. [2367. 等差三元组的数目](https://leetcode.cn/problems/number-of-arithmetic-triplets/) 做到 O(*n*)
+2. [2563. 统计公平数对的数目](https://leetcode.cn/problems/count-the-number-of-fair-pairs/) 1721
+3. [795. 区间子数组个数](https://leetcode.cn/problems/number-of-subarrays-with-bounded-maximum/) 1817
+4. [2444. 统计定界子数组的数目](https://leetcode.cn/problems/count-subarrays-with-fixed-bounds/) 2093
+5. [3347. 执行操作后元素的最高频率 II](https://leetcode.cn/problems/maximum-frequency-of-an-element-after-performing-operations-ii/) 2156
+6. [3464. 正方形上的点之间的最大距离](https://leetcode.cn/problems/maximize-the-distance-between-points-on-a-square/) 2806 *k* 个指针
+
+
+
