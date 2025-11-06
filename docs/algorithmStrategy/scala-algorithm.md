@@ -231,6 +231,7 @@ abc
 24. [1616. 分割两个字符串得到回文串](https://leetcode.cn/problems/split-two-strings-to-make-palindrome/) 1868
 25. [1498. 满足条件的子序列数目](https://leetcode.cn/problems/number-of-subsequences-that-satisfy-the-given-sum-condition/) 2276
 26. [1782. 统计点对的数目](https://leetcode.cn/problems/count-pairs-of-nodes/) 2457
+27. [581. 最短无序连续子数组](https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/) √
 
 
 
@@ -238,13 +239,12 @@ abc
 
 两个指针的移动方向相同，滑动窗口。
 
-1. [611. 有效三角形的个数](https://leetcode.cn/problems/valid-triangle-number/)
+1. [611. 有效三角形的个数](https://leetcode.cn/problems/valid-triangle-number/) √
 2. [3649. 完美对的数目](https://leetcode.cn/problems/number-of-perfect-pairs/) 1716
 3. [1574. 删除最短的子数组使剩余数组有序](https://leetcode.cn/problems/shortest-subarray-to-be-removed-to-make-array-sorted/) 1932
 4. [2972. 统计移除递增子数组的数目 II](https://leetcode.cn/problems/count-the-number-of-incremovable-subarrays-ii/) 2153
 5. [2122. 还原原数组](https://leetcode.cn/problems/recover-the-original-array/) 2159
 6. [2234. 花园的最大总美丽值](https://leetcode.cn/problems/maximum-total-beauty-of-the-gardens/) 2562
-7. [581. 最短无序连续子数组](https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/)
 
 
 
