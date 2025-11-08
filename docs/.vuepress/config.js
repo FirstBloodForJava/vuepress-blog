@@ -70,7 +70,7 @@ export default defineUserConfig({
           },
           {
             text: '数据结构',
-            link: '数据结构'
+            link: 'data-structure'
           },
           {
             text: 'scala-algorithm',
