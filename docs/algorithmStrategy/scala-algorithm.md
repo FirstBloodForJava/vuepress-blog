@@ -336,6 +336,56 @@ abc
 
 
 
+## 分组循环
+
+流程：
+
+- 外层循环找组的开始点，进入内层循环，内层循环结束，记录答案
+- 内层循环找组的结束点
+
+
+
+1. [1446. 连续字符](https://leetcode.cn/problems/consecutive-characters/) 1165
+2. [1869. 哪种连续子字符串更长](https://leetcode.cn/problems/longer-contiguous-segments-of-ones-than-zeros/) 1205
+3. [2414. 最长的字母序连续子字符串的长度](https://leetcode.cn/problems/length-of-the-longest-alphabetical-continuous-substring/) 1222
+4. [3456. 找出长度为 K 的特殊子字符串](https://leetcode.cn/problems/find-special-substring-of-length-k/) 1244
+5. [2273. 移除字母异位词后的结果数组](https://leetcode.cn/problems/find-resultant-array-after-removing-anagrams/) 1295
+6. [2348. 全 0 子数组的数目](https://leetcode.cn/problems/number-of-zero-filled-subarrays/) 1316
+7. [1513. 仅含 1 的子串数](https://leetcode.cn/problems/number-of-substrings-with-only-1s/) 1351
+8. [1957. 删除字符使字符串变好](https://leetcode.cn/problems/delete-characters-to-make-fancy-string/) 1358
+9. [674. 最长连续递增序列](https://leetcode.cn/problems/longest-continuous-increasing-subsequence/)
+10. [3708. 最长斐波那契子数组](https://leetcode.cn/problems/longest-fibonacci-subarray/) 1381 做到 O(*n*)
+11. [696. 计数二进制子串](https://leetcode.cn/problems/count-binary-substrings/)
+12. [978. 最长湍流子数组](https://leetcode.cn/problems/longest-turbulent-subarray/) 1393
+13. [2110. 股票平滑下跌阶段的数目](https://leetcode.cn/problems/number-of-smooth-descent-periods-of-a-stock/) 1408
+14. [228. 汇总区间](https://leetcode.cn/problems/summary-ranges/)
+15. [2760. 最长奇偶子数组](https://leetcode.cn/problems/longest-even-odd-subarray-with-threshold/) 1420
+16. [1887. 使数组元素相等的减少操作次数](https://leetcode.cn/problems/reduction-operations-to-make-the-array-elements-equal/) 1428
+17. [845. 数组中的最长山脉](https://leetcode.cn/problems/longest-mountain-in-array/) 1437
+18. [2038. 如果相邻两个颜色均相同则删除当前颜色](https://leetcode.cn/problems/remove-colored-pieces-if-both-neighbors-are-the-same-color/) 1468
+19. [2900. 最长相邻不相等子序列 I](https://leetcode.cn/problems/longest-unequal-adjacent-groups-subsequence-i/) 1469
+20. [1759. 统计同质子字符串的数目](https://leetcode.cn/problems/count-number-of-homogenous-substrings/) 1491
+21. [3011. 判断一个数组是否可以变为有序](https://leetcode.cn/problems/find-if-array-can-be-sorted/) 1497
+22. [1578. 使绳子变成彩色的最短时间](https://leetcode.cn/problems/minimum-time-to-make-rope-colorful/) 1574
+23. [1839. 所有元音按顺序排布的最长子字符串](https://leetcode.cn/problems/longest-substring-of-all-vowels-in-order/) 1580
+24. [2765. 最长交替子数组](https://leetcode.cn/problems/longest-alternating-subarray/) 1581
+25. [3255. 长度为 K 的子数组的能量值 II](https://leetcode.cn/problems/find-the-power-of-k-size-subarrays-ii/) 1595
+26. [3350. 检测相邻递增子数组 II](https://leetcode.cn/problems/adjacent-increasing-subarrays-detection-ii/) 1600
+27. [3105. 最长的严格递增或递减子数组](https://leetcode.cn/problems/longest-strictly-increasing-or-strictly-decreasing-subarray/)
+28. [838. 推多米诺](https://leetcode.cn/problems/push-dominoes/) 1638
+29. [467. 环绕字符串中唯一的子字符串](https://leetcode.cn/problems/unique-substrings-in-wraparound-string/) 约 1700
+30. [3499. 操作后最大活跃区段数 I](https://leetcode.cn/problems/maximize-active-section-with-trade-i/) 1729
+31. [413. 等差数列划分](https://leetcode.cn/problems/arithmetic-slices/)
+32. [68. 文本左右对齐](https://leetcode.cn/problems/text-justification/)
+33. [135. 分发糖果](https://leetcode.cn/problems/candy/)
+34. [2948. 交换得到字典序最小的数组](https://leetcode.cn/problems/make-lexicographically-smallest-array-by-swapping-elements/) 2047
+35. [2593. 标记所有元素后数组的分数](https://leetcode.cn/problems/find-score-of-an-array-after-marking-all-elements/) 做到 O(*n*)
+36. [3640. 三段式数组 II](https://leetcode.cn/problems/trionic-array-ii/) 2278
+
+
+
+
+
 ## 枚举技巧
 
 
