@@ -118,18 +118,19 @@ abc
 3. [1838.最高频元素的频数](https://leetcode.cn/problems/frequency-of-the-most-frequent-element/) 1876
 4. [2516.每种字符至少取 K 个](https://leetcode.cn/problems/take-k-of-each-character-from-left-and-right/) 1948
 5. [2831.找出最长等值子数组](https://leetcode.cn/problems/find-the-longest-equal-subarray/) 1976
-6. [2271.毯子覆盖的最多白色砖块数](https://leetcode.cn/problems/find-the-longest-equal-subarray/) 2022
-7. [2106.摘水果](https://leetcode.cn/problems/maximum-fruits-harvested-after-at-most-k-steps/) 2062
-8. [2555.两个线段获得的最多奖品](https://leetcode.cn/problems/maximize-win-from-two-segments/) 2081
-9. [2009.使数组连续的最少操作数](https://leetcode.cn/problems/minimum-number-of-operations-to-make-array-continuous/) 2084
-10. [1610.可见点的最大数目](https://leetcode.cn/problems/maximum-number-of-visible-points/) 2147
-11. [2781.最长合法子字符串的长度](https://leetcode.cn/problems/length-of-the-longest-valid-substring/) 2204
-12. [3411.最长乘积等价子数组](https://leetcode.cn/problems/maximum-subarray-with-equal-products/) 非暴力做法约 2300
-13. [3413.收集连续 K 个袋子可以获得的最多硬币数量](https://leetcode.cn/problems/maximum-coins-from-k-consecutive-bags/) 2374
-14. [395.至少有 K 个重复字符的最长子串](https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/)
-15. [1763.最长的美好子字符串](https://leetcode.cn/problems/longest-nice-substring/) 非暴力做法
-16. [2968.执行操作使频率分数最大](https://leetcode.cn/problems/apply-operations-to-maximize-frequency-score/) 2444
-17. [1040.移动石子直到连续 II](https://leetcode.cn/problems/moving-stones-until-consecutive-ii/) 2456
+6. [1156.单字符重复子串的最大长度](https://leetcode.cn/problems/swap-for-longest-repeated-character-substring/) 1787 题 2831 变体 k = 1 变替换，可解决
+7. [2271.毯子覆盖的最多白色砖块数](https://leetcode.cn/problems/find-the-longest-equal-subarray/) 2022
+8. [2106.摘水果](https://leetcode.cn/problems/maximum-fruits-harvested-after-at-most-k-steps/) 2062
+9. [2555.两个线段获得的最多奖品](https://leetcode.cn/problems/maximize-win-from-two-segments/) 2081
+10. [2009.使数组连续的最少操作数](https://leetcode.cn/problems/minimum-number-of-operations-to-make-array-continuous/) 2084
+11. [1610.可见点的最大数目](https://leetcode.cn/problems/maximum-number-of-visible-points/) 2147
+12. [2781.最长合法子字符串的长度](https://leetcode.cn/problems/length-of-the-longest-valid-substring/) 2204
+13. [3411.最长乘积等价子数组](https://leetcode.cn/problems/maximum-subarray-with-equal-products/) 非暴力做法约 2300
+14. [3413.收集连续 K 个袋子可以获得的最多硬币数量](https://leetcode.cn/problems/maximum-coins-from-k-consecutive-bags/) 2374
+15. [395.至少有 K 个重复字符的最长子串](https://leetcode.cn/problems/longest-substring-with-at-least-k-repeating-characters/)
+16. [1763.最长的美好子字符串](https://leetcode.cn/problems/longest-nice-substring/) 非暴力做法
+17. [2968.执行操作使频率分数最大](https://leetcode.cn/problems/apply-operations-to-maximize-frequency-score/) 2444
+18. [1040.移动石子直到连续 II](https://leetcode.cn/problems/moving-stones-until-consecutive-ii/) 2456
 
 
 
