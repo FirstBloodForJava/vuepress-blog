@@ -442,3 +442,32 @@ testMethod2()这种执行也会导致method2中方法事务失效。
 1. 调用`@Transaction`注解的方法处加上`@Transaction`注解。
 2. 该方法注入自己这个对象，调用`@Transaction`修饰的方法时，通过注入的对象调用。
 
+
+
+### 5.2、场景二
+
+事务隔离级别失效。
+
+~~~java
+@Transactional(rollbackFor = Exception.class)
+public boolean method1(boolean flag){
+    try {
+        // this 调用，并没有执行事务的 AOP 机制，传播级别失效
+        // 最终 testMethod1 发送方法异常前的写入操作，执行成功
+        this.testMethod1();
+    } catch (Exception e) {
+        
+    }
+   	return true;
+}
+
+@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+public boolean testMethod1(){
+    // ... 数据写入操作
+    // 业务原因抛出异常，要回滚新的事务
+    throw new Exception("")
+	return true;
+}
+
+~~~
+
