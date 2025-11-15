@@ -385,6 +385,204 @@ abc
 
 
 
+## 二分
+
+### 二分查找
+
+~~~scala
+// nums 非递减数组, 长为 n
+// 求 大于等于 x 的 第一个 index
+def lowerBound(nums: Array[Int], x: Int): Int = {
+    var r = nums.length - 1
+    var l = 0
+    // 存在元素
+    while (l <= r) {
+      	val mid = l + (r - l) / 2
+      	if (nums(mid) >= x) {
+        	r = mid - 1
+      	} else {
+        	l = mid + 1
+      	}
+    }
+    /*
+    注意循环结束时: l == r + 1
+    如果 全部 nums(i) >= x, l = 0, r = -1
+    如果 全部 nums(i) < x, l = n, r = n - 1
+    如果存在 nums(i) >= x, 且 nums(i) < x
+    退出循环前 mid == l == r
+      如果 nums(l) < x, 则 l = r + 1, 因为 r是上次减 1 的到的，所以 nums(r+1) >= x, nums(l) >= x
+      如果 nums(l) >= x, 则 l = l, r = r - 1, nums(l) >= x
+      所以 l 就是 第一个大于等于 x 的 index
+    */
+	l
+}
+~~~
+
+| 需求                       | 写法                   | 不存在结果 |
+| -------------------------- | ---------------------- | ---------- |
+| \>= x 的第一个元素下标     | lowerBound(nums, x)    | n          |
+| \> x 的第一个元素下标      | lowerBound(nums, x+1)  | n          |
+| \< x 的最后一个元素的下标  | lowerBound(nums, x) -1 | -1         |
+| \<= x 的最后一个元素的下标 | lowerBound(nums, x+1)  | -1         |
+
+**基础**：
+
+1. [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)
+2. [35. 搜索插入位置](https://leetcode.cn/problems/search-insert-position/)
+3. [704. 二分查找](https://leetcode.cn/problems/binary-search/)
+4. [744. 寻找比目标字母大的最小字母](https://leetcode.cn/problems/find-smallest-letter-greater-than-target/)
+5. [2529. 正整数和负整数的最大计数](https://leetcode.cn/problems/maximum-count-of-positive-integer-and-negative-integer/) 做到 O(log*n*)
+
+**进阶**：
+
+1. [2300. 咒语和药水的成功对数](https://leetcode.cn/problems/successful-pairs-of-spells-and-potions/) 1477
+2. [1385. 两个数组间的距离值](https://leetcode.cn/problems/find-the-distance-value-between-two-arrays/)
+3. [2389. 和有限的最长子序列](https://leetcode.cn/problems/longest-subsequence-with-limited-sum/)
+4. [1170. 比较字符串最小字母出现频次](https://leetcode.cn/problems/compare-strings-by-frequency-of-the-smallest-character/)
+5. [2080. 区间内查询数字的频率](https://leetcode.cn/problems/range-frequency-queries/) 1702
+6. [3488. 距离最小相等元素查询](https://leetcode.cn/problems/closest-equal-element-queries/) 做法不止一种
+7. [2563. 统计公平数对的数目](https://leetcode.cn/problems/count-the-number-of-fair-pairs/) 1721
+8. [2070. 每一个查询的最大美丽值](https://leetcode.cn/problems/most-beautiful-item-for-each-query/) 1724
+9. [1146. 快照数组](https://leetcode.cn/problems/snapshot-array/) 1771
+10. [981. 基于时间的键值存储](https://leetcode.cn/problems/time-based-key-value-store/) 同 1146 题
+11. [3508. 设计路由器](https://leetcode.cn/problems/implement-router/) 1851
+12. [658. 找到 K 个最接近的元素](https://leetcode.cn/problems/find-k-closest-elements/)
+13. [1818. 绝对差值和](https://leetcode.cn/problems/minimum-absolute-sum-difference/) 1934
+14. [911. 在线选举](https://leetcode.cn/problems/online-election/) 2001
+15. [LCP 08. 剧情触发时间](https://leetcode.cn/problems/ju-qing-hong-fa-shi-jian/)
+
+
+
+### 二分答案
+
+
+
+**求最小**：
+
+1. [1283. 使结果不超过阈值的最小除数](https://leetcode.cn/problems/find-the-smallest-divisor-given-a-threshold/) 1542
+2. [2187. 完成旅途的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-trips/) 1641
+3. [1011. 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/) 1725
+4. [875. 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/) 1766
+5. [3296. 移山所需的最少秒数](https://leetcode.cn/problems/minimum-number-of-seconds-to-make-mountain-height-zero/)
+6. [3639. 变为活跃状态的最小时间](https://leetcode.cn/problems/minimum-time-to-activate-string/) 1853
+7. [475. 供暖器](https://leetcode.cn/problems/heaters/)
+8. [2594. 修车的最少时间](https://leetcode.cn/problems/minimum-time-to-repair-cars/) 1915
+9. [1482. 制作 m 束花所需的最少天数](https://leetcode.cn/problems/minimum-number-of-days-to-make-m-bouquets/) 1946
+10. [3048. 标记所有下标的最早秒数 I](https://leetcode.cn/problems/earliest-second-to-mark-indices-i/) 2263
+11. [1870. 准时到达的列车最小时速](https://leetcode.cn/problems/minimum-speed-to-arrive-on-time/) 1676 避免浮点数
+12. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735 浮点二分
+
+
+
+**求最大**：
+
+1. [275. H 指数 II](https://leetcode.cn/problems/h-index-ii/)
+2. [2226. 每个小孩最多能分到多少糖果](https://leetcode.cn/problems/maximum-candies-allocated-to-k-children/) 1646
+3. [2982. 找出出现至少三次的最长特殊子字符串 II](https://leetcode.cn/problems/find-longest-special-substring-that-occurs-thrice-ii/) 1773
+4. [2576. 求出最多标记下标](https://leetcode.cn/problems/find-the-maximum-number-of-marked-indices/) 1843
+5. [1898. 可移除字符的最大数目](https://leetcode.cn/problems/maximum-number-of-removable-characters/) 1913
+6. [1802. 有界数组中指定下标处的最大值](https://leetcode.cn/problems/maximum-value-at-a-given-index-in-a-bounded-array/) 1929
+7. [1642. 可以到达的最远建筑](https://leetcode.cn/problems/furthest-building-you-can-reach/) 1962
+8. [2861. 最大合金数](https://leetcode.cn/problems/maximum-number-of-alloys/) 1981
+9. [3007. 价值和小于等于 K 的最大数字](https://leetcode.cn/problems/maximum-number-that-sum-of-the-prices-is-less-than-or-equal-to-k/) 2258
+10. [2141. 同时运行 N 台电脑的最长时间](https://leetcode.cn/problems/maximum-running-time-of-n-computers/) 2265
+11. [2258. 逃离火灾](https://leetcode.cn/problems/escape-the-spreading-fire/) 2347
+12. [2071. 你可以安排的最多任务数目](https://leetcode.cn/problems/maximum-number-of-tasks-you-can-assign/) 2648
+13. [LCP 78. 城墙防线](https://leetcode.cn/problems/Nsibyl/)
+
+
+
+**二分间接值**：
+
+1. [3143. 正方形中的最多点数](https://leetcode.cn/problems/maximum-points-inside-the-square/) 1697
+2. [1648. 销售价值减少的颜色球](https://leetcode.cn/problems/sell-diminishing-valued-colored-balls/) 2050
+
+
+
+### 最小化最大值
+
+1. [410. 分割数组的最大值](https://leetcode.cn/problems/split-array-largest-sum/)
+2. [2064. 分配给商店的最多商品的最小值](https://leetcode.cn/problems/minimized-maximum-of-products-distributed-to-any-store/) 1886
+3. [3613. 最小化连通分量的最大成本](https://leetcode.cn/problems/minimize-maximum-component-cost/) 约 1900
+4. [1760. 袋子里最少数目的球](https://leetcode.cn/problems/minimum-limit-of-balls-in-a-bag/) 1940
+5. [1631. 最小体力消耗路径](https://leetcode.cn/problems/path-with-minimum-effort/) 1948
+6. [2439. 最小化数组中的最大值](https://leetcode.cn/problems/minimize-maximum-of-array/) 1965
+7. [2560. 打家劫舍 IV](https://leetcode.cn/problems/house-robber-iv/) 2081
+8. [778. 水位上升的泳池中游泳](https://leetcode.cn/problems/swim-in-rising-water/) 2097 相当于最小化路径最大值
+9. [2616. 最小化数对的最大差值](https://leetcode.cn/problems/minimize-the-maximum-difference-of-pairs/) 2155
+10. [3419. 图的最大边权的最小值](https://leetcode.cn/problems/minimize-the-maximum-edge-weight-of-graph/) 2243
+11. [2513. 最小化两个数组中的最大值](https://leetcode.cn/problems/minimize-the-maximum-of-two-arrays/) 2302
+12. [3733. 完成所有送货任务的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-all-deliveries/) 同 2513 题
+13. [3399. 字符相同的最短子字符串 II](https://leetcode.cn/problems/smallest-substring-with-identical-characters-ii/) 2376
+14. [3605. 数组的最小稳定性因子](https://leetcode.cn/problems/minimum-stability-factor-of-array/) 2410
+15. [LCP 12. 小张刷题计划](https://leetcode.cn/problems/xiao-zhang-shua-ti-ji-hua/)
+
+
+
+### 最大化最小值
+
+1. [3281. 范围内整数的最大得分](https://leetcode.cn/problems/maximize-score-of-numbers-in-ranges/) 1768
+2. [3620. 恢复网络路径](https://leetcode.cn/problems/network-recovery-pathways/) 1998
+3. [2517. 礼盒的最大甜蜜度](https://leetcode.cn/problems/maximum-tastiness-of-candy-basket/) 2021
+4. [1552. 两球之间的磁力](https://leetcode.cn/problems/magnetic-force-between-two-balls/) 同 2517 题
+5. [3710. 最大划分因子](https://leetcode.cn/problems/maximum-partition-factor/) 2135
+6. [2812. 找出最安全路径](https://leetcode.cn/problems/find-the-safest-path-in-a-grid/) 2154
+7. [2528. 最大化城市的最小电量](https://leetcode.cn/problems/maximize-the-minimum-powered-city/) 2236
+8. [3600. 升级后最大生成树稳定性](https://leetcode.cn/problems/maximize-spanning-tree-stability-with-upgrades/) 2301 做法不止一种
+9. [3449. 最大化游戏分数的最小值](https://leetcode.cn/problems/maximize-the-minimum-game-score/) 2748
+10. [3464. 正方形上的点之间的最大距离](https://leetcode.cn/problems/maximize-the-distance-between-points-on-a-square/) 2806
+
+
+
+### 第 K 小/大
+
+1. [668. 乘法表中第 K 小的数](https://leetcode.cn/problems/kth-smallest-number-in-multiplication-table/)
+2. [378. 有序矩阵中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-sorted-matrix/)
+3. [719. 找出第 K 小的数对距离](https://leetcode.cn/problems/find-k-th-smallest-pair-distance/)
+4. [878. 第 N 个神奇数字](https://leetcode.cn/problems/nth-magical-number/) 1897
+5. [1201. 丑数 III](https://leetcode.cn/problems/ugly-number-iii/) 2039
+6. [793. 阶乘函数后 K 个零](https://leetcode.cn/problems/preimage-size-of-factorial-zeroes-function/) 2100
+7. [373. 查找和最小的 K 对数字](https://leetcode.cn/problems/find-k-pairs-with-smallest-sums/)
+8. [1439. 有序矩阵中的第 k 个最小数组和](https://leetcode.cn/problems/find-the-kth-smallest-sum-of-a-matrix-with-sorted-rows/) 2134
+9. [786. 第 K 个最小的质数分数](https://leetcode.cn/problems/k-th-smallest-prime-fraction/) 2169
+10. [3116. 单面值组合的第 K 小金额](https://leetcode.cn/problems/kth-smallest-amount-with-single-denomination-combination/) 2387
+11. [3134. 找出唯一性数组的中位数](https://leetcode.cn/problems/find-the-median-of-the-uniqueness-array/) 2451
+12. [2040. 两个有序数组的第 K 小乘积](https://leetcode.cn/problems/kth-smallest-product-of-two-sorted-arrays/) 2518
+13. [2386. 找出数组的第 K 大和](https://leetcode.cn/problems/find-the-k-sum-of-an-array/) 2648 转化
+14. [1508. 子数组和排序后的区间和](https://leetcode.cn/problems/range-sum-of-sorted-subarray-sums/)
+15. [3691. 最大子数组总值 II](https://leetcode.cn/problems/maximum-total-subarray-value-ii/) 做到时间复杂度与 *k* 无关
+
+
+
+### 三分法
+
+1. [1515. 服务中心的最佳位置](https://leetcode.cn/problems/best-position-for-a-service-centre/) 2157 
+
+
+
+### 其它
+
+1. [69. x 的平方根](https://leetcode.cn/problems/sqrtx/) 
+2. [74. 搜索二维矩阵](https://leetcode.cn/problems/search-a-2d-matrix/)
+3. [278. 第一个错误的版本](https://leetcode.cn/problems/first-bad-version/)
+4. [374. 猜数字大小](https://leetcode.cn/problems/guess-number-higher-or-lower/)
+5. [162. 寻找峰值](https://leetcode.cn/problems/find-peak-element/)
+6. [1901. 寻找峰值 II](https://leetcode.cn/problems/find-a-peak-element-ii/)
+7. [852. 山脉数组的峰顶索引](https://leetcode.cn/problems/peak-index-in-a-mountain-array/)
+8. [1095. 山脉数组中查找目标值](https://leetcode.cn/problems/find-in-mountain-array/) 1827
+9. [153. 寻找旋转排序数组中的最小值](https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/)
+10. [154. 寻找旋转排序数组中的最小值 II](https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array-ii/)
+11. [33. 搜索旋转排序数组](https://leetcode.cn/problems/search-in-rotated-sorted-array/)
+12. [81. 搜索旋转排序数组 II](https://leetcode.cn/problems/search-in-rotated-sorted-array-ii/)
+13. [222. 完全二叉树的节点个数](https://leetcode.cn/problems/count-complete-tree-nodes/)
+14. [1539. 第 k 个缺失的正整数](https://leetcode.cn/problems/kth-missing-positive-number/)
+15. [540. 有序数组中的单一元素](https://leetcode.cn/problems/single-element-in-a-sorted-array/)
+16. [4. 寻找两个正序数组的中位数](https://leetcode.cn/problems/median-of-two-sorted-arrays/)
+
+
+
+
+
 
 
 ## 枚举技巧
