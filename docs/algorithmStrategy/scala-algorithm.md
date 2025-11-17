@@ -4,6 +4,8 @@
 
 ## 滑动窗口
 
+[滑动窗口](https://leetcode.cn/discuss/post/3578981/ti-dan-hua-dong-chuang-kou-ding-chang-bu-rzz7/)
+
 ### 1.定长滑动窗口
 
 [1456.定长子串中元音的最大数目](https://leetcode.cn/problems/maximum-number-of-vowels-in-a-substring-of-given-length/description/)
@@ -200,6 +202,8 @@ abc
 
 ## 双指针
 
+[滑动窗口](https://leetcode.cn/discuss/post/3578981/ti-dan-hua-dong-chuang-kou-ding-chang-bu-rzz7/)
+
 ### 1. 单序列双指针
 
 #### 相向双指针
@@ -339,6 +343,10 @@ abc
 
 ## 分组循环
 
+[滑动窗口](https://leetcode.cn/discuss/post/3578981/ti-dan-hua-dong-chuang-kou-ding-chang-bu-rzz7/)
+
+
+
 流程：
 
 - 外层循环找组的开始点，进入内层循环，内层循环结束，记录答案
@@ -387,11 +395,11 @@ abc
 
 ## 二分
 
+[二分算法](https://leetcode.cn/discuss/post/3579164/)
+
 ### 二分查找
 
 ::: tabs
-
-
 
 @tab 闭区间写法
 
@@ -657,7 +665,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 ## 枚举技巧
 
-
+[枚举技巧](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 ### 枚举右，维护左
 
@@ -751,6 +759,8 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 ## 前缀和
+
+[枚举技巧](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 
 
@@ -879,6 +889,8 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 ## 差分
+
+[枚举技巧](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 差分与前缀和的关系，类似**导数**与**积分**的关系。
 

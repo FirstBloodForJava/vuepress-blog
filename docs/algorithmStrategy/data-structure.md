@@ -107,11 +107,13 @@ B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，
 
 ## 字典树
 
-
+[字典树](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 
 
 ## 堆
+
+[堆题单](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 堆(Heap)是一种基于树的数据结构，通常用于实现优先队列(最高效)。堆具有以下特性：
 
@@ -493,6 +495,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 栈（Stack）是一种遵循 后进先出（LIFO, Last In First Out）原则的数据结构。
 
+[栈题单](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
+
 ### 基础
 
 
@@ -588,6 +592,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 ## 队列
 
 队列（Queue）遵循先进先出（FIFO, First In First Out）原则。
+
+[队列题单](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
 ### 基础
 
