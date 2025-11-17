@@ -389,6 +389,12 @@ abc
 
 ### 二分查找
 
+::: tabs
+
+
+
+@tab 闭区间写法
+
 ~~~scala
 // nums 非递减数组, 长为 n
 // 求 大于等于 x 的 第一个 index
@@ -406,17 +412,81 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
     }
     /*
     注意循环结束时: l == r + 1
-    如果 全部 nums(i) >= x, l = 0, r = -1
-    如果 全部 nums(i) < x, l = n, r = n - 1
-    如果存在 nums(i) >= x, 且 nums(i) < x
-    退出循环前 mid == l == r
-      如果 nums(l) < x, 则 l = r + 1, 因为 r是上次减 1 的到的，所以 nums(r+1) >= x, nums(l) >= x
-      如果 nums(l) >= x, 则 l = l, r = r - 1, nums(l) >= x
-      所以 l 就是 第一个大于等于 x 的 index
-    */
+	如果存在 nums(i) >= x, 根据循环条件
+		则 nums(l-1) < r, nums(l) == nums(r+1) >= x, 即 nums(l) >= x
+	如果不存在 nums(i) >= x, 根据循环条件, 则 l 不断右移, 直到 l = n = r + 1
+	
+	所以 l 可以是答案, 当 l < n 时, 就是答案
+	*/
 	l
 }
 ~~~
+
+
+
+@tab 左闭右开区间写法
+
+~~~scala
+// nums 非递减数组, 长为 n
+// 求 大于等于 x 的 第一个 index
+def lowerBound(nums: Array[Int], x: Int): Int = {
+    var r = nums.length
+    var l = 0
+    // 存在元素
+    while (l < r) {
+      	val mid = l + (r - l) / 2
+      	if (nums(mid) >= x) {
+        	r = mid
+      	} else {
+        	l = mid + 1
+      	}
+    }
+    /*
+    注意循环结束时: l == r
+	如果存在 nums(i) >= x, 根据循环条件
+		则 nums(r) >= x, nums(l - 1) < x, nums(l) = nums(r) >= x
+	如果不存在 nums(i) >= x, 根据循环条件, 则 l 不断右移, 直到 l = n -1 = r - 1
+	
+	所以 l|r 都可以是答案, 当 r < n 时, 就是答案
+	*/
+	l
+}
+~~~
+
+
+
+@tab 开区间写法(判断更简单)
+
+~~~scala
+def lowerBound(nums: Array[Int], x: Int): Int = {
+    var r = nums.length
+    var l = -1
+    // 存在元素
+    while (l + 1 < r) {
+      	val mid = l + (r - l) / 2
+      	if (nums(mid) >= x) {
+        	r = mid
+      	} else {
+        	l = mid
+      	}
+    }
+    /*
+    注意循环结束时: l + 1 == r, l = r - 1
+	如果存在 nums(i) >= x, 根据循环条件
+		则 nums(r) >= x, nums(l) < x, nums(r-1) < x, nums(r) >= x
+	如果不存在 nums(i) >= x, 根据循环条件, 则 l 不断右移, 直到 l = n - 1 = r - 1
+	
+	所以 r 是答案, 当 r < n 时, 就是答案
+	*/
+	r
+}
+~~~
+
+
+
+:::
+
+
 
 | 需求                       | 写法                   | 不存在结果 |
 | -------------------------- | ---------------------- | ---------- |
