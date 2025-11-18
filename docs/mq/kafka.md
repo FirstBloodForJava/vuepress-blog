@@ -594,7 +594,7 @@ https://kafka.apache.org/35/javadoc/index.html?org/apache/kafka/clients/producer
 Kafka生产者发送消息的主要模式：发后即忘(fire-and-forget)、同步发送（sync）、异步发送（async）。
 
 - 发后即忘：只管向Kafka发送消息而不关心消息是否正确到达。发送性能最好，可靠性最差。
-- 同步发送：利用返回的Feature对象阻塞等待Kafka的响应，知道消息发送成功。
+- 同步发送：利用返回的Feature对象阻塞等待Kafka的响应，直到消息发送成功。
 - 异步发送：生产者提供回调支持。
 
 
@@ -632,6 +632,7 @@ Kafka发送消息的执行过程：
 5. 设置消息的分区。
 6. 消息追加器。
 7. 消息拦截器回调和同步等待、异步回调。ProducerInterceptor消息拦截器的onAcknowledgement回调，在消息被确认应答之前或消息发送失败时调用，在生产者线程中调用。
+8. FutureRecordMetadata.get 等待消息发送结果，一批消息会创建 `FutureRecordMetadata` ，它的属性 `ProduceRequestResult` 有一个 `CountDownLatch`，通过计数器开关来唤醒阻塞的线程，也触发了发送消息指定的回调。
 
 
 
@@ -643,9 +644,11 @@ Kafka发送消息的执行过程：
 
 ![image-20250308155304930](http://47.101.155.205/image-20250308155304930.png)
 
+![image-20251118160716206](http://47.101.155.205/image-20251118160716206.png)
 
 
-Kafka生产者发送到主题的消息，只会保存在某一个分区，主题在被创建的时候，可以指定分区的数量。Kafka提供的分区策略Partitioner决定了消息发送到哪个分区。
+
+`Kafka` 生产者发送到 `Topic` 的消息，只会保存在某一个分区，`Topic` 在被创建的时候，可以指定分区的数量。Kafka 提供的分区策略 `Partitioner` 决定了消息发送到哪个分区。
 
 **常见的分区有几种：**
 
@@ -653,7 +656,7 @@ Kafka生产者发送到主题的消息，只会保存在某一个分区，主题
 2. RoundRobinPartitioner：轮询分区策略。
 3. UniformStickyPartitioner：黏性分区策略。
 4. 散列分区策略：key不为空，使用了默认的分区器，Kafka会对key进行散列，然后根据散列值把消息映射到对应的分区。
-5. 实现Partitioner自定义分区策略。
+5. 实现 `Partitioner` 自定义分区策略。
 
 
 
