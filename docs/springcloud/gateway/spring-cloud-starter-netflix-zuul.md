@@ -759,7 +759,9 @@ route结合eureka发现服务，服务信息是通过域名注册，无法识别
 
 ## 下线服务功能
 
-通过重写路由规则
+基于 `ZoneAvoidanceRule` 默认路由规则，添加一段筛选逻辑 Server 的逻辑。定时任务加载下线 ip 地址，如有匹配，则跳过该服务应用。
+
+**原理**：`RibbonClients` 会给每个 `Feign` 客户端单独创建一个 Spring 上下文，自己添加一个上下文的注册，覆盖默认的路由 Bean。
 
 1、参考默认 `ZoneAvoidanceRule` 路由逻辑，自定义一个 `IRule` 实现，来控制服务的下线 `CustomZoneAvoidanceRule`
 
@@ -864,7 +866,7 @@ public class CustomZoneAvoidanceRule extends ZoneAvoidanceRule {
 
 2、定义一个 server 需要的注解类 `RibbonLoadBalancerConfiguration`，创建自定义的 IRule Bean：
 
-**注意，可以通过这个类不和启动同包，不让其自动注册。**
+**注意，可以通过这个类不和启动同包，不让其自动注册（自动注册会启动失败）。**
 
 ~~~java
 @Configuration
@@ -885,7 +887,7 @@ public class RibbonLoadBalancerConfiguration {
 
 
 
-3、定义 Spring 为所有的服务添加这个自定义的注解类，及定时任务从文件获取下线服务的ip
+3、定义 Spring 为所有的服务添加这个自定义的注解类，及定时任务从文件获取下线服务的ip。`RibbonLoadBalancerConfiguration` 类的注册也可以通过注解 `RibbonClients` 实现。
 
 ~~~java
 Configuration
