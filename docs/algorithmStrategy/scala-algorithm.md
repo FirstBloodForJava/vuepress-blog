@@ -762,6 +762,18 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 [枚举技巧](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
+nums 表示长为 n 的数组。
+
+sums 表示长为 n+1 的数组。sums(i) 表示数组 nums 前 i 个元素的和，即为前缀和。
+
+- sums(0) = 0
+- sums(1) = sums(0) + nums(0)
+- sums(2) = sums(1) + nums(1)
+- ...
+- sums(n) = sums(n-1) + nums(n-1)
+
+sums(r) 表示 [0, r -1] 之间元素的和。
+
 
 
 ### 基础
