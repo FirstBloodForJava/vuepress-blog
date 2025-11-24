@@ -398,7 +398,7 @@ mset k1.name name k1.age age ...
 
 ![image-20220527235323286](http://47.101.155.205/image-20220527235323286.png)
 
-list是一个string列表，按照插入顺序排序，取出元素从左边开始取（头部），lpush往头部插入数据，rpush往尾部插入数据
+list是一个 string 列表，按照插入顺序排序，取出元素从左边开始取（头部），lpush往头部插入数据，rpush往尾部插入数据
 
 lpush 				lpush		rpush
 
@@ -451,7 +451,7 @@ linsert key before|after pivot element #在key中指定pivot支点前面或者�
 
 #### set
 
-**Set类型时一个无序的string集合**
+**Set类型是一个无序的 string 集合**
 
 sadd	smembers	sismember
 
@@ -488,7 +488,7 @@ spop key count #不接count参数弹出一个，key中元素被弹出全部，�
 
 #### Hash
 
-Hash类型是一个string类型的field和value的映射表，适合存储对象
+Hash 类型是一个 string 类型的 field 和 value 的映射表，适合存储对象
 
 hset		hget		hmset 4.0后弃用		hmget
 
@@ -530,7 +530,7 @@ hsetnx key field value #不存在key field关系才创建一个
 
 #### Zset
 
-Zset时有序集合，不允许重复元素出现，可以位Zset集合的每个元素关联一个score属性（可以重复），通过这个来进行元素的排序。默认从小到大。
+Zset 是有序集合，不允许重复元素出现，可以为 Zset集合的每个元素关联一个 score 属性（可以重复），通过这个来进行元素的排序。默认从小到大。
 
 zadd	zrange	zrangebyscore
 
@@ -901,7 +901,7 @@ public class RedisTemplateConfig{
 
 Redis DataBase，就是在指定的时间间隔内将内存中的数据集快照写入磁盘，数据恢复时将快照文件直接再读到内存。
 
-RDB 保存了在某个时间点的数据集（全部数据）。存储在一个二进制文件中，只有一个文件。默认是 dump.rdb。RDB 技术非常适合做备份，可以保存最近一个小时，一天，一个月的全部数据。保存数据是在单独的进程中写文件，不影响 Redis 的正常使用。RDB 恢复数据时比其他 AOF 速度快。redis通过一定的条件判断，是否需要将内存中数据写入到磁盘中，在服务器启动时会去读取磁盘中的dump.rdb问将数据写入到内存中去。指定时间间隔将数据持久化到硬盘。执行shutdown命令，flushdb会直接将数据写入到硬盘中。
+RDB 保存了在某个时间点的数据集（全部数据）。存储在一个二进制文件中，只有一个文件。默认是 dump.rdb。RDB 技术非常适合做备份，可以保存最近一个小时，一天，一个月的全部数据。保存数据是在单独的进程中写文件，不影响 Redis 的正常使用。RDB 恢复数据时比其他 AOF 速度快。redis 通过一定的条件判断，是否需要将内存中数据写入到磁盘中，在服务器启动时会去读取磁盘中的 `dump.rdb` 文件，将数据写入到内存中去。指定时间间隔将数据持久化到硬盘。执行 shutdown 命令，flushdb 会直接将数据写入到硬盘中。
 
 优点：数据恢复十分方便，比AOF要快
 
@@ -916,27 +916,23 @@ RDB 保存了在某个时间点的数据集（全部数据）。存储在一个�
 
 Append-only File（AOF），Redis 每次接收到一条改变数据的命令时，它将把该命令写到一个 AOF 文件中（只记录写操作，读操作不记录），当 Redis 重启时，它通过执行 AOF 文件中所有的命令来恢复数据。
 
-aof是文件追加，通过记录每次set key的记录，追加到一个文件中，在启动服务器时，将这些命令全部执行过去，大数据时效率较慢
+AOF 是文件追加，通过记录每次 `set key` 的记录，追加到一个文件中，在启动服务器时，将这些命令全部执行过去，大数据量时效率较慢.
 
-aof文件被破坏时，可以通过redis-check-aof --fix appendonly.aof 文件明修复，这个过程会丢失部分数据
+AOF 文件被破坏时，可以通过 `redis-check-aof --fix appendonly.aof`  文件明修复，这个过程会丢失部分数据。
 
-config get dir 时/root在root目录下，是因为我启动的时候实在root目录下启动的
 
-修改appendonly.aof配置文件后，服务端拒绝连接，查看进程是没有启动
-
-改的不是很乱，数据没有丢失，将这个功能关闭之后，之前写入到appendonly.aof的数据就无法写入到内存中了
 
 ~~~bash
 #aof文件写入命令策略
-appendfsync no #不主动进行同步操作，而是完全交由操作系统来做（即每 30 秒一次），比较快但不是很安全。
-appendfsync always #每次执行写入都会执行同步，慢一些但是比较安全。
-appendfsync everysec #每秒执行一次同步操作，比较平衡，介于速度和安全之间。这是默认项。
-auto-aof-rewrite-min-size#允许重写的最小 AOF 文件大小，默认是 64M 。当 aof 文件大于 64M 时，开始整理 aof 文件，去掉无用的操作命令。缩小 aop 文件。
+appendfsync no # 不主动进行同步操作，而是完全交由操作系统来做（即每 30 秒一次），比较快但不是很安全。
+appendfsync always # 每次执行写入都会执行同步，慢一些但是比较安全。
+appendfsync everysec # 每秒执行一次同步操作，比较平衡，介于速度和安全之间。这是默认项。
+auto-aof-rewrite-min-size# 允许重写的最小 AOF 文件大小，默认是 64M 。当 AOF 文件大于 64M 时，开始整理 AOF 文件，去掉无用的操作命令。缩小 AOF 文件。
 ~~~
 
 优点：数据的完整性比RDB要好。
 
-缺点：aof文件在操作过程中会越来越大，大数据量启动要比RDB慢。
+缺点：AOF 文件在操作过程中会越来越大，大数据量启动要比 RDB 慢。
 
 
 
@@ -1161,7 +1157,7 @@ Sentinel 系统有三个主要任务：
 
 1. 监控：Sentinel 不断的检查主服务和从服务器是否按照预期正常工作。
 2. 提醒：被监控的 Redis 出现问题时，Sentinel 会通知管理员或其他应用程序。
-3. 自动故障转移：监控的主 Redis 不能正常工作，Sentinel 会开始进行故障迁移操作。将一个从服务器升级新的主服务器。让其他从服务器挂到新的主服务器。同时向客户端提供新的主服务器地址。
+3. 自动故障转移：监控的主 Redis 不能正常工作，Sentinel 会开始进行故障迁移操作。将一个从服务器升级为新的主服务器。让其他从服务器挂到新的主服务器下。同时向客户端提供新的主服务器地址。
 
 ![动力节点redis](http://47.101.155.205/image-20220529162503391.png)
 
@@ -1186,9 +1182,9 @@ redis-sentinel sentinel.conf配置文件地址 #启动哨兵进程命令
 3. 监控同一个 Master 的 Sentinel 会自动连接，组成一个分布式的 Sentinel 网络，互相通信并交换彼此关于被监控服务器的信息。
 4. 当一个 Sentinel 认为被监控的服务器已经下线时，它会向网络中的其它 Sentinel 进行确认，判断该服务器是否真的已经下线。
 5. 如果下线的服务器为主服务器，那么 Sentinel 网络将对下线主服务器进行自动故障转移，通过将下线主服务器的某个从服务器提升为新的主服务器，并让其从服务器转移到新的主服务器下，以此来让系统重新回到正常状态。
-6. 下线的旧主服务器重新上线，Sentinel 会让它成为slave，挂到新的master下。
+6. 下线的旧主服务器重新上线，Sentinel 会让它成为 slave，挂到新的 master 下。
 
-哨兵模式会修改redis.conf配置文件
+哨兵模式会修改 redis.conf 配置文件
 
 ~~~bash
 user default on nopass ~* +@all #最后一行
@@ -1248,11 +1244,11 @@ redis-cli -p port -a password #会提示在命令使用-a或者-u密码连接不
 
 ### 缓存击穿
 
-一个key设置了有效时间，可是突然在他快失效的时间附近，发生了大量的请求，因为key失效了，所有的请求都到了关系型数据库上。
+一个key设置了有效时间，可是突然在他快失效的时间附近，发生了大量的请求，因为 key 失效了，所有的请求都到了关系型数据库上。
 
-解决方法：对过期的key加锁，限制并发，通过第一个进来的请求，将结果放回缓存中。
+解决方法：对过期的 key 加锁，限制并发，通过第一个进来的请求，将结果放回缓存中。
 
-单机环境可以使用lock锁，synchronized锁
+单机环境可以使用 lock 锁，synchronized锁
 
 分布式使用：分布式锁，基于数据库，基于Redis或者zookeeper的分布式锁
 
