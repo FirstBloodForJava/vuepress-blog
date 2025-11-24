@@ -44,23 +44,23 @@ class PrimeRun implements Runnable {
 
 实例方法。
 
-wait()和wait(timeout)时Object的方法，所有的对象都能调用。
+`wait()` 和 `wait(timeout)` 是 Object 类的方法，所有的对象都能调用。
 
-wait()和wait(0)执行的效果一样，表示释放当前锁定对象的锁，直到其它获取改锁定对象的线程执行notify()或notifyAll()方法，来唤醒该线程，继续获取锁。
+`wait()` 和 `wait(0)` 执行的效果一样，表示释放当前锁定对象的锁，直到其它获取该锁定对象的线程执行 `notify()` 或 `notifyAll()` 方法，来唤醒该线程，继续获取锁。
 
-**如果一个不是需要获取锁的对象调用wait()或wait(timeout)方法，则会抛出IllegalMonitorStateException异常。**
+**如果一个没有获取锁的对象调用 wait() 或 wait(timeout) 方法，则会抛出 IllegalMonitorStateException 异常。**
 
 
 
 ### interrupt()
 
-Thread实例方法，中断线程。
+Thread 实例方法，中断线程。
 
-1. 不是中断自己，checkAccess()可能抛出SecurityException异常；
-2. 中断的线程调用了Object.wait()或Thread的join()或sleep()方法，则该线程会抛出`InterruptedException`异常，线程的中断状态将会清除；
-3. 如果IO操作InterruptibleChannel是阻塞，则通道关闭，线程的中断状态将会被设置，并且线程收到ClosedByInterruptException异常；
-4. 如果线程在Selector被阻塞，线程中断状态将被设置，它将立即从选择操作返回，可能带有非零值，就像调用了Selector的wakeup()一样；
-5. 如果没有以上的操作，线程的中断状态将会被设置(初始对象调用isInterrupted()结果为false，执行后为true)，如果没有以上操作，为true时再次执行，则isInterrupted()结果为true。
+1. 不是中断自己，checkAccess() 可能抛出 SecurityException 异常；
+2. 中断的线程调用了 `Object.wait()` 或 `Thread join() sleep()` 方法，则该线程会抛出`InterruptedException`异常，线程的中断状态将会清除；
+3. 如果 IO 操作 `InterruptibleChannel` 是阻塞，则通道关闭，线程的中断状态将会被设置，并且线程收到`ClosedByInterruptException` 异常；
+4. 如果线程在 `Selector` 被阻塞，线程中断状态将被设置，它将立即从选择操作返回，可能带有非零值，就像调用了 `Selector.wakeup()` 一样；
+5. 如果没有以上的操作，线程的中断状态将会被修改（`isInterrupted()` false => true ）。
 
 
 
@@ -117,10 +117,10 @@ public class App {
 
 静态方法 `interrupted()` 和 实例方法 `isInterrupted()` 的区别：
 
-- `interrupted()`：静态方法返回当前线程的中断状态，如果返回true，则**重置**中断状态。
+- `interrupted()`：静态方法返回当前线程的中断状态，如果返回 `true`，则**重置**中断状态。
 - `isInterrupted()`：实例方法，返回当前线程的中断状态，不重置线程中断状态。
 
-interrupt()：标记线程状态为中断。线程被标记为中断，实例方法 `isInterrupted()` 的结果会一直为 true；静态方法的结果第一次为 true，第二次为 false。
+`interrupt()`：标记线程状态为中断。线程被标记为中断，实例方法 `isInterrupted()` 的结果会一直为 true；静态方法的结果第一次为 `true`，第二次为 `false`（重置）。
 
 
 
@@ -136,17 +136,17 @@ interrupt()：标记线程状态为中断。线程被标记为中断，实例方
 
 对象调用这两个方法的前提条件：
 
-1. 同步方法中this.notify()或this.notifyAll()；
-2. synchronized同步代码块锁定的对象执行；
-3. 对象类型是Class，静态synchronized中通过类对象执行。
+1. 同步方法中 `this.notify()` 或 `this.notifyAll()` ；
+2. `synchronized` 同步代码块锁定的对象执行；
+3. 对象类型是 Class，静态 synchronized 中通过类对象执行。
 
 否则会抛出异常：IllegalMonitorStateException。
 
 
 
-notify()：唤醒一个等待该对象监视器的线程。如果有多个线程等待这个对象的监视器，则只会有一个线程的监视器被唤醒(任意的)。被唤醒的线程任会等待，直到当前对象的锁被释放，与其他线程一同争夺锁，唤醒的线程不具备获取锁的优先级或低优先级。
+`notify()`：唤醒一个等待该对象监视器的线程。如果有多个线程等待这个对象的监视器，则只会有一个线程的监视器被唤醒（任意的）。被唤醒的线程仍会等待，直到当前对象的锁被释放，与其他线程一同争夺锁，唤醒的线程不具备获取锁的优先级或 低优先级。
 
-notifyAll()：唤醒所有等待该对象监视器的线程。
+`notifyAll()`：唤醒所有等待该对象监视器的线程。
 
 
 
@@ -156,7 +156,7 @@ notifyAll()：唤醒所有等待该对象监视器的线程。
 
 1. NEW：Thread对象被创建时的状态；
 2. RUNNABLE：线程处于运行状态，可能等待操作系统分配资源；
-3. BLOCKED：线程等待获取一个锁；进入同步代码块之前需要获取的锁的等待状态或获取到锁之后执行Object.wait()方法，执行Object.notify()再次等待获取锁的状态；
+3. BLOCKED：线程等待获取一个锁；`Object.wait()` 执行后被唤醒等待锁的状态；
 4. WAITING：线程进入无期限的等待，直到其它线程执行特定的操作才会恢复；
 5. TIMED_WAITING：进入期限等待，超过等待时间自动唤醒线程；
 6. TERMINATED：线程已经执行完毕，isAlive()返回false。
@@ -165,10 +165,10 @@ notifyAll()：唤醒所有等待该对象监视器的线程。
 
 #### BLOCKED
 
-线程进入BLOCKED状态的条件：
+线程进入 `BLOCKED` 状态的条件：
 
 1. 获取锁失败的线程；
-2. 获取锁后执行wait，然后被唤醒再次竞争锁的线程。
+2. 获取锁后执行 `wait`，然后被唤醒再次竞争锁的线程。
 
 
 
@@ -279,7 +279,7 @@ class PrimeRun implements Runnable {
 
 #### WAITING和TIMED_WAITING
 
-线程进入WAITING和TIMED_WAITING的方式
+线程进入 `WAITING` 和 `TIMED_WAITING` 的方式
 
 | WAITING                      | TIMED_WAITING           |
 | ---------------------------- | ----------------------- |
@@ -373,7 +373,11 @@ class Runner implements Runnable{
 
 ### ThreadLocal
 
-这个类提供了线程的局部变量。这个与普通变量的不同之处在于，访问这些变量都只能是ThreadLocal的get或set方法。ThreadLocal通常作为一个类的私有静态属性使用。
+这个类提供了线程的局部变量。这个与普通变量的不同之处在于，访问这些变量都只能是 ThreadLocal 的 get 或 set 方法。ThreadLocal 通常作为一个类的私有静态属性使用。
+
+实现原理：每个线程存放了一个 `ThreadLocal.ThreadLocalMap`，该 map 的 key 就是 ThreadLocal 本身，value 就是线程存储的值。
+
+在 `ThreadLocal` 使用 `get/set` 会初始化线程的 `ThreadLocal.ThreadLocalMap` 属性，`ThreadLocalMap` 使用一个弱引用 `Entry(ThreadLocal)` 存放 key 和 value。Entry 使用弱引用的好处是，如果 ThreadLocal 对象没有强引用引用时，触发垃圾收集器时，会回收 Entry 中的 key 对象，再通过判断 Entry 中 key 为 null 情况来回收 value。
 
 ~~~java
 public class App {
@@ -423,9 +427,9 @@ class ThreadId {
 
 
 
-#### zuul使用ThreadLocal
+#### zuul 使用 ThreadLocal
 
-RequestContext实现了保证每个请求都有一个自己唯一的RequestContext。
+RequestContext 实现了保证每个请求都有一个自己唯一的RequestContext。
 
 ~~~java
 public class RequestContext extends ConcurrentHashMap<String, Object> {
@@ -476,7 +480,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
 #### CopyOnWriteArrayList
 
-CopyOnWritArrayList的核心思想是写时复制，每当有写操作时，它不会直接修改原数组，而是创建原数组的拷贝，在写入完成后再替换原数组。
+CopyOnWritArrayList 的核心思想是写时复制，每当有写操作时，它不会直接修改原数组，而是创建原数组的拷贝，在写入完成后再替换原数组。
 
 这样可以确保所有读取操作在执行时不会受到任何正在进行的写操作的影响，因为读操作总是访问当前不可变的数组。
 
@@ -601,18 +605,14 @@ synchronized有序性表现在as-if-serial语义，但as-if-serial语义不能�
 
 
 
-
-
-
-
 ## 锁
 
-1. synchronized锁：synchronized是Java中内置的一种锁机制，它可以用于同步方法和同步块，保证线程访问共享资源时的互斥性。
-2. ReentrantLock锁：ReentrantLock是Java中的一种可重入锁，它与synchronized类似(如果一个线程已经获取了ReentrantLock锁，并且还没有释放它，那么它可以继续获取该锁，而不会因为自己已经持有该锁而被阻塞。)，但是更加灵活和可控，可以用于更复杂的锁场景。
-3. ReadWriteLock锁：ReadWriteLock是Java中提供的一种读写锁，它允许多个线程同时读取共享资源，但只允许一个线程进行写操作。
-4. StampedLock锁：StampedLock是Java中的一种乐观锁，它可以在不进行加锁的情况下读取和写入共享资源，从而提高了并发性能。
-5. Semaphore锁：Semaphore是Java中的一种信号量锁，它可以控制同时访问共享资源的线程数量，从而实现限流和流量控制。
-6. Condition锁：Condition是Java中的一种条件锁，它可以用于线程间的通信和协调，例如等待某个条件满足后再进行执行。
+1. synchronized 锁：synchronized 是 Java 中内置的一种锁机制，它可以用于同步方法和同步块，保证线程访问共享资源时的互斥性。
+2. ReentrantLock 锁：ReentrantLock 是Java中的一种可重入锁，它 与synchronized 类似(如果一个线程已经获取了 ReentrantLock 锁，并且还没有释放它，那么它可以继续获取该锁，而不会因为自己已经持有该锁而被阻塞。)，但是更加灵活和可控，可以用于更复杂的锁场景。
+3. ReadWriteLock 锁：ReadWriteLock 是 Java 中提供的一种读写锁，它允许多个线程同时读取共享资源，但只允许一个线程进行写操作。
+4. StampedLock 锁：StampedLock 是Java中的一种乐观锁，它可以在不进行加锁的情况下读取和写入共享资源，从而提高了并发性能。
+5. Semaphore 锁：Semaphore 是 Java 中的一种信号量锁，它可以控制同时访问共享资源的线程数量，从而实现限流和流量控制。
+6. Condition锁：Condition是 Java 中的一种条件锁，它可以用于线程间的通信和协调，例如等待某个条件满足后再进行执行。
 
 
 
@@ -620,16 +620,16 @@ synchronized有序性表现在as-if-serial语义，但as-if-serial语义不能�
 
 锁是一种通过多个线程控制对共享资源的访问的工具。锁提供对共享资源的独占访问：在一个时间，只有一个线程获得锁和访问共享资源。有些锁(ReadWriteLock)允许并发访问。
 
-synchronized是Java的关键字，属于JVM级别的同步机制。可以作用与同步方法或同步代码块。支持锁定的对象有：this对象、指定对象、当前类。JVM自动管理锁和释放锁，不需要手动解锁，线程执行完同步代码块自动释放锁。
+synchronized 是 Java 的关键字，属于 JVM 级别的同步机制。可以作用与同步方法或同步代码块。支持锁定的对象有：this对象、指定对象、当前类。JVM 自动管理锁和释放锁，不需要手动解锁，线程执行完同步代码块自动释放锁。
 
-Lock：是java.util.concurrent.locks包中的接口，提供了更细粒度的锁控制。Lock锁需要显示的获取和释放锁。Lock常用的实现类有ReentrantLock。
+Lock：是java.util.concurrent.locks 包中的接口，提供了更细粒度的锁控制。Lock 锁需要显示的获取和释放锁。Lock 常用的实现类有 ReentrantLock。
 
-**lock锁的方法，锁住，不影响synchronized锁住的调用，两者互不干预。**
+**lock 锁的方法，锁住，不影响synchronized锁住的调用，两者互不干预。**
 
-synchronized和Lock直接的区别：
+synchronized 和 Lock 直接的区别：
 
 1. 性能：synchronized早期性能较差，从 Java 6 开始进行了优化（偏向锁、轻量级锁），在大多数简单同步场景中性能接近甚至优于Lock；
-2. 可中断性：Lock锁支持中断等待锁的线程，线程等待synchronized块的锁时不可中断；
+2. 可中断性：Lock 锁支持中断等待锁的线程，线程等待 synchronized 块的锁时不可中断；
 3. 公平性：Lock(`ReentrantLock`)支持设置为公平锁，会影响性能，synchronized不支持；
 4. 等待通知机制：synchronized内置了wait、notify、notifyAll等方法，实现线程之间的等待唤醒机制，但条件控制较少。`ReentrantLock`借助`Condition`对象来实现。Lock锁锁住的了的对象，没有解锁，其他线程无法访问，可以使用`Lock.newCondition().await()`释放锁，让其他线程访问，但是这个线程需要有lock锁(如果释放锁之后才唤醒线程，会出现IllegalMonitorStateException异常)，要在lock.unlock()之前调用lock.newCondition().signal()来唤醒，否则出现异常。
 
@@ -666,7 +666,7 @@ public class InterruptTest {
         }
 		// 线程获取到锁不会被中断
         waitingThread.interrupt();
-
+		// 等待锁
         lock.lock();
 
         System.out.println("2");
@@ -746,7 +746,7 @@ class Resource {
 
 ### StampedLock 
 
-Java 8引入的一种改进的锁机制，提供了三种锁模式：写锁、悲观读锁、乐观读锁。适用于读多写少的场景。
+Java 8 引入的一种改进的锁机制，提供了三种锁模式：写锁、悲观读锁、乐观读锁。适用于读多写少的场景。
 
 写锁：独占锁，适用于写操作。
 
