@@ -6,13 +6,13 @@ IOC(Inversion of Control) Container。
 
 ## 1.IOC Container和Bean介绍
 
-IOC也被称为依赖注入(DI)(Dependency Injection)。在这个过程中，对象只能通过构造函数参数、工厂方法的参数、对象实例被构造后或从工厂方法返回后再对象上设置属性来定义它们的依赖关系。然后，容器在创建Bean时注入这些依赖项。这个过程与直接使用Bean的构造方法创建对象，或通过服务定位器模式(Service Locator pattern)机制控制依赖对象的方式相反，被称为控制反转。
+IOC 也被称为依赖注入（DI Dependency Injection）。在这个过程中，容器负责管理应用程序中的对象（称为Bean）的创建、配置和组装。IOC容器通过依赖注入（DI）来管理对象之间的依赖关系，从而实现松耦合的设计。
 
-org.springframework.beans(spring-beans)和org.springframework.context(spring-context)为Spring框架的IOC容器提供了基础。
+`org.springframework.beans(spring-beans)` 和 `org.springframework.context(spring-context)` 为 Spring 框架的 IOC 容器提供了基础。
 
-BeanFactory接口提供了一种能够管理任何类型对象的高级配置机制。？
+BeanFactory 接口提供了一种能够管理任何类型对象的高级配置机制。
 
-ApplicationContext是BeanFactory的子接口，扩展如下：
+ApplicationContext 是 BeanFactory 的子接口，扩展如下：
 
 1. Easier integration with Spring’s AOP features。
 2. Message resource handling (for use in internationalization)。
@@ -21,15 +21,15 @@ ApplicationContext是BeanFactory的子接口，扩展如下：
 
 
 
-在Spring中，由Spring IOC容器管理的对象称为Bean。Bean是Spring IOC容器实例化、组装、管理的对象。
+在 Spring 中，由Spring IOC容器管理的对象称为 Bean。Bean 是 Spring IOC 容器实例化、组装、管理的对象。
 
 
 
 ## 2.容器介绍
 
-org.springframework.context.ApplicationContext接口表示Spring IOC容器，负责实例化、配置和组装Beans。容器通过读取配置元数据来获取实例化、配置和组装对象的指令。配置元数据用xml、java注解、Java代码表示，能表示应用中这些对象的依赖关系。
+`org.springframework.context.ApplicationContext` 接口表示 Spring IOC 容器，负责实例化、配置和组装Beans。容器通过读取配置元数据来获取实例化、配置和组装对象的指令。配置元数据用 xml、java 注解、Java 代码表示，能表示应用中这些对象的依赖关系。
 
-Spring提供了几个ApplicationContext接口的实现。在单机的应用程序中，通常创建 ClassPathXmlApplicationContext或FileSystemXmlApplicationContext实例。
+Spring 提供了几个 ApplicationContext 接口的实现。在单机的应用程序中，通常创建  `ClassPathXmlApplicationContext` 或 `FileSystemXmlApplicationContext` 实例。
 
 
 
@@ -46,8 +46,8 @@ Spring提供了几个ApplicationContext接口的实现。在单机的应用程�
 配置元数据的方式：
 
 1. xml配置元数据。
-2. 基于注解的配置：Spring2.5开始。
-3. 基于Java代码的配置：Spring3.0开始。
+2. 基于注解的配置：Spring2.5 开始。
+3. 基于Java代码的配置：Spring3.0 开始。
 
 基于xml配置元数据的格式：
 
