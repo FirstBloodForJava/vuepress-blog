@@ -240,6 +240,100 @@ private void fixedDown(int k){
 
 ### Java 堆化
 
+原地堆化：自底到顶堆化的过程
+
+::: tabs
+
+@tab 大顶堆
+~~~java
+public class Solution {
+    
+    private static void heapify(int[] h) {
+        // 最后一个非叶子节点开始堆化
+        for (int i = h.length / 2 - 1; i >= 0; i--) {
+            sink(h, i);
+        }
+    }
+
+    // 大顶堆
+    private static void sink(int[] h, int i) {
+        int n = h.length;
+        // 存在叶子节点, i 是非叶子节点(父节点)
+        while (2 * i + 1 < n) {
+            // 假设 左子节点比右子节点大
+            int l = 2 * i + 1;
+            if (l + 1 < n && h[l + 1] > h[l]) {
+                l++;
+            }
+            // 父节点大于等于 最大的子节点
+            if (h[i] >= h[l]) {
+                break;
+            }
+            // 交换
+            swap(h, i, l);
+            // 下沉比较
+            i = l;
+        }
+    }
+
+    private static void swap(int[] h, int i, int j) {
+        int temp = h[i];
+        h[i] = h[j];
+        h[j] = temp;
+    }
+
+}
+~~~
+
+@tab 小顶堆
+~~~java
+public class Solution {
+    
+    private static void heapify(int[] h) {
+        // 最后一个非叶子节点开始堆化
+        for (int i = h.length / 2 - 1; i >= 0; i--) {
+            sink(h, i);
+        }
+    }
+
+    // 小顶堆
+    private static void sink(int[] h, int i) {
+        int n = h.length;
+        // 存在叶子节点, i 是非叶子节点(父节点)
+        while (2 * i + 1 < n) {
+            // 假设 左子节点比右子节点小
+            int l = 2 * i + 1;
+            if (l + 1 < n && h[l + 1] < h[l]) {
+                l++;
+            }
+            // 父节点大于等于 最大的子节点
+            if (h[i] <= h[l]) {
+                break;
+            }
+            // 交换
+            swap(h, i, l);
+            // 下沉比较
+            i = l;
+        }
+    }
+
+    private static void swap(int[] h, int i, int j) {
+        int temp = h[i];
+        h[i] = h[j];
+        h[j] = temp;
+    }
+
+}
+~~~
+
+:::
+
+
+
+
+
+
+
 PriorityQueue 堆化小顶堆
 
 ~~~java
