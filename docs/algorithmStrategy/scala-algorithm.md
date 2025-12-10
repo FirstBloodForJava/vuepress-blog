@@ -149,24 +149,30 @@ abc
 
 #### 求子数组个数
 
-**越短越合法**：求最大
+**越短越合法**：求最长的长度，两种方式
+
+- **固定 l，求最大的 r，答案一般是 ans += r - l + 1，写法相对麻烦**
+- **固定 r，求最小的 l，答案一般是 ans += r - l + 1，写法更简单**
 
 1. [713.乘积小于 K 的子数组](https://leetcode.cn/problems/subarray-product-less-than-k/) √
 2. [3258.统计满足 K 约束的子字符串数量 I](https://leetcode.cn/problems/count-substrings-that-satisfy-k-constraint-i/) 做到 O(n) √
 3. [2302.统计得分小于 K 的子数组数目](https://leetcode.cn/problems/count-subarrays-with-score-less-than-k/) 1808 √
 4. [2762.不间断子数组](https://leetcode.cn/problems/continuous-subarrays/) 1940 √
-5. [LCP 68.美观的花束](https://leetcode.cn/problems/1GxJYY/)
+5. [LCP 68.美观的花束](https://leetcode.cn/problems/1GxJYY/) √
 
 
 
-**越长越合法**：求最小
+**越长越合法**：求最短的长度，两种方式
+
+- **固定 l，求最小的 r，答案一般是 ans += n - r，写法相对麻烦**
+- **固定 r，求最大的 l，答案一般是 ans += l，写法更简单**
 
 1. [1358.包含所有三种字符的子字符串数目](https://leetcode.cn/problems/number-of-substrings-containing-all-three-characters/) 1646 √
 2. [2962.统计最大元素出现至少 K 次的子数组](https://leetcode.cn/problems/count-subarrays-where-max-element-appears-at-least-k-times/) 1701 √
 3. [3325.字符至少出现 K 次的子字符串 I 做到](https://leetcode.cn/problems/count-substrings-with-k-frequency-characters-i/) O(n) √
-4. [2799.统计完全子数组的数目](https://leetcode.cn/problems/count-complete-subarrays-in-an-array/) 做到 O(n)
-5. [2537.统计好子数组的数目](https://leetcode.cn/problems/count-the-number-of-good-subarrays/) 1892
-6. [3298.统计重新排列后包含另一个字符串的子字符串数目 II](https://leetcode.cn/problems/count-substrings-that-can-be-rearranged-to-contain-a-string-ii/) 1909 同 76 题
+4. [2799.统计完全子数组的数目](https://leetcode.cn/problems/count-complete-subarrays-in-an-array/) 做到 O(n) √
+5. [2537.统计好子数组的数目](https://leetcode.cn/problems/count-the-number-of-good-subarrays/) 1892 √
+6. [3298.统计重新排列后包含另一个字符串的子字符串数目 II](https://leetcode.cn/problems/count-substrings-that-can-be-rearranged-to-contain-a-string-ii/) 1909 同 76 题 √
 
 
 
