@@ -444,6 +444,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
     while (l < r) {
       	val mid = l + (r - l) / 2
       	if (nums(mid) >= x) {
+            // 开区间直接赋值
         	r = mid
       	} else {
         	l = mid + 1
@@ -496,12 +497,12 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-| 需求                       | 写法                   | 不存在结果 |
-| -------------------------- | ---------------------- | ---------- |
-| \>= x 的第一个元素下标     | lowerBound(nums, x)    | n          |
-| \> x 的第一个元素下标      | lowerBound(nums, x+1)  | n          |
-| \< x 的最后一个元素的下标  | lowerBound(nums, x) -1 | -1         |
-| \<= x 的最后一个元素的下标 | lowerBound(nums, x+1)  | -1         |
+| 需求                       | 写法                      | 不存在结果 |
+| -------------------------- | ------------------------- | ---------- |
+| \>= x 的第一个元素下标     | lowerBound(nums, x)       | n          |
+| \> x 的第一个元素下标      | lowerBound(nums, x+1)     | n          |
+| \< x 的最后一个元素的下标  | lowerBound(nums, x) -1    | -1         |
+| \<= x 的最后一个元素的下标 | lowerBound(nums, x+1) - 1 | -1         |
 
 **基础**：
 
@@ -704,12 +705,13 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 3. [2748. 美丽下标对的数目](https://leetcode.cn/problems/number-of-beautiful-pairs/)
 4. [2506. 统计相似字符串对的数目](https://leetcode.cn/problems/count-pairs-of-similar-strings/)
 5. [2874. 有序三元组中的最大值 II](https://leetcode.cn/problems/maximum-value-of-an-ordered-triplet-ii/) 1583
-6. [1031. 两个无重叠子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-two-non-overlapping-subarrays/) 约 2000
-7. [2555. 两个线段获得的最多奖品](https://leetcode.cn/problems/maximize-win-from-two-segments/) 2081
-8. [1995. 统计特殊四元组](https://leetcode.cn/problems/count-special-quadruplets/) 四个数
-9. [3404. 统计特殊子序列的数目](https://leetcode.cn/problems/count-special-subsequences/) 2445 四个数
-10. [3267. 统计近似相等数对 II](https://leetcode.cn/problems/count-almost-equal-pairs-ii/) 2545
-11. [3480. 删除一个冲突对后最大子数组数目](https://leetcode.cn/problems/maximize-subarrays-after-removing-one-conflicting-pair/) 2764
+6. [1497. 检查数组对是否可以被 k 整除](https://leetcode.cn/problems/check-if-array-pairs-are-divisible-by-k/) 1787
+7. [1031. 两个无重叠子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-two-non-overlapping-subarrays/) 约 2000
+8. [2555. 两个线段获得的最多奖品](https://leetcode.cn/problems/maximize-win-from-two-segments/) 2081
+9. [1995. 统计特殊四元组](https://leetcode.cn/problems/count-special-quadruplets/) 四个数
+10. [3404. 统计特殊子序列的数目](https://leetcode.cn/problems/count-special-subsequences/) 2445 四个数
+11. [3267. 统计近似相等数对 II](https://leetcode.cn/problems/count-almost-equal-pairs-ii/) 2545
+12. [3480. 删除一个冲突对后最大子数组数目](https://leetcode.cn/problems/maximize-subarrays-after-removing-one-conflicting-pair/) 2764
 
 
 
