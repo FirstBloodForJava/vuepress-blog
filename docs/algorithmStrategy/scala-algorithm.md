@@ -1073,13 +1073,13 @@ sums[r2+1][c2+1] - sums[r1][c2+1] - sums[r2+1][c1] + sums[r1][c1]
 
 ### 与或运算
 
-1. [2980. 检查按位或是否存在尾随零](https://leetcode.cn/problems/check-if-bitwise-or-has-trailing-zeros/) 1234
-2.  [1318. 或运算的最小翻转次数](https://leetcode.cn/problems/minimum-flips-to-make-a-or-b-equal-to-c/) 1383
-3.  [2419. 按位与最大的最长子数组](https://leetcode.cn/problems/longest-subarray-with-maximum-bitwise-and/) 1496
-4. [2871. 将数组分割成最多数目的子数组](https://leetcode.cn/problems/split-array-into-maximum-number-of-subarrays/) 1750
-5.  [2401. 最长优雅子数组](https://leetcode.cn/problems/longest-nice-subarray/) 1750
-6. [2680. 最大或值](https://leetcode.cn/problems/maximum-or/) 1912 可以做到 O(1) 额外空间
-7. [3133. 数组最后一个元素的最小值](https://leetcode.cn/problems/minimum-array-end/) 1935
+1. [2980. 检查按位或是否存在尾随零](https://leetcode.cn/problems/check-if-bitwise-or-has-trailing-zeros/) 1234 √
+2.  [1318. 或运算的最小翻转次数](https://leetcode.cn/problems/minimum-flips-to-make-a-or-b-equal-to-c/) 1383 √
+3.  [2419. 按位与最大的最长子数组](https://leetcode.cn/problems/longest-subarray-with-maximum-bitwise-and/) 1496 √
+4. [2871. 将数组分割成最多数目的子数组](https://leetcode.cn/problems/split-array-into-maximum-number-of-subarrays/) 1750 **题解**
+5.  [2401. 最长优雅子数组](https://leetcode.cn/problems/longest-nice-subarray/) 1750 **题解**
+6. [2680. 最大或值](https://leetcode.cn/problems/maximum-or/) 1912 **题解**
+7. [3133. 数组最后一个元素的最小值](https://leetcode.cn/problems/minimum-array-end/) 1935 **题解**
 8. [3108. 带权图里旅途的最小代价](https://leetcode.cn/problems/minimum-cost-walk-in-weighted-graph/) 2109
 9.  [3117. 划分数组得到最小的值之和](https://leetcode.cn/problems/minimum-sum-of-values-by-dividing-array/) 2735
 
