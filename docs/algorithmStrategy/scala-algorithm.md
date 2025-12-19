@@ -1087,9 +1087,36 @@ sums[r2+1][c2+1] - sums[r1][c2+1] - sums[r2+1][c1] + sums[r1][c1]
 
 ### LogTrick
 
-1. [3171. 找到按位或最接近 K 的子数组](https://leetcode.cn/problems/find-subarray-with-bitwise-or-closest-to-k/) 例题
-2.  [1521. 找到最接近目标值的函数值](https://leetcode.cn/problems/find-a-value-of-a-mysterious-function-closest-to-target/) 同 3171 题，OR 改成 AND
-3. [3097. 或值至少为 K 的最短子数组 II](https://leetcode.cn/problems/shortest-subarray-with-or-at-least-k-ii/) 1891
+~~~java
+// 求数组的连续子数组的所有或值方式
+/*
+暴力做法, 通过 i = 0, 从左到右遍历, j = i-1, 从右到左遍历, nums[j] |= nums[i]
+下面是 O(n^2) 的暴力
+i = 1, nums[0] |= nums[1]
+i = 2, nums[0] |= nums[2]; nums[1] |= nums[2]
+i = 3, nums[0] |= nums[3]; nums[1] |= nums[3]; nums[2] |= nums[3]
+随着 i 不断变大 nums[0] >= nums[1] >= nums[2] ... nums[n-1] (nums 表示数字对应的集合)
+当 nums[j] | nums[i] == nums[j] 还需要继续循环吗？
+不需要, 因为 nums[i] 已经是 nums[j] 的子集和本身, [0, i] 已经在前面更新过了(继续并入也不会改变nums[i] 及 i-1 等), 所有没有计算的必要了
+*/
+public int subArrayOr(int[] nums) {
+    Set<Integer> set = new HashSet<>();
+    for (int i = 0; i < n; i++) {
+        int x = nums[i];
+        set.add(x);
+        for (int j = i - 1; j >= 0; j--) {
+            nums[j] |= x;
+            set.add(nums[j]);
+        }
+    }
+}
+~~~
+
+
+
+1. [3171. 找到按位或最接近 K 的子数组](https://leetcode.cn/problems/find-subarray-with-bitwise-or-closest-to-k/) OR 连续子数组 **可栈优化**
+2.  [1521. 找到最接近目标值的函数值](https://leetcode.cn/problems/find-a-value-of-a-mysterious-function-closest-to-target/) AND 连续子数组 **可栈优化**
+3. [3097. 或值至少为 K 的最短子数组 II](https://leetcode.cn/problems/shortest-subarray-with-or-at-least-k-ii/) 1891OR 连续子数组 **可栈优化**
 4.  [2411. 按位或最大的最小子数组长度](https://leetcode.cn/problems/smallest-subarrays-with-maximum-bitwise-or/) 1938
 5. [3209. 子数组按位与值为 K 的数目](https://leetcode.cn/problems/number-of-subarrays-with-and-value-of-k/) 2050
 6.  [898. 子数组按位或操作](https://leetcode.cn/problems/bitwise-ors-of-subarrays/)
@@ -1098,8 +1125,41 @@ sums[r2+1][c2+1] - sums[r1][c2+1] - sums[r2+1][c1] + sums[r1][c1]
 
 ### GCD LogTrick
 
-1. [2447. 最大公因数等于 K 的子数组数目](https://leetcode.cn/problems/number-of-subarrays-with-gcd-equal-to-k/) 非暴力做法
-2. [2654. 使数组所有元素变成 1 的最少操作次数](https://leetcode.cn/problems/minimum-number-of-operations-to-make-all-array-elements-equal-to-1/) 非暴力做法
+~~~java
+/*
+gcd = gcd(gcd, nums[j]) gcd 要么不变，要么至少减半
+利用 gcd 性质, 连续子数组的 gcd 值个数不会超过 log U, U = max(nums[i])
+所以二重循环是 log U 的
+*/
+public static int gcdOptimize(int[] nums) {
+    int n = nums.length;
+    int minSize = n;
+    // 记录 [GCD，相同 GCD 闭区间的右端点]
+    List<int[]> g = new ArrayList<>();
+    for (int i = 0; i < n; i++) {
+        g.add(new int[]{nums[i], i});
+        // 原地去重，因为相同的 GCD 都相邻在一起
+        int j = 0;
+        for (int[] p : g) {
+            p[0] = gcd(p[0], nums[i]);
+            if (g.get(j)[0] == p[0])
+                g.get(j)[1] = p[1]; // 合并相同值，下标取最大的
+            else g.set(++j, p);
+        }
+        g.subList(j + 1, g.size()).clear();
+        if (g.get(0)[0] == 1)
+            // 这里本来是 i-g.get(0)[1]+1，把 +1 提出来合并到 return 中
+            minSize = Math.min(minSize, i - g.get(0)[1]);
+    }
+    return minSize + n - 1;
+}
+~~~
+
+
+
+
+1. [2447. 最大公因数等于 K 的子数组数目](https://leetcode.cn/problems/number-of-subarrays-with-gcd-equal-to-k/) **gcd 优化题解**
+2. [2654. 使数组所有元素变成 1 的最少操作次数](https://leetcode.cn/problems/minimum-number-of-operations-to-make-all-array-elements-equal-to-1/) **gcd 优化题解**
 3. [3605. 数组的最小稳定性因子](https://leetcode.cn/problems/minimum-stability-factor-of-array/) 2410
 4. [3574. 最大子数组 GCD 分数](https://leetcode.cn/problems/maximize-subarray-gcd-score/) 非暴力做法
 
