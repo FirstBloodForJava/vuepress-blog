@@ -61,3 +61,49 @@ p 能推出 q，p 是 q 的充分条件；q 是否能推出 p 决定了 p 和 q 
 | 二进制长度   | 32 - Integer.numberOfLeadingZeros(s)              |
 | 集合最大元素 | 31 - Integer.numberOfLeadingZeros(s)，-1 表示空集 |
 | 集合最小元素 | Integer.numberOfTrailingZeros(s)，32 表示空集     |
+
+
+
+## GCD
+
+求两个数的最大公约数（最大公因数）。
+
+**辗转相除法**：通过反复用余数替换较大数，直到余数为 0，此时的**除数**就是最大公约数。
+
+
+~~~java
+public int gcd(int a, int b) {
+    // a > 0, b > 0;
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+~~~
+
+**更相减损法**：通过反复用两个数的差替换较大数，直到两数相等，这个相等数就是最大公约数。
+
+如果两个数都是偶数，可以先除以 2 进行化简，同时记录除以 2 的次数。
+
+~~~java
+public int gcd(int a, int b) {
+    // a > 0, b > 0;
+    int factor = 1;
+    while ((a & 1) == 0 && (b & 1) == 0) {
+        a >>= 1;
+        b >>= 1;
+        factor <<= 1;
+    }
+    while (a != b) {
+        if (a > b) {
+            a = a - b;
+        } else {
+            b = a - b;
+        }
+    }
+    return a * factor;
+}
+~~~
+
