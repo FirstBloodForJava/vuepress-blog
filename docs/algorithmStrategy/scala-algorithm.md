@@ -1131,19 +1131,59 @@ gcd = gcd(gcd, nums[j]) gcd 要么不变，要么至少减半
 利用 gcd 性质, 连续子数组的 gcd 值个数不会超过 log U, U = max(nums[i])
 所以二重循环是 log U 的
 */
-public static int gcdOptimize(int[] nums) {
+public int gcd(int[] nums) {
     int n = nums.length;
     int minSize = n;
-    // 记录 [GCD，相同 GCD 闭区间的右端点]
+    // 记录 前面连续子数组的 GCD 信息[GCD，相同 GCD 右端点]
+    /*
+    i = 0, g = [0-0]
+    i = 1, g = [gcd(0,1)-0, 1-1]
+    */
+    List<int[]> g = new ArrayList<>();
+    for (int i = 0; i < n; i++) {
+        // 计算 gcd
+        for (int[] p : g) {
+            p[0] = gcd(p[0], nums[i]);
+        }
+        g.add(new int[]{nums[i], i});
+        // 筛选出重复的 gcd, j = 0, j 比 i 慢一步
+        // [1,1,3,3]
+        // j = 0, i = 0
+        // j = 0, i = 1
+        // j = 0, i = 2; 1 != 3, 0 填值, j++
+        // j = 1, i = 3
+        int j = 0;
+        for (int[] p : g) {
+            if (p[0] != g.get(j)[0]) {
+                g.get(++j) = p;
+            } else {
+                g.get(j)[1] = p[1];
+            }
+        }
+        
+        g.subList(j + 1, g.size()).clear();
+        if (g.get(0)[0] == 1)
+            // 这里本来是 i-g.get(0)[1]+1，把 +1 提出来合并到 return 中
+            minSize = Math.min(minSize, i - g.get(0)[1]);
+    }
+    return minSize + n - 1;
+}
+
+public int gcdOptimize(int[] nums) {
+    int n = nums.length;
+    int minSize = n;
+    // 记录 前面连续子数组的 GCD 信息[GCD，相同 GCD 右端点]
     List<int[]> g = new ArrayList<>();
     for (int i = 0; i < n; i++) {
         g.add(new int[]{nums[i], i});
-        // 原地去重，因为相同的 GCD 都相邻在一起
+        // 原地去重，因为相同的 GCD 都相邻在一起, 计算 gcd 个过程, 同时筛选相同元素
         int j = 0;
         for (int[] p : g) {
             p[0] = gcd(p[0], nums[i]);
+            // 先计算最长子数组 gcd
             if (g.get(j)[0] == p[0])
-                g.get(j)[1] = p[1]; // 合并相同值，下标取最大的
+                // 合并相同值，下标取最大的
+                g.get(j)[1] = p[1]; 
             else g.set(++j, p);
         }
         g.subList(j + 1, g.size()).clear();
@@ -1152,6 +1192,16 @@ public static int gcdOptimize(int[] nums) {
             minSize = Math.min(minSize, i - g.get(0)[1]);
     }
     return minSize + n - 1;
+}
+
+public static int gcd(int a, int b) {
+	// a >= 0, b >= 0;
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
 }
 ~~~
 
@@ -1171,7 +1221,7 @@ public static int gcdOptimize(int[] nums) {
 2.  [1863. 找出所有子集的异或总和再求和](https://leetcode.cn/problems/sum-of-all-subset-xor-totals/) 可以做到 O(*n*) 时间
 3.  [2425. 所有数对的异或和](https://leetcode.cn/problems/bitwise-xor-of-all-pairings/) 1622 可以做到 O(*n*+*m*) 时间
 4.  [2275. 按位与结果大于零的最长组合](https://leetcode.cn/problems/largest-combination-with-bitwise-and-greater-than-zero/) 1642
-5. [1835. 所有数对按位与结果的异或和](https://leetcode.cn/problems/find-xor-sum-of-all-pairs-bitwise-and/) 1825 也有恒等式做法
+5. [1835. 所有数对按位与结果的异或和](https://leetcode.cn/problems/find-xor-sum-of-all-pairs-bitwise-and/) 1825 **拆位?**
 6. [3688. 偶数的按位或运算](https://leetcode.cn/problems/bitwise-or-of-even-numbers-in-an-array/) 看我题解中的思考题（解答见评论）
 7. [3153. 所有数对中数位不同之和](https://leetcode.cn/problems/sum-of-digit-differences-of-all-pairs/) 1645 十进制拆位
 
@@ -1179,19 +1229,27 @@ public static int gcdOptimize(int[] nums) {
 
 ### 试填法
 
-1.  [421. 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/)
-2.  [2935. 找出强数对的最大异或值 II](https://leetcode.cn/problems/maximum-strong-pair-xor-ii/) 2349
-3.  [3007. 价值和小于等于 K 的最大数字](https://leetcode.cn/problems/maximum-number-that-sum-of-the-prices-is-less-than-or-equal-to-k/)
+1.  [421. 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/) **题解**
+2.  [2935. 找出强数对的最大异或值 II](https://leetcode.cn/problems/maximum-strong-pair-xor-ii/) 2349 **421 变体**
+3.  [3007. 价值和小于等于 K 的最大数字](https://leetcode.cn/problems/maximum-number-that-sum-of-the-prices-is-less-than-or-equal-to-k/) 2258 **题解**
 4. [3145. 大数组元素的乘积](https://leetcode.cn/problems/find-products-of-elements-of-big-array/) 2859
 5.  [3022. 给定操作次数内使剩余元素的或值最小](https://leetcode.cn/problems/minimize-or-of-remaining-elements-using-operations/) 2918
-6. [3287. 求出数组中最大序列值](https://leetcode.cn/problems/find-the-maximum-sequence-value-of-array/) 做到 O(*n**U*log*U*)，其中 *U*=27
+6. [3287. 求出数组中最大序列值](https://leetcode.cn/problems/find-the-maximum-sequence-value-of-array/) 做到 O(n U logU)，其中 *U*=27
 
 
 
 ### 恒等式
 
+~~~md
+
+// 2 计算 1 的个数
+(A ∪ B) + (A ∩ B) = A + B
+~~~
+
+
+
 1. [1835. 所有数对按位与结果的异或和](https://leetcode.cn/problems/find-xor-sum-of-all-pairs-bitwise-and/) 1825
-2.  [2354. 优质数对的数目](https://leetcode.cn/problems/number-of-excellent-pairs/) 2076
+2.  [2354. 优质数对的数目](https://leetcode.cn/problems/number-of-excellent-pairs/) 2076 **题解**
 
 
 
