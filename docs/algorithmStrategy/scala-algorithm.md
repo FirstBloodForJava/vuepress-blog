@@ -544,7 +544,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 **求最小**：
 
-1. [1283. 使结果不超过阈值的最小除数](https://leetcode.cn/problems/find-the-smallest-divisor-given-a-threshold/) 1542
+1. [1283. 使结果不超过阈值的最小除数](https://leetcode.cn/problems/find-the-smallest-divisor-given-a-threshold/) 1542 √
 2. [2187. 完成旅途的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-trips/) 1641
 3. [1011. 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/) 1725
 4. [875. 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/) 1766
@@ -561,7 +561,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 **求最大**：
 
-1. [275. H 指数 II](https://leetcode.cn/problems/h-index-ii/)
+1. [275. H 指数 II](https://leetcode.cn/problems/h-index-ii/) √
 2. [2226. 每个小孩最多能分到多少糖果](https://leetcode.cn/problems/maximum-candies-allocated-to-k-children/) 1646
 3. [2982. 找出出现至少三次的最长特殊子字符串 II](https://leetcode.cn/problems/find-longest-special-substring-that-occurs-thrice-ii/) 1773
 4. [2576. 求出最多标记下标](https://leetcode.cn/problems/find-the-maximum-number-of-marked-indices/) 1843
@@ -579,7 +579,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 **二分间接值**：
 
-1. [3143. 正方形中的最多点数](https://leetcode.cn/problems/maximum-points-inside-the-square/) 1697
+1. [3143. 正方形中的最多点数](https://leetcode.cn/problems/maximum-points-inside-the-square/) 1697 √
 2. [1648. 销售价值减少的颜色球](https://leetcode.cn/problems/sell-diminishing-valued-colored-balls/) 2050
 
 

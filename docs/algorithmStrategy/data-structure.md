@@ -330,10 +330,6 @@ public class Solution {
 
 
 
-
-
-
-
 PriorityQueue 堆化小顶堆
 
 ~~~java
@@ -425,7 +421,7 @@ S = n * (1/2^2 + 2/2^3 + 3/2^4 + ... + h-1/2^h + h/2^(h+1))
 
 **基础**：
 
-1. [1046. 最后一块石头的重量](https://leetcode.cn/problems/last-stone-weight/) 1173
+1. [1046. 最后一块石头的重量](https://leetcode.cn/problems/last-stone-weight/) 1173 √
 2. [3264. K 次乘运算后的最终数组 I](https://leetcode.cn/problems/final-array-state-after-k-multiplication-operations-i/) 1178
 3. [2558. 从数量最多的堆取走礼物](https://leetcode.cn/problems/take-gifts-from-the-richest-pile/) 1277
 4. [2336. 无限集中的最小数字](https://leetcode.cn/problems/smallest-number-in-infinite-set/) 1375
@@ -611,13 +607,11 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 [栈题单](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
+
+
 ### 基础
 
-
-
-### 进阶
-
-1. [1441. 用栈操作构建数组](https://leetcode.cn/problems/build-an-array-with-stack-operations/) 1180
+1. [1441. 用栈操作构建数组](https://leetcode.cn/problems/build-an-array-with-stack-operations/) 1180 √
 2. [844. 比较含退格的字符串](https://leetcode.cn/problems/backspace-string-compare/) 1228
 3. [682. 棒球比赛](https://leetcode.cn/problems/baseball-game/)
 4. [2390. 从字符串中移除星号](https://leetcode.cn/problems/removing-stars-from-a-string/) 1348
