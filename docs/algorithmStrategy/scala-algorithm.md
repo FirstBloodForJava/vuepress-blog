@@ -1298,9 +1298,25 @@ public static int gcd(int a, int b) {
 
 ### 其他
 
+~~~md
+3. 找出缺失和重复的数字 数学解答
+求 1 to n^2 的平方和, m = n^2, m(m+1)(2m+1)/6
+求 1 to n^2 的和, m = n^2, m(m+1)/2
+
+求矩阵的平方和, 1到n^2的平方和, 做差, 则有
+a^2 - b^2 = d2
+(a+b)/(a-b) = d2
+由于 a != b, a+b = d2/(a-b), 记 d1 = a-b, a+b = d2/d1
+a = (d2/d1 + d1)/2
+b = (d2/d1 - d1)/2
+d1 = a-b = 矩阵和 - 1到n^2和
+d2 = 矩阵的平方和 - 1到n^2的平方和
+
+~~~
+
 1. [136. 只出现一次的数字](https://leetcode.cn/problems/single-number/)
 2.  [260. 只出现一次的数字 III](https://leetcode.cn/problems/single-number-iii/)
-3.  [2965. 找出缺失和重复的数字](https://leetcode.cn/problems/find-missing-and-repeated-values/)
+3.  [2965. 找出缺失和重复的数字](https://leetcode.cn/problems/find-missing-and-repeated-values/) **数学思路**
 4.  [137. 只出现一次的数字 II](https://leetcode.cn/problems/single-number-ii/)
 5.  [645. 错误的集合](https://leetcode.cn/problems/set-mismatch/)
 6. [190. 颠倒二进制位](https://leetcode.cn/problems/reverse-bits/)
