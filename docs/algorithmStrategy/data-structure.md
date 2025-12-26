@@ -554,8 +554,10 @@ max(n/2↑, m)
 // 最小堆 LazyHeap minPQ = new LazyHeap(Integer::compare);
 // 最大堆 LazyHeap maxPQ = new LazyHeap((a, b) -> Integer.compare(b, a));
 class LazyHeap extends PriorityQueue<Integer> {
-    private final Map<Integer, Integer> removeCnt = new HashMap<>(); // 每个元素剩余需要删除的次数
-    private int size = 0; // 堆的实际大小
+    // 每个元素剩余需要删除的次数
+    private final Map<Integer, Integer> removeCnt = new HashMap<>();
+    // 堆的实际大小
+    private int size = 0; 
 
     public LazyHeap(Comparator<Integer> comparator) {
         super(comparator);
@@ -572,7 +574,7 @@ class LazyHeap extends PriorityQueue<Integer> {
         size--;
     }
 
-    // 正式执行删除操作
+    // 查看/删除元素时, 执行删除操作
     private void applyRemove() {
         while (removeCnt.getOrDefault(peek(), 0) > 0) {
             removeCnt.merge(poll(), -1, Integer::sum);
@@ -582,7 +584,7 @@ class LazyHeap extends PriorityQueue<Integer> {
     // 查看堆顶
     public int top() {
         applyRemove();
-        return peek(); // 真正的堆顶
+        return peek();
     }
 
     // 出堆
@@ -597,6 +599,17 @@ class LazyHeap extends PriorityQueue<Integer> {
         int c = removeCnt.getOrDefault(x, 0);
         if (c > 0) {
             removeCnt.put(x, c - 1); // 抵消之前的删除
+        } else {
+            offer(x);
+        }
+        size++;
+    }
+    // 入堆
+    public void add(int x) {
+        int c = removeCnt.getOrDefault(x, 0);
+        if (c > 0) {
+            // 抵消之前的删除
+            removeCnt.put(x, c - 1);
         } else {
             offer(x);
         }
