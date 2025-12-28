@@ -73,11 +73,13 @@ export default defineUserConfig({
             link: 'data-structure'
           },
           {
-            text: 'scala-algorithm',
-            link: 'scala-algorithm'
+            text: '算法',
+            link: 'algorithm'
+          },
+          {
+            text: '数学',
+            link: 'math'
           }
-
-
         ]
       },
       // frontEnd 前端
