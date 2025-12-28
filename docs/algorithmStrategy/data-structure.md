@@ -668,7 +668,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 进阶
 
-1. [3170. 删除星号以后字典序最小的字符串](https://leetcode.cn/problems/lexicographically-minimum-string-after-removing-stars/) 1772
+1. [3170. 删除星号以后字典序最小的字符串](https://leetcode.cn/problems/lexicographically-minimum-string-after-removing-stars/) 1772 **可位运算标记要删除的最小字符**
 2. [155. 最小栈](https://leetcode.cn/problems/min-stack/)
 3. [1381. 设计一个支持增量操作的栈](https://leetcode.cn/problems/design-a-stack-with-increment-operation/)
 4. [636. 函数的独占时间](https://leetcode.cn/problems/exclusive-time-of-functions/)
@@ -681,13 +681,13 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 邻项消除
 
-1. [2696. 删除子串后的字符串最小长度](https://leetcode.cn/problems/minimum-string-length-after-removing-substrings/) 1282
-2. [1047. 删除字符串中的所有相邻重复项](https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string/) 1286
-3. [1544. 整理字符串](https://leetcode.cn/problems/make-the-string-great/) 1344
+1. [2696. 删除子串后的字符串最小长度](https://leetcode.cn/problems/minimum-string-length-after-removing-substrings/) 1282 √
+2. [1047. 删除字符串中的所有相邻重复项](https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string/) 1286 √
+3. [1544. 整理字符串](https://leetcode.cn/problems/make-the-string-great/) 1344 √
 4. [3561. 移除相邻字符](https://leetcode.cn/problems/resulting-string-after-adjacent-removals/) 1397
 5. [1003. 检查替换后的词是否有效](https://leetcode.cn/problems/check-if-word-is-valid-after-substitutions/) 1427
 6. [2216. 美化数组的最少删除数](https://leetcode.cn/problems/minimum-deletions-to-make-array-beautiful/) 1510
-7. [1209. 删除字符串中的所有相邻重复项 II](https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string-ii/) 1542
+7. [1209. 删除字符串中的所有相邻重复项 II](https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string-ii/) 1542 √
 8. [3703. 移除K-平衡子字符串](https://leetcode.cn/problems/remove-k-balanced-substrings/) 1802 联系 1209 题
 9. [1717. 删除子字符串的最大得分](https://leetcode.cn/problems/maximum-score-from-removing-substrings/) 1868
 10. [2197. 替换数组中的非互质数](https://leetcode.cn/problems/replace-non-coprime-numbers-in-array/) 2057
