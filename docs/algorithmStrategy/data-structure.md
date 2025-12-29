@@ -715,9 +715,9 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 表达式解析
 
-1. [1006. 笨阶乘](https://leetcode.cn/problems/clumsy-factorial/) 1408 引入栈的思想
+1. [1006. 笨阶乘](https://leetcode.cn/problems/clumsy-factorial/) 1408 
 2. [150. 逆波兰表达式求值](https://leetcode.cn/problems/evaluate-reverse-polish-notation/)
-3. [394. 字符串解码](https://leetcode.cn/problems/decode-string/)
+3. [394. 字符串解码](https://leetcode.cn/problems/decode-string/) **题解**
 4. [8. 字符串转换整数 (atoi)](https://leetcode.cn/problems/string-to-integer-atoi/) 为下面的题目热身
 5. [224. 基本计算器](https://leetcode.cn/problems/basic-calculator/)
 6. [227. 基本计算器 II](https://leetcode.cn/problems/basic-calculator-ii/)
