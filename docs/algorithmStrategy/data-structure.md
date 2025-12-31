@@ -739,6 +739,37 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 单调栈
 
+**基础**
+
+1.  [739. 每日温度](https://leetcode.cn/problems/daily-temperatures/)
+2.  [1475. 商品折扣后的最终价格](https://leetcode.cn/problems/final-prices-with-a-special-discount-in-a-shop/)
+3.  [496. 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)
+4. [503. 下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/)
+5.  [901. 股票价格跨度](https://leetcode.cn/problems/online-stock-span/) 1709
+6.  [853. 车队](https://leetcode.cn/problems/car-fleet/)
+
+**进阶**
+
+1. [1019. 链表中的下一个更大节点](https://leetcode.cn/problems/next-greater-node-in-linked-list/) 1571
+2.  [768. 最多能完成排序的块 II](https://leetcode.cn/problems/max-chunks-to-make-sorted-ii/) 1788
+3.  [654. 最大二叉树](https://leetcode.cn/problems/maximum-binary-tree/) 做到 O(*n*)
+4. [456. 132 模式](https://leetcode.cn/problems/132-pattern/) 约 2000
+5.  [3113. 边界元素是最大值的子数组数目](https://leetcode.cn/problems/find-the-number-of-subarrays-where-boundary-elements-are-maximum/) 2046
+6.  [2866. 美丽塔 II](https://leetcode.cn/problems/beautiful-towers-ii/) 2072
+7. [1944. 队列中可以看到的人数](https://leetcode.cn/problems/number-of-visible-people-in-a-queue/) 2105
+8.  [2454. 下一个更大元素 IV](https://leetcode.cn/problems/next-greater-element-iv/) 2175
+9. [1130. 叶值的最小代价生成树](https://leetcode.cn/problems/minimum-cost-tree-from-leaf-values/) O(*n*) 做法
+10.  [2289. 使数组按非递减顺序排列](https://leetcode.cn/problems/steps-to-make-array-non-decreasing/) 2482
+11. [1776. 车队 II](https://leetcode.cn/problems/car-fleet-ii/) 2531
+12.  [2736. 最大和查询](https://leetcode.cn/problems/maximum-sum-queries/) 2533
+13. [3420. 统计 K 次操作以内得到非递减子数组的数目](https://leetcode.cn/problems/count-non-decreasing-subarrays-after-k-operations/) 2855
+
+**思维扩展**
+
+1.  [962. 最大宽度坡](https://leetcode.cn/problems/maximum-width-ramp/) 1608
+2.  [3542. 将所有元素变为 0 的最少操作次数](https://leetcode.cn/problems/minimum-operations-to-convert-all-elements-to-zero/) 1890
+3. [1124. 表现良好的最长时间段](https://leetcode.cn/problems/longest-well-performing-interval/) 1908
+
 
 
 ## 队列
