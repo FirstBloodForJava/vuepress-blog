@@ -884,6 +884,64 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
+## 链表
+
+[链表](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
+
+带着问题去做题目：
+
+1. 在什么情况下，要用到哨兵节点（dummy node）？
+2. 在什么情况下，循环条件要写 `while (node != null)`？什么情况下要写 `while (node.next != null)`？
+
+### 遍历链表
+
+1. [1290. 二进制链表转整数](https://leetcode.cn/problems/convert-binary-number-in-a-linked-list-to-integer/)
+2. [2058. 找出临界点之间的最小和最大距离](https://leetcode.cn/problems/find-the-minimum-and-maximum-number-of-nodes-between-critical-points/)
+3. [2181. 合并零之间的节点](https://leetcode.cn/problems/merge-nodes-in-between-zeros/)
+4. [725. 分隔链表](https://leetcode.cn/problems/split-linked-list-in-parts/)
+5. [817. 链表组件](https://leetcode.cn/problems/linked-list-components/)
+6. [3263. 将双链表转换为数组 I](https://leetcode.cn/problems/convert-doubly-linked-list-to-array-i/) （会员题）
+7. [3294. 将双链表转换为数组 II](https://leetcode.cn/problems/convert-doubly-linked-list-to-array-ii/) （会员题）
+8. [3062. 链表游戏的获胜者](https://leetcode.cn/problems/winner-of-the-linked-list-game/) （会员题）
+9. [3063. 链表频率](https://leetcode.cn/problems/linked-list-frequency/) （会员题）
+
+
+
+### 删除节点
+
+1. [203. 移除链表元素](https://leetcode.cn/problems/remove-linked-list-elements/)
+2. [3217. 从链表中移除在数组中存在的节点](https://leetcode.cn/problems/delete-nodes-from-linked-list-present-in-array/)
+3. [83. 删除排序链表中的重复元素](https://leetcode.cn/problems/remove-duplicates-from-sorted-list/)
+4. [82. 删除排序链表中的重复元素 II](https://leetcode.cn/problems/remove-duplicates-from-sorted-list-ii/)
+5. [237. 删除链表中的节点](https://leetcode.cn/problems/delete-node-in-a-linked-list/)
+6. [1669. 合并两个链表](https://leetcode.cn/problems/merge-in-between-linked-lists/)
+7. [2487. 从链表中移除节点](https://leetcode.cn/problems/remove-nodes-from-linked-list/)
+8. [1836. 从未排序的链表中移除重复元素](https://leetcode.cn/problems/remove-duplicates-from-an-unsorted-linked-list/) （会员题）
+
+
+
+### 插入节点
+
+1. [2807. 在链表中插入最大公约数](https://leetcode.cn/problems/insert-greatest-common-divisors-in-linked-list/)
+2. [147. 对链表进行插入排序](https://leetcode.cn/problems/insertion-sort-list/)
+3. [LCR 029. 循环有序列表的插入](https://leetcode.cn/problems/4ueAj6/)
+4. [708. 循环有序列表的插入](https://leetcode.cn/problems/insert-into-a-sorted-circular-linked-list/) （会员题）
+5. [2046. 给按照绝对值排序的链表排序](https://leetcode.cn/problems/sort-linked-list-already-sorted-using-absolute-values/) （会员题）
+
+
+
+### 反转链表
+
+1. [206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/)
+2. [92. 反转链表 II](https://leetcode.cn/problems/reverse-linked-list-ii/)
+3. [24. 两两交换链表中的节点](https://leetcode.cn/problems/swap-nodes-in-pairs/)
+4. [25. K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)
+5. [2074. 反转偶数长度组的节点](https://leetcode.cn/problems/reverse-nodes-in-even-length-groups/)
+
+
+
+
+
 ## 并查集
 
 ~~~java
