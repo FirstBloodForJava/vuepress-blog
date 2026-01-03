@@ -129,6 +129,71 @@ B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，
 
 [字典树](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
 
+**基础**
+
+1. [208. 实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)
+2. [3597. 分割字符串](https://leetcode.cn/problems/partition-string/)
+3. [648. 单词替换](https://leetcode.cn/problems/replace-words/)
+4. [720. 词典中最长的单词](https://leetcode.cn/problems/longest-word-in-dictionary/)
+5. [2416. 字符串的前缀分数和](https://leetcode.cn/problems/sum-of-prefix-scores-of-strings/) 1725
+6. [677. 键值映射](https://leetcode.cn/problems/map-sum-pairs/)
+7. [1268. 搜索推荐系统](https://leetcode.cn/problems/search-suggestions-system/)
+8. [1233. 删除子文件夹](https://leetcode.cn/problems/remove-sub-folders-from-the-filesystem/)
+9. [820. 单词的压缩编码](https://leetcode.cn/problems/short-encoding-of-words/)
+10. [2261. 含最多 K 个可整除元素的子数组](https://leetcode.cn/problems/k-divisible-elements-subarrays/) 
+
+**进阶**
+
+1. [211. 添加与搜索单词 - 数据结构设计](https://leetcode.cn/problems/design-add-and-search-words-data-structure/)
+2. [676. 实现一个魔法字典](https://leetcode.cn/problems/implement-magic-dictionary/)
+3. [212. 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)
+4. [3093. 最长公共后缀查询](https://leetcode.cn/problems/longest-common-suffix-queries/) 2118
+5. [745. 前缀和后缀搜索](https://leetcode.cn/problems/prefix-and-suffix-search/)
+6. [3045. 统计前后缀下标对 II](https://leetcode.cn/problems/count-prefix-and-suffix-pairs-ii/) 2328
+7. [336. 回文对](https://leetcode.cn/problems/palindrome-pairs/)
+8. [1948. 删除系统中的重复文件夹](https://leetcode.cn/problems/delete-duplicate-folders-in-system/) 2534
+9. [425. 单词方块](https://leetcode.cn/problems/word-squares/) （会员题）
+10. [527. 单词缩写](https://leetcode.cn/problems/word-abbreviation/) （会员题）
+11. [588. 设计内存文件系统](https://leetcode.cn/problems/design-in-memory-file-system/) （会员题）
+12. [616. 给字符串添加加粗标签](https://leetcode.cn/problems/add-bold-tag-in-string/) （会员题）
+13. [758. 字符串中的加粗单词](https://leetcode.cn/problems/bold-words-in-string/) （会员题）
+14. [642. 设计搜索自动补全系统](https://leetcode.cn/problems/design-search-autocomplete-system/) （会员题）
+15. [1065. 字符串的索引对](https://leetcode.cn/problems/index-pairs-of-a-string/) （会员题）
+16. [1166. 设计文件系统](https://leetcode.cn/problems/design-file-system/) （会员题）
+17. [1858. 包含所有前缀的最长单词](https://leetcode.cn/problems/longest-word-with-all-prefixes/) （会员题）
+
+
+
+### 字典树 DP
+
+1. [139. 单词拆分](https://leetcode.cn/problems/word-break/)
+2. [140. 单词拆分 II](https://leetcode.cn/problems/word-break-ii/)
+3. [面试题 17.13. 恢复空格](https://leetcode.cn/problems/re-space-lcci/)
+4. [472. 连接词](https://leetcode.cn/problems/concatenated-words/) 约 2300
+5. [2977. 转换字符串的最小成本 II](https://leetcode.cn/problems/minimum-cost-to-convert-string-ii/) 2696
+
+
+
+### 异或字典树
+
+1. [421. 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/) 约 2000
+2. [2935. 找出强数对的最大异或值 II](https://leetcode.cn/problems/maximum-strong-pair-xor-ii/) 2349
+3. [1707. 与数组中元素的最大异或值](https://leetcode.cn/problems/maximum-xor-with-an-element-from-array/) 2359
+4. [1803. 统计异或值在范围内的数对有多少](https://leetcode.cn/problems/count-pairs-with-xor-in-a-range/) 2479
+5. [1938. 查询最大基因差](https://leetcode.cn/problems/maximum-genetic-difference-query/) 2503
+6. [3632. 异或至少为 K 的子数组数目](https://leetcode.cn/problems/subarrays-with-xor-at-least-k/) （会员题）
+7. [2479. 两个不重叠子树的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-non-overlapping-subtrees/) （会员题）
+
+
+
+
+
+**思维拓展**
+
+1. [440. 字典序的第K小数字](https://leetcode.cn/problems/k-th-smallest-in-lexicographical-order/)
+
+
+
 
 
 ## 堆
@@ -741,12 +806,12 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 **基础**
 
-1.  [739. 每日温度](https://leetcode.cn/problems/daily-temperatures/)
-2.  [1475. 商品折扣后的最终价格](https://leetcode.cn/problems/final-prices-with-a-special-discount-in-a-shop/)
-3.  [496. 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)
-4. [503. 下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/)
-5.  [901. 股票价格跨度](https://leetcode.cn/problems/online-stock-span/) 1709
-6.  [853. 车队](https://leetcode.cn/problems/car-fleet/)
+1.  [739. 每日温度](https://leetcode.cn/problems/daily-temperatures/) √
+2.  [1475. 商品折扣后的最终价格](https://leetcode.cn/problems/final-prices-with-a-special-discount-in-a-shop/) √
+3.  [496. 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/) √
+4. [503. 下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/) √
+5.  [901. 股票价格跨度](https://leetcode.cn/problems/online-stock-span/) 1709 √
+6.  [853. 车队](https://leetcode.cn/problems/car-fleet/) √
 
 **进阶**
 
@@ -799,8 +864,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 双端队列
 
-1. [2810. 故障键盘](https://leetcode.cn/problems/faulty-keyboard/) 做到 O(*n*)
-2. [2071. 你可以安排的最多任务数目](https://leetcode.cn/problems/maximum-number-of-tasks-you-can-assign/) 2648
+1. [2810. 故障键盘](https://leetcode.cn/problems/faulty-keyboard/) √
+2. [2071. 你可以安排的最多任务数目](https://leetcode.cn/problems/maximum-number-of-tasks-you-can-assign/) 2648 题解
 
 
 
@@ -808,12 +873,234 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 **单调队列 = 滑动窗口 + 单调栈**。必须先掌握滑动窗口和单调栈这两个知识点，再学单调队列。
 
-1. [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
-2. [LCR 184. 设计自助结算系统](https://leetcode.cn/problems/dui-lie-de-zui-da-zhi-lcof/)
-3. [1438. 绝对差不超过限制的最长连续子数组](https://leetcode.cn/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/) 1672
+1. [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/) 
+2. [LCR 184. 设计自助结算系统](https://leetcode.cn/problems/dui-lie-de-zui-da-zhi-lcof/) √
+3. [1438. 绝对差不超过限制的最长连续子数组](https://leetcode.cn/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/) 1672 可转换为 239 问题
 4. [2762. 不间断子数组](https://leetcode.cn/problems/continuous-subarrays/) 同 1438 题
 5. [2398. 预算内的最多机器人数目](https://leetcode.cn/problems/maximum-number-of-robots-within-budget/) 1917
 6. [3589. 计数质数间隔平衡子数组](https://leetcode.cn/problems/count-prime-gap-balanced-subarrays/) 2235
 7. [862. 和至少为 K 的最短子数组](https://leetcode.cn/problems/shortest-subarray-with-sum-at-least-k/) 2307
 8. [1499. 满足不等式的最大值](https://leetcode.cn/problems/max-value-of-equation/) 2456
+
+
+
+## 并查集
+
+~~~java
+// 模板来源 https://leetcode.cn/circle/discuss/mOr1u6/
+class UnionFind {
+    private final int[] fa; // 代表元
+    private final int[] size; // 集合大小
+    public int cc; // 连通块个数
+
+    UnionFind(int n) {
+        // 一开始有 n 个集合 {0}, {1}, ..., {n-1}
+        // 集合 i 的代表元是自己，大小为 1
+        fa = new int[n];
+        for (int i = 0; i < n; i++) {
+            fa[i] = i;
+        }
+        size = new int[n];
+        Arrays.fill(size, 1);
+        cc = n;
+    }
+
+    // 返回 x 所在集合的代表元
+    // 同时做路径压缩，也就是把 x 所在集合中的所有元素的 fa 都改成代表元
+    public int find(int x) {
+        // 如果 fa[x] == x，则表示 x 是代表元
+        if (fa[x] != x) {
+            fa[x] = find(fa[x]); // fa 改成代表元
+        }
+        return fa[x];
+    }
+
+    // 判断 x 和 y 是否在同一个集合
+    public boolean isSame(int x, int y) {
+        // 如果 x 的代表元和 y 的代表元相同，那么 x 和 y 就在同一个集合
+        // 这就是代表元的作用：用来快速判断两个元素是否在同一个集合
+        return find(x) == find(y);
+    }
+
+    // 把 from 所在集合合并到 to 所在集合中
+    // 返回是否合并成功
+    public boolean merge(int from, int to) {
+        int x = find(from);
+        int y = find(to);
+        if (x == y) { // from 和 to 在同一个集合，不做合并
+            return false;
+        }
+        fa[x] = y; // 合并集合。修改后就可以认为 from 和 to 在同一个集合了
+        size[y] += size[x]; // 更新集合大小（注意集合大小保存在代表元上）
+        // 无需更新 size[x]，因为我们不用 size[x] 而是用 size[find(x)] 获取集合大小，但 find(x) == y，我们不会再访问 size[x]
+        cc--; // 成功合并，连通块个数减一
+        return true;
+    }
+
+    // 返回 x 所在集合的大小
+    public int getSize(int x) {
+        return size[find(x)]; // 集合大小保存在代表元上
+    }
+}
+~~~
+
+
+
+**基础**
+
+1. [684. 冗余连接](https://leetcode.cn/problems/redundant-connection/)
+2. [3493. 属性图](https://leetcode.cn/problems/properties-graph/) 1565
+3. [990. 等式方程的可满足性](https://leetcode.cn/problems/satisfiability-of-equality-equations/) 1638
+4. [721. 账户合并](https://leetcode.cn/problems/accounts-merge/)
+5. [3532. 针对图的路径存在性查询 I](https://leetcode.cn/problems/path-existence-queries-in-a-graph-i/) 
+6. [737. 句子相似性 II](https://leetcode.cn/problems/sentence-similarity-ii/) （会员题）
+7. [1101. 彼此熟识的最早时间](https://leetcode.cn/problems/the-earliest-moment-when-everyone-become-friends/) （会员题）
+8. [1258. 近义词句子](https://leetcode.cn/problems/synonymous-sentences/) （会员题）
+
+**进阶**
+
+1. [3551. 数位和排序需要的最小交换次数](https://leetcode.cn/problems/minimum-swaps-to-sort-by-digit-sum/) 1507
+2. [2471. 逐层排序二叉树所需的最少操作数目](https://leetcode.cn/problems/minimum-number-of-operations-to-sort-a-binary-tree-by-level/) 1635
+3. [1202. 交换字符串中的元素](https://leetcode.cn/problems/smallest-string-with-swaps/) 1855
+4. [1061. 按字典序排列最小的等效字符串](https://leetcode.cn/problems/lexicographically-smallest-equivalent-string/)
+5. [1722. 执行交换操作后的最小汉明距离](https://leetcode.cn/problems/minimize-hamming-distance-after-swap-operations/) 1892
+6. [3608. 包含 K 个连通分量需要的最小时间](https://leetcode.cn/problems/minimum-time-for-k-connected-components/) 1893
+7. [3613. 最小化连通分量的最大成本](https://leetcode.cn/problems/minimize-maximum-component-cost/) 类似 3608 题
+8. [778. 水位上升的泳池中游泳](https://leetcode.cn/problems/swim-in-rising-water/)
+9. [3695. 交换元素后的最大交替和](https://leetcode.cn/problems/maximize-alternating-sum-using-swaps/) 1984
+10. [65. 情侣牵手](https://leetcode.cn/problems/couples-holding-hands/) 1999
+11. [685. 冗余连接 II](https://leetcode.cn/problems/redundant-connection-ii/)
+12. [947. 移除最多的同行或同列石头](https://leetcode.cn/problems/most-stones-removed-with-same-row-or-column/) 2035
+13. [839. 相似字符串组](https://leetcode.cn/problems/similar-string-groups/) 2054
+14. [1970. 你能穿过矩阵的最后一天](https://leetcode.cn/problems/last-day-where-you-can-still-cross/) 2124
+15. [2076. 处理含限制条件的好友请求](https://leetcode.cn/problems/process-restricted-friend-requests/) 2131
+16. [1579. 保证图可完全遍历](https://leetcode.cn/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/) 2132
+17. [959. 由斜杠划分区域](https://leetcode.cn/problems/regions-cut-by-slashes/) 2136
+18. [2812. 找出最安全路径](https://leetcode.cn/problems/find-the-safest-path-in-a-grid/) 2154
+19. [2503. 矩阵查询可获得的最大分数](https://leetcode.cn/problems/maximum-number-of-points-from-grid-queries/) 2196
+20. [3600. 升级后最大生成树稳定性](https://leetcode.cn/problems/maximize-spanning-tree-stability-with-upgrades/) 2301 做法不止一种
+21. [2867. 统计树中的合法路径数目](https://leetcode.cn/problems/count-valid-paths-in-a-tree/) 2428
+22. [2421. 好路径的数目](https://leetcode.cn/problems/number-of-good-paths/) 2445
+23. [2157. 字符串分组](https://leetcode.cn/problems/groups-of-strings/) 2499
+24. [1632. 矩阵转换后的秩](https://leetcode.cn/problems/rank-transform-of-a-matrix/) 2530
+25. [803. 打砖块](https://leetcode.cn/problems/bricks-falling-when-hit/) 2765
+26. [3235. 判断矩形的两个角落是否可达](https://leetcode.cn/problems/check-if-the-rectangle-corner-is-reachable/)
+27. [LCP 71. 集水器](https://leetcode.cn/problems/kskhHQ/)
+28. [2371. 最小化网格中的最大值](https://leetcode.cn/problems/minimize-maximum-value-in-a-grid/) （会员题）
+29. [2459. 通过移动项目到空白区域来排序数组](https://leetcode.cn/problems/sort-array-by-moving-items-to-empty-space/) （会员题）
+
+
+
+### GCD 并查集
+
+1. [2709. 最大公约数遍历](https://leetcode.cn/problems/greatest-common-divisor-traversal/) 2172
+2. [1627. 带阈值的图连通性](https://leetcode.cn/problems/graph-connectivity-with-threshold/) 2221
+3. [952. 按公因数计算最大组件大小](https://leetcode.cn/problems/largest-component-size-by-common-factor/) 2272
+4. [1998. 数组的最大公因数排序](https://leetcode.cn/problems/gcd-sort-of-an-array/) 2429
+5. [3378. 统计最小公倍数图中的连通块数目](https://leetcode.cn/problems/count-connected-components-in-lcm-graph/) 2532 思路类似 1627 题
+
+
+
+### 数组上的并查集
+
+1. [1562. 查找大小为 M 的最新分组](https://leetcode.cn/problems/find-latest-group-of-size-m/) 1928
+2. [1488. 避免洪水泛滥](https://leetcode.cn/problems/avoid-flood-in-the-city/) 1974
+3. [1353. 最多可以参加的会议数目](https://leetcode.cn/problems/maximum-number-of-events-that-can-be-attended/) 2016
+4. [2382. 删除操作后的最大子段和](https://leetcode.cn/problems/maximum-segment-sum-after-removals/) 2136
+5. [2334. 元素值大于变化阈值的子数组](https://leetcode.cn/problems/subarray-with-elements-greater-than-varying-threshold/) 2381
+6. [3666. 使二进制字符串全为 1 的最少操作次数](https://leetcode.cn/problems/minimum-operations-to-equalize-binary-string/) 2477
+7. [2612. 最少翻转操作数](https://leetcode.cn/problems/minimum-reverse-operations/) 2824
+
+
+
+### 区间并查集
+
+1. [3244. 新增道路查询后的最短距离 II](https://leetcode.cn/problems/shortest-distance-after-road-addition-queries-ii/) 2270
+2. [1851. 包含每个查询的最小区间](https://leetcode.cn/problems/minimum-interval-to-include-each-query/) 2286
+3. [LCP 52. 二叉搜索树染色](https://leetcode.cn/problems/QO5KpG/)
+4. [2158. 每天绘制新区域的数量](https://leetcode.cn/problems/amount-of-new-area-painted-each-day/) （会员题）
+
+
+
+### 带权并查集
+
+~~~java
+// 模板来源 https://leetcode.cn/circle/discuss/mOr1u6/
+class UnionFind {
+    private final int[] fa; // 代表元
+    private final int[] dis; // dis[x] 表示 x 到（x 所在集合的）代表元的距离
+    // 注意数据范围，必要时使用 long[] dis
+
+    public UnionFind(int n) {
+        // 一开始有 n 个集合 {0}, {1}, ..., {n-1}
+        // 集合 i 的代表元是自己，自己到自己的距离是 0
+        fa = new int[n];
+        dis = new int[n];
+        for (int i = 0; i < n; i++) {
+            fa[i] = i;
+        }
+    }
+
+    // 返回 x 所在集合的代表元
+    // 同时做路径压缩
+    public int find(int x) {
+        if (fa[x] != x) {
+            int root = find(fa[x]);
+            dis[x] += dis[fa[x]]; // 递归更新 x 到其代表元的距离
+            fa[x] = root;
+        }
+        return fa[x];
+    }
+
+    // 判断 x 和 y 是否在同一个集合（同普通并查集）
+    public boolean same(int x, int y) {
+        return find(x) == find(y);
+    }
+
+    // 计算从 from 到 to 的相对距离
+    // 调用时需保证 from 和 to 在同一个集合中，否则返回值无意义
+    public int getRelativeDistance(int from, int to) {
+        find(from);
+        find(to);
+        // to-from = (x-from) - (x-to) = dis[from] - dis[to]
+        return dis[from] - dis[to];
+    }
+
+    // 合并 from 和 to，新增信息 to - from = value
+    // 其中 to 和 from 表示未知量，下文的 x 和 y 也表示未知量
+    // 如果 from 和 to 不在同一个集合，返回 true，否则返回是否与已知信息矛盾
+    public boolean merge(int from, int to, int value) {
+        int x = find(from), y = find(to);
+        if (x == y) { // from 和 to 在同一个集合，不做合并
+            // to-from = (x-from) - (x-to) = dis[from] - dis[to] = value
+            return dis[from] - dis[to] == value;
+        }
+        //    x --------- y
+        //   /           /
+        // from ------- to
+        // 已知 x-from = dis[from] 和 y-to = dis[to]，现在合并 from 和 to，新增信息 to-from = value
+        // 由于 y-from = (y-x) + (x-from) = (y-to) + (to-from)
+        // 所以 y-x = (to-from) + (y-to) - (x-from) = value + dis[to] - dis[from]
+        dis[x] = value + dis[to] - dis[from]; // 计算 x 到其代表元 y 的距离
+        fa[x] = y;
+        return true;
+    }
+}
+~~~
+
+1. [399. 除法求值](https://leetcode.cn/problems/evaluate-division/)
+2. [3710. 最大划分因子](https://leetcode.cn/problems/maximum-partition-factor/) 2135
+3. [2307. 检查方程中的矛盾之处](https://leetcode.cn/problems/check-for-contradictions-in-equations/) 
+
+
+
+## 树状数组和线段树
+
+
+
+## 伸展树
+
+
+
+## 根号算法
 
