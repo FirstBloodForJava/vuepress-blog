@@ -893,7 +893,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 1. 在什么情况下，要用到哨兵节点（dummy node）？
 2. 在什么情况下，循环条件要写 `while (node != null)`？什么情况下要写 `while (node.next != null)`？
 
-### 遍历链表
+### 1.遍历链表
 
 1. [1290. 二进制链表转整数](https://leetcode.cn/problems/convert-binary-number-in-a-linked-list-to-integer/)
 2. [2058. 找出临界点之间的最小和最大距离](https://leetcode.cn/problems/find-the-minimum-and-maximum-number-of-nodes-between-critical-points/)
@@ -907,7 +907,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-### 删除节点
+### 2.删除节点
 
 1. [203. 移除链表元素](https://leetcode.cn/problems/remove-linked-list-elements/)
 2. [3217. 从链表中移除在数组中存在的节点](https://leetcode.cn/problems/delete-nodes-from-linked-list-present-in-array/)
@@ -920,7 +920,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-### 插入节点
+### 3.插入节点
 
 1. [2807. 在链表中插入最大公约数](https://leetcode.cn/problems/insert-greatest-common-divisors-in-linked-list/)
 2. [147. 对链表进行插入排序](https://leetcode.cn/problems/insertion-sort-list/)
@@ -930,13 +930,84 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-### 反转链表
+### 4.反转链表
 
 1. [206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/)
 2. [92. 反转链表 II](https://leetcode.cn/problems/reverse-linked-list-ii/)
 3. [24. 两两交换链表中的节点](https://leetcode.cn/problems/swap-nodes-in-pairs/)
 4. [25. K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)
 5. [2074. 反转偶数长度组的节点](https://leetcode.cn/problems/reverse-nodes-in-even-length-groups/)
+
+
+
+### 5.前后指针
+
+1. [19. 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/)
+2.  [61. 旋转链表](https://leetcode.cn/problems/rotate-list/)
+3.  [1721. 交换链表中的节点](https://leetcode.cn/problems/swapping-nodes-in-a-linked-list/)
+4. [1474. 删除链表 M 个节点之后的 N 个节点](https://leetcode.cn/problems/delete-n-nodes-after-m-nodes-of-a-linked-list/)（会员题）
+
+
+
+### 6.快慢指针
+
+1.  [876. 链表的中间结点](https://leetcode.cn/problems/middle-of-the-linked-list/)
+2.  [2095. 删除链表的中间节点](https://leetcode.cn/problems/delete-the-middle-node-of-a-linked-list/)
+3.  [234. 回文链表](https://leetcode.cn/problems/palindrome-linked-list/)
+4. [2130. 链表最大孪生和](https://leetcode.cn/problems/maximum-twin-sum-of-a-linked-list/)
+5.  [143. 重排链表](https://leetcode.cn/problems/reorder-list/)
+6.  [141. 环形链表](https://leetcode.cn/problems/linked-list-cycle/)
+7. [142. 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)
+8.  [457. 环形数组是否存在循环](https://leetcode.cn/problems/circular-array-loop/)
+9.  [2674. 拆分循环链表](https://leetcode.cn/problems/split-a-circular-linked-list/)（会员题）
+10. [287. 寻找重复数](https://leetcode.cn/problems/find-the-duplicate-number/) 思维扩展
+
+
+
+### 7.双指针
+
+1. [328. 奇偶链表](https://leetcode.cn/problems/odd-even-linked-list/)
+2.  [86. 分隔链表](https://leetcode.cn/problems/partition-list/)
+3.  [160. 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)
+
+
+
+### 8.合并链表
+
+1. [2. 两数相加](https://leetcode.cn/problems/add-two-numbers/)
+2.  [445. 两数相加 II](https://leetcode.cn/problems/add-two-numbers-ii/)
+3.  [2816. 翻倍以链表形式表示的数字](https://leetcode.cn/problems/double-a-number-represented-as-a-linked-list/)
+4. [21. 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)
+5.  [369. 给单链表加一](https://leetcode.cn/problems/plus-one-linked-list/)（会员题）
+6.  [1634. 求两个多项式链表的和](https://leetcode.cn/problems/add-two-polynomials-represented-as-linked-lists/)（会员题）
+
+
+
+### 9.分治
+
+1. [23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/) 也可以用堆
+2.  [148. 排序链表](https://leetcode.cn/problems/sort-list/)
+
+
+
+### 10.综合应用
+
+1. [1019. 链表中的下一个更大节点](https://leetcode.cn/problems/next-greater-node-in-linked-list/)
+2.  [1171. 从链表中删去总和值为零的连续节点](https://leetcode.cn/problems/remove-zero-sum-consecutive-nodes-from-linked-list/)
+3.  [707. 设计链表](https://leetcode.cn/problems/design-linked-list/)
+4. [146. LRU 缓存](https://leetcode.cn/problems/lru-cache/)
+5.  [460. LFU 缓存](https://leetcode.cn/problems/lfu-cache/)
+6.  [432. 全 O(1) 的数据结构](https://leetcode.cn/problems/all-oone-data-structure/)
+7. [1206. 设计跳表](https://leetcode.cn/problems/design-skiplist/)
+
+
+
+### 11.其他
+
+1. [138. 随机链表的复制](https://leetcode.cn/problems/copy-list-with-random-pointer/)
+2.  [382. 链表随机节点](https://leetcode.cn/problems/linked-list-random-node/)
+3.  [430. 扁平化多级双向链表](https://leetcode.cn/problems/flatten-a-multilevel-doubly-linked-list/)
+4. [1265. 逆序打印不可变链表](https://leetcode.cn/problems/print-immutable-linked-list-in-reverse/)（会员题）
 
 
 
