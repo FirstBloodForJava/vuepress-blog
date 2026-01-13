@@ -132,17 +132,17 @@ public class MyConfiguration {
 
 ~~~
 
-或者之间在接口上使用[`@CrossOrigin`](https://docs.spring.io/spring/docs/5.1.15.RELEASE/javadoc-api/org/springframework/web/bind/annotation/CrossOrigin.html) 注解。
+或者之间在接口上使用 [@CrossOrigin](https://docs.spring.io/spring/docs/5.1.15.RELEASE/javadoc-api/org/springframework/web/bind/annotation/CrossOrigin.html)  注解。
 
 
 
-##SpringWebFlux 
+#### SpringWebFlux 
 
 Spring WebFlux 框架是在Spring框架5.0引入的，与SpringMvc不同，它不需要ServletAPI，是完全异步、非阻塞的，通过Reactor项目实现的响应式流规范。
 
-在项目中同时引入：spring-boot-starter-web和spring-boot-starter-webflux，SpringBoot会自动注入SpringMvc。
+在项目中同时引入：`spring-boot-starter-web` 和 `spring-boot-starter-webflux`，`SpringBoot` 会自动注入 `SpringMvc`。
 
-可以通过SpringApplication.setWebApplicationType(WebApplicationType.REACTIVE)指定以WebFlux模式启动。
+可以通过 `SpringApplication.setWebApplicationType(WebApplicationType.REACTIVE)` 指定以 `WebFlux` 模式启动。
 
 
 
