@@ -985,7 +985,9 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 9.分治
 
-1. [23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/) 也可以用堆
+核心思想：**拆分+合并**。
+
+1. [23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/)
 2.  [148. 排序链表](https://leetcode.cn/problems/sort-list/)
 
 
