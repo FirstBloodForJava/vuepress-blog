@@ -542,7 +542,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-**求最小**：
+#### 求最小
 
 ~~~md
 
@@ -569,7 +569,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-**求最大**：
+#### 求最大
 
 1. [275. H 指数 II](https://leetcode.cn/problems/h-index-ii/) √
 2. [2226. 每个小孩最多能分到多少糖果](https://leetcode.cn/problems/maximum-candies-allocated-to-k-children/) 1646
@@ -587,14 +587,14 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-**二分间接值**：
+#### 二分间接值
 
 1. [3143. 正方形中的最多点数](https://leetcode.cn/problems/maximum-points-inside-the-square/) 1697 √
 2. [1648. 销售价值减少的颜色球](https://leetcode.cn/problems/sell-diminishing-valued-colored-balls/) 2050
 
 
 
-### 最小化最大值
+#### 最小化最大值
 
 1. [410. 分割数组的最大值](https://leetcode.cn/problems/split-array-largest-sum/)
 2. [2064. 分配给商店的最多商品的最小值](https://leetcode.cn/problems/minimized-maximum-of-products-distributed-to-any-store/) 1886
@@ -614,7 +614,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-### 最大化最小值
+#### 最大化最小值
 
 1. [3281. 范围内整数的最大得分](https://leetcode.cn/problems/maximize-score-of-numbers-in-ranges/) 1768
 2. [3620. 恢复网络路径](https://leetcode.cn/problems/network-recovery-pathways/) 1998
