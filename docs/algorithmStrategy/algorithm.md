@@ -544,6 +544,14 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 **求最小**：
 
+~~~md
+
+12.1. 浮点二分, 根据精度考虑二分的次数 L/2^k <= 10^-5, k >= log2 L*10^5
+12.2. 整数二分一, 将浮点数转换成整数二分, 求得答案后再除以扩大的倍数
+12.3. 整数二分二, areaY * 2 >= sum 的最小 y, 答案在 [y-1, y] 区间, 正方形都分布在整数点, 所以 [y-1, y] 区间的变成就是 (area(y) - area(y-1)) * 1, 可以解等式算出分界点
+12.4. 差分+扫描线
+~~~
+
 1. [1283. 使结果不超过阈值的最小除数](https://leetcode.cn/problems/find-the-smallest-divisor-given-a-threshold/) 1542 √
 2. [2187. 完成旅途的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-trips/) 1641
 3. [1011. 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/) 1725
@@ -555,7 +563,9 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 9. [1482. 制作 m 束花所需的最少天数](https://leetcode.cn/problems/minimum-number-of-days-to-make-m-bouquets/) 1946
 10. [3048. 标记所有下标的最早秒数 I](https://leetcode.cn/problems/earliest-second-to-mark-indices-i/) 2263
 11. [1870. 准时到达的列车最小时速](https://leetcode.cn/problems/minimum-speed-to-arrive-on-time/) 1676 避免浮点数
-12. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735 浮点二分
+12. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735
+
+
 
 
 
