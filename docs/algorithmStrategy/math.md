@@ -122,3 +122,24 @@ public int gcd(int a, int b) {
 }
 ~~~
 
+
+
+## 上取整下取整公式转换证明
+
+$$
+
+\text{a 为非负整数, b 为正整数:} \lceil \frac{a}{b} \rceil = \lfloor \frac{a + b - 1}{b} \rfloor \\
+\text{分类讨论证明:} \\
+\text{当 a mod b = 0: } 
+\lceil \frac{a}{b} \rceil  = \lfloor \frac{a + b - 1}{b} \rfloor 
+= \lfloor \frac{a}{b} + \frac{b-1}{b} \rfloor
+= \frac{a}{b} + \lfloor \frac{b-1}{b} \rfloor
+= \frac{a}{b} \text{ 等式恒成立} \\
+\text{当 a mod b > 0: }
+\lceil \frac{a}{b} \rceil  = \lfloor \frac{a + b - 1}{b} \rfloor 
+= \lfloor \frac{a-1}{b} + \frac{b}{b} \rfloor
+= \lfloor \frac{a-1}{b} \rfloor + 1 \text{ 等式恒成立}
+$$
+
+
+
