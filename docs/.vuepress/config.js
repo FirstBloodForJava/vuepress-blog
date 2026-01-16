@@ -4,6 +4,7 @@ import { defineUserConfig } from 'vuepress'
 import { docsearchPlugin } from '@vuepress/plugin-docsearch'
 import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 import { markdownImagePlugin } from '@vuepress/plugin-markdown-image'
+import { markdownMathPlugin } from '@vuepress/plugin-markdown-math'
 
 export default defineUserConfig({
   head: [
@@ -631,6 +632,9 @@ export default defineUserConfig({
       mark: true,
       // 启用图片大小
       size: true,
+    }),
+    markdownMathPlugin({
+
     }),
 
   ]
