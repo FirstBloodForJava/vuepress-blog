@@ -642,7 +642,7 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 
 
-### 第 K 小/大
+#### 第 K 小/大
 
 1. [668. 乘法表中第 K 小的数](https://leetcode.cn/problems/kth-smallest-number-in-multiplication-table/)
 2. [378. 有序矩阵中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-sorted-matrix/)
@@ -884,27 +884,63 @@ sums(r) 表示 [0, r -1] 之间元素的和。
 
 ### 状态压缩前缀和
 
+todo
+
+**基础：**
+
 1. [1177. 构建回文串检测](https://leetcode.cn/problems/can-make-palindrome-from-substring/) 1848
 2. [1371. 每个元音包含偶数次的最长子字符串](https://leetcode.cn/problems/find-the-longest-substring-containing-vowels-in-even-counts/) 2041
 3. [1542. 找出最长的超赞子字符串](https://leetcode.cn/problems/find-longest-awesome-substring/) 2222
 4. [1915. 最美子字符串的数目](https://leetcode.cn/problems/number-of-wonderful-substrings/) 2235
 5. [2791. 树中可以形成回文的路径数](https://leetcode.cn/problems/count-paths-that-can-form-a-palindrome-in-a-tree/) 2677
 
+**进阶：**
+
+1. [2389. 和有限的最长子序列](https://leetcode.cn/problems/longest-subsequence-with-limited-sum/) 非暴力做法
+2.  [3709. 设计考试分数记录器](https://leetcode.cn/problems/design-exam-scores-tracker/) 1648
+3.  [1895. 最大的幻方](https://leetcode.cn/problems/largest-magic-square/) 1781
+4. [2055. 蜡烛之间的盘子](https://leetcode.cn/problems/plates-between-candles/) 1819
+5.  [1744. 你能在你最喜欢的那天吃到你最喜欢的糖果吗？](https://leetcode.cn/problems/can-you-eat-your-favorite-candy-on-your-favorite-day/) 1859
+6. [1878. 矩阵中最大的三个菱形和](https://leetcode.cn/problems/get-biggest-three-rhombus-sums-in-a-grid/) 1898 斜向前缀和
+7.  [3756. 连接非零数字并乘以其数字和 II](https://leetcode.cn/problems/concatenate-non-zero-digits-and-multiply-by-sum-ii/) 1968
+8. [1031. 两个无重叠子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-two-non-overlapping-subarrays/) 做到 O(*n*)
+9.  [2245. 转角路径的乘积中最多能有几个尾随零](https://leetcode.cn/problems/maximum-trailing-zeros-in-a-cornered-path/) 2037
+10. [1712. 将数组分成三个子数组的方案数](https://leetcode.cn/problems/ways-to-split-array-into-three-subarrays/) 2079
+11.  [1862. 向下取整数对和](https://leetcode.cn/problems/sum-of-floored-pairs/) 2170
+12. [3748. 统计稳定子数组的数目](https://leetcode.cn/problems/count-stable-subarrays/) 2209 包含进阶问题
+13.  [2281. 巫师的总力量和](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/) 2621
+14. [3445. 奇偶频次间的最大差值 II](https://leetcode.cn/problems/maximum-difference-between-even-and-odd-frequency-ii/) 2694
+15.  [2983. 回文串重新排列查询](https://leetcode.cn/problems/palindrome-rearrangement-queries/) 2780
+16. [2955. 同端子串的数量](https://leetcode.cn/problems/number-of-same-end-substrings/)（会员题）
+17.  [1788. 最大化花园的美观度](https://leetcode.cn/problems/maximize-the-beauty-of-the-garden/)（会员题）
+18. [2819. 购买巧克力后的最小相对损失](https://leetcode.cn/problems/minimum-relative-loss-after-buying-chocolates/)（会员题）
 
 
-### 其他一维前缀和
 
-1. [1310. 子数组异或查询](https://leetcode.cn/problems/xor-queries-of-a-subarray/) 1460
-2. [2300. 咒语和药水的成功对数](https://leetcode.cn/problems/successful-pairs-of-spells-and-potions/)
-3. [1895. 最大的幻方](https://leetcode.cn/problems/largest-magic-square/) 1781
-4. [1878. 矩阵中最大的三个菱形和](https://leetcode.cn/problems/get-biggest-three-rhombus-sums-in-a-grid/) 1898 斜向前缀和
-5. [1031. 两个无重叠子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-two-non-overlapping-subarrays/) 做到 O(*n*)
-6. [2245. 转角路径的乘积中最多能有几个尾随零](https://leetcode.cn/problems/maximum-trailing-zeros-in-a-cornered-path/) 2037
-7. [1712. 将数组分成三个子数组的方案数](https://leetcode.cn/problems/ways-to-split-array-into-three-subarrays/) 2079
-8. [1862. 向下取整数对和](https://leetcode.cn/problems/sum-of-floored-pairs/) 2170
-9. [2281. 巫师的总力量和](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/) 2621
-10. [3445. 奇偶频次间的最大差值 II](https://leetcode.cn/problems/maximum-difference-between-even-and-odd-frequency-ii/) 2694
-11. [2983. 回文串重新排列查询](https://leetcode.cn/problems/palindrome-rearrangement-queries/) 2780
+
+
+### 进阶
+
+1. [2389. 和有限的最长子序列](https://leetcode.cn/problems/longest-subsequence-with-limited-sum/) 非暴力做法
+2.  [3709. 设计考试分数记录器](https://leetcode.cn/problems/design-exam-scores-tracker/) 1648
+3.  [1895. 最大的幻方](https://leetcode.cn/problems/largest-magic-square/) 1781
+4. [2055. 蜡烛之间的盘子](https://leetcode.cn/problems/plates-between-candles/) 1819
+5.  [1744. 你能在你最喜欢的那天吃到你最喜欢的糖果吗？](https://leetcode.cn/problems/can-you-eat-your-favorite-candy-on-your-favorite-day/) 1859
+6.  [1878. 矩阵中最大的三个菱形和](https://leetcode.cn/problems/get-biggest-three-rhombus-sums-in-a-grid/) 1898 斜向前缀和
+7.  [3756. 连接非零数字并乘以其数字和 II](https://leetcode.cn/problems/concatenate-non-zero-digits-and-multiply-by-sum-ii/) 1968
+8. [1031. 两个无重叠子数组的最大和](https://leetcode.cn/problems/maximum-sum-of-two-non-overlapping-subarrays/) 做到 O(*n*)
+9.  [2245. 转角路径的乘积中最多能有几个尾随零](https://leetcode.cn/problems/maximum-trailing-zeros-in-a-cornered-path/) 2037
+10.  [1712. 将数组分成三个子数组的方案数](https://leetcode.cn/problems/ways-to-split-array-into-three-subarrays/) 2079
+11.  [1862. 向下取整数对和](https://leetcode.cn/problems/sum-of-floored-pairs/) 2170
+12.  [3748. 统计稳定子数组的数目](https://leetcode.cn/problems/count-stable-subarrays/) 2209 包含进阶问题
+13. [2281. 巫师的总力量和](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/) 2621
+14.  [3445. 奇偶频次间的最大差值 II](https://leetcode.cn/problems/maximum-difference-between-even-and-odd-frequency-ii/) 2694
+15. [2983. 回文串重新排列查询](https://leetcode.cn/problems/palindrome-rearrangement-queries/) 2780
+16.  [2955. 同端子串的数量](https://leetcode.cn/problems/number-of-same-end-substrings/)（会员题）
+17. [1788. 最大化花园的美观度](https://leetcode.cn/problems/maximize-the-beauty-of-the-garden/)（会员题）
+18.  [2819. 购买巧克力后的最小相对损失](https://leetcode.cn/problems/minimum-relative-loss-after-buying-chocolates/)（会员题）
+
+
 
 
 
@@ -1001,6 +1037,8 @@ sums[r2+1][c2+1] - sums[r1][c2+1] - sums[r2+1][c1] + sums[r1][c1]
 
 
 **进阶**：
+
+todo
 
 1. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735
 2. [2381. 字母移位 II](https://leetcode.cn/problems/shifting-letters-ii/) 1793
