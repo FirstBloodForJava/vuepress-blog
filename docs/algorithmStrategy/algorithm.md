@@ -512,29 +512,33 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 **基础**：
 
-1. [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)
-2. [35. 搜索插入位置](https://leetcode.cn/problems/search-insert-position/)
-3. [704. 二分查找](https://leetcode.cn/problems/binary-search/)
-4. [744. 寻找比目标字母大的最小字母](https://leetcode.cn/problems/find-smallest-letter-greater-than-target/)
-5. [2529. 正整数和负整数的最大计数](https://leetcode.cn/problems/maximum-count-of-positive-integer-and-negative-integer/) 做到 O(log*n*)
+1. [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/) √
+2. [35. 搜索插入位置](https://leetcode.cn/problems/search-insert-position/) √
+3. [704. 二分查找](https://leetcode.cn/problems/binary-search/) √
+4. [744. 寻找比目标字母大的最小字母](https://leetcode.cn/problems/find-smallest-letter-greater-than-target/) √
+5. [2529. 正整数和负整数的最大计数](https://leetcode.cn/problems/maximum-count-of-positive-integer-and-negative-integer/) √
 
 **进阶**：
 
-1. [2300. 咒语和药水的成功对数](https://leetcode.cn/problems/successful-pairs-of-spells-and-potions/) 1477
-2. [1385. 两个数组间的距离值](https://leetcode.cn/problems/find-the-distance-value-between-two-arrays/)
-3. [2389. 和有限的最长子序列](https://leetcode.cn/problems/longest-subsequence-with-limited-sum/)
-4. [1170. 比较字符串最小字母出现频次](https://leetcode.cn/problems/compare-strings-by-frequency-of-the-smallest-character/)
-5. [2080. 区间内查询数字的频率](https://leetcode.cn/problems/range-frequency-queries/) 1702
-6. [3488. 距离最小相等元素查询](https://leetcode.cn/problems/closest-equal-element-queries/) 做法不止一种
-7. [2563. 统计公平数对的数目](https://leetcode.cn/problems/count-the-number-of-fair-pairs/) 1721
-8. [2070. 每一个查询的最大美丽值](https://leetcode.cn/problems/most-beautiful-item-for-each-query/) 1724
-9. [1146. 快照数组](https://leetcode.cn/problems/snapshot-array/) 1771
-10. [981. 基于时间的键值存储](https://leetcode.cn/problems/time-based-key-value-store/) 同 1146 题
-11. [3508. 设计路由器](https://leetcode.cn/problems/implement-router/) 1851
-12. [658. 找到 K 个最接近的元素](https://leetcode.cn/problems/find-k-closest-elements/)
-13. [1818. 绝对差值和](https://leetcode.cn/problems/minimum-absolute-sum-difference/) 1934
-14. [911. 在线选举](https://leetcode.cn/problems/online-election/) 2001
-15. [LCP 08. 剧情触发时间](https://leetcode.cn/problems/ju-qing-hong-fa-shi-jian/)
+1. [2300. 咒语和药水的成功对数](https://leetcode.cn/problems/successful-pairs-of-spells-and-potions/) 1477 √
+2. [1385. 两个数组间的距离值](https://leetcode.cn/problems/find-the-distance-value-between-two-arrays/) √
+3. [2389. 和有限的最长子序列](https://leetcode.cn/problems/longest-subsequence-with-limited-sum/) √
+4. [1170. 比较字符串最小字母出现频次](https://leetcode.cn/problems/compare-strings-by-frequency-of-the-smallest-character/) √
+5. [2080. 区间内查询数字的频率](https://leetcode.cn/problems/range-frequency-queries/) 1702 √
+6. [3488. 距离最小相等元素查询](https://leetcode.cn/problems/closest-equal-element-queries/) 做法不止一种 √
+7. [2563. 统计公平数对的数目](https://leetcode.cn/problems/count-the-number-of-fair-pairs/) 1721 √
+8. [2070. 每一个查询的最大美丽值](https://leetcode.cn/problems/most-beautiful-item-for-each-query/) 1724 √
+9. [1146. 快照数组](https://leetcode.cn/problems/snapshot-array/) 1771 √
+10. [981. 基于时间的键值存储](https://leetcode.cn/problems/time-based-key-value-store/) 同 1146 题 √
+11. [3508. 设计路由器](https://leetcode.cn/problems/implement-router/) 1851 √
+12. [658. 找到 K 个最接近的元素](https://leetcode.cn/problems/find-k-closest-elements/) √
+13. [1818. 绝对差值和](https://leetcode.cn/problems/minimum-absolute-sum-difference/) 1934 √
+14. [911. 在线选举](https://leetcode.cn/problems/online-election/) 2001 √
+15. [LCP 08. 剧情触发时间](https://leetcode.cn/problems/ju-qing-hong-fa-shi-jian/) √
+16. [1182. 与目标颜色间的最短距离](https://leetcode.cn/problems/shortest-distance-to-target-color/)（会员题）
+17.  [2819. 购买巧克力后的最小相对损失](https://leetcode.cn/problems/minimum-relative-loss-after-buying-chocolates/)（会员题）
+
+
 
 
 
@@ -553,17 +557,19 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 ~~~
 
 1. [1283. 使结果不超过阈值的最小除数](https://leetcode.cn/problems/find-the-smallest-divisor-given-a-threshold/) 1542 √
-2. [2187. 完成旅途的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-trips/) 1641
-3. [1011. 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/) 1725
-4. [875. 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/) 1766
-5. [3296. 移山所需的最少秒数](https://leetcode.cn/problems/minimum-number-of-seconds-to-make-mountain-height-zero/)
-6. [3639. 变为活跃状态的最小时间](https://leetcode.cn/problems/minimum-time-to-activate-string/) 1853
-7. [475. 供暖器](https://leetcode.cn/problems/heaters/)
-8. [2594. 修车的最少时间](https://leetcode.cn/problems/minimum-time-to-repair-cars/) 1915
+2. [2187. 完成旅途的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-trips/) 1641√
+3. [1011. 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/) 1725 √
+4. [875. 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/) 1766 √
+5. [3296. 移山所需的最少秒数](https://leetcode.cn/problems/minimum-number-of-seconds-to-make-mountain-height-zero/) √
+6. [3639. 变为活跃状态的最小时间](https://leetcode.cn/problems/minimum-time-to-activate-string/) 1853 √
+7. [475. 供暖器 ](https://leetcode.cn/problems/heaters/) √
+8. [2594. 修车的最少时间](https://leetcode.cn/problems/minimum-time-to-repair-cars/) 1915 √
 9. [1482. 制作 m 束花所需的最少天数](https://leetcode.cn/problems/minimum-number-of-days-to-make-m-bouquets/) 1946
 10. [3048. 标记所有下标的最早秒数 I](https://leetcode.cn/problems/earliest-second-to-mark-indices-i/) 2263
-11. [1870. 准时到达的列车最小时速](https://leetcode.cn/problems/minimum-speed-to-arrive-on-time/) 1676 避免浮点数
-12. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735
+11. [1870. 准时到达的列车最小时速](https://leetcode.cn/problems/minimum-speed-to-arrive-on-time/) 1676 √
+12. [3453. 分割正方形 I](https://leetcode.cn/problems/separate-squares-i/) 1735 √
+13. [2604. 吃掉所有谷子的最短时间](https://leetcode.cn/problems/minimum-time-to-eat-all-grains/)（会员题）
+14. [2702. 使数字变为非正数的最小操作次数](https://leetcode.cn/problems/minimum-operations-to-make-numbers-non-positive/)（会员题）
 
 
 
@@ -572,18 +578,25 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 #### 求最大
 
 1. [275. H 指数 II](https://leetcode.cn/problems/h-index-ii/) √
-2. [2226. 每个小孩最多能分到多少糖果](https://leetcode.cn/problems/maximum-candies-allocated-to-k-children/) 1646
+2. [2226. 每个小孩最多能分到多少糖果](https://leetcode.cn/problems/maximum-candies-allocated-to-k-children/) 1646 √
 3. [2982. 找出出现至少三次的最长特殊子字符串 II](https://leetcode.cn/problems/find-longest-special-substring-that-occurs-thrice-ii/) 1773
 4. [2576. 求出最多标记下标](https://leetcode.cn/problems/find-the-maximum-number-of-marked-indices/) 1843
-5. [1898. 可移除字符的最大数目](https://leetcode.cn/problems/maximum-number-of-removable-characters/) 1913
-6. [1802. 有界数组中指定下标处的最大值](https://leetcode.cn/problems/maximum-value-at-a-given-index-in-a-bounded-array/) 1929
-7. [1642. 可以到达的最远建筑](https://leetcode.cn/problems/furthest-building-you-can-reach/) 1962
+5. [1898. 可移除字符的最大数目](https://leetcode.cn/problems/maximum-number-of-removable-characters/) 1913 √
+6. [1802. 有界数组中指定下标处的最大值](https://leetcode.cn/problems/maximum-value-at-a-given-index-in-a-bounded-array/) 1929 √
+7. [1642. 可以到达的最远建筑](https://leetcode.cn/problems/furthest-building-you-can-reach/) 1962 √
 8. [2861. 最大合金数](https://leetcode.cn/problems/maximum-number-of-alloys/) 1981
 9. [3007. 价值和小于等于 K 的最大数字](https://leetcode.cn/problems/maximum-number-that-sum-of-the-prices-is-less-than-or-equal-to-k/) 2258
 10. [2141. 同时运行 N 台电脑的最长时间](https://leetcode.cn/problems/maximum-running-time-of-n-computers/) 2265
 11. [2258. 逃离火灾](https://leetcode.cn/problems/escape-the-spreading-fire/) 2347
-12. [2071. 你可以安排的最多任务数目](https://leetcode.cn/problems/maximum-number-of-tasks-you-can-assign/) 2648
+12. [2071. 你可以安排的最多任务数目](https://leetcode.cn/problems/maximum-number-of-tasks-you-can-assign/) 2648 √
 13. [LCP 78. 城墙防线](https://leetcode.cn/problems/Nsibyl/)
+14. [1618. 找出适应屏幕的最大字号](https://leetcode.cn/problems/maximum-font-to-fit-a-sentence-in-a-screen/)（会员题）
+15.  [1891. 割绳子](https://leetcode.cn/problems/cutting-ribbons/)（会员题）
+16. [2137. 通过倒水操作让所有的水桶所含水量相等](https://leetcode.cn/problems/pour-water-between-buckets-to-make-water-levels-equal/)（会员题）
+17.  [3344. 最大尺寸数组](https://leetcode.cn/problems/maximum-sized-array/)（会员题）
+18. [644. 子数组最大平均数 II](https://leetcode.cn/problems/maximum-average-subarray-ii/)（会员题）
+
+
 
 
 
@@ -596,10 +609,10 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 #### 最小化最大值
 
-1. [410. 分割数组的最大值](https://leetcode.cn/problems/split-array-largest-sum/)
-2. [2064. 分配给商店的最多商品的最小值](https://leetcode.cn/problems/minimized-maximum-of-products-distributed-to-any-store/) 1886
+1. [410. 分割数组的最大值](https://leetcode.cn/problems/split-array-largest-sum/) √
+2. [2064. 分配给商店的最多商品的最小值](https://leetcode.cn/problems/minimized-maximum-of-products-distributed-to-any-store/) 1886 √
 3. [3613. 最小化连通分量的最大成本](https://leetcode.cn/problems/minimize-maximum-component-cost/) 约 1900
-4. [1760. 袋子里最少数目的球](https://leetcode.cn/problems/minimum-limit-of-balls-in-a-bag/) 1940
+4. [1760. 袋子里最少数目的球](https://leetcode.cn/problems/minimum-limit-of-balls-in-a-bag/) 1940 √
 5. [1631. 最小体力消耗路径](https://leetcode.cn/problems/path-with-minimum-effort/) 1948
 6. [2439. 最小化数组中的最大值](https://leetcode.cn/problems/minimize-maximum-of-array/) 1965
 7. [2560. 打家劫舍 IV](https://leetcode.cn/problems/house-robber-iv/) 2081
@@ -616,10 +629,10 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 #### 最大化最小值
 
-1. [3281. 范围内整数的最大得分](https://leetcode.cn/problems/maximize-score-of-numbers-in-ranges/) 1768
+1. [3281. 范围内整数的最大得分](https://leetcode.cn/problems/maximize-score-of-numbers-in-ranges/) 1768 √
 2. [3620. 恢复网络路径](https://leetcode.cn/problems/network-recovery-pathways/) 1998
-3. [2517. 礼盒的最大甜蜜度](https://leetcode.cn/problems/maximum-tastiness-of-candy-basket/) 2021
-4. [1552. 两球之间的磁力](https://leetcode.cn/problems/magnetic-force-between-two-balls/) 同 2517 题
+3. [2517. 礼盒的最大甜蜜度](https://leetcode.cn/problems/maximum-tastiness-of-candy-basket/) 2021√
+4. [1552. 两球之间的磁力](https://leetcode.cn/problems/magnetic-force-between-two-balls/) 同 2517 题 √
 5. [3710. 最大划分因子](https://leetcode.cn/problems/maximum-partition-factor/) 2135
 6. [2812. 找出最安全路径](https://leetcode.cn/problems/find-the-safest-path-in-a-grid/) 2154
 7. [2528. 最大化城市的最小电量](https://leetcode.cn/problems/maximize-the-minimum-powered-city/) 2236
