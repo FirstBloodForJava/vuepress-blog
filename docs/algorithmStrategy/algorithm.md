@@ -644,13 +644,13 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
 
 #### 第 K 小/大
 
-1. [668. 乘法表中第 K 小的数](https://leetcode.cn/problems/kth-smallest-number-in-multiplication-table/)
-2. [378. 有序矩阵中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-sorted-matrix/)
-3. [719. 找出第 K 小的数对距离](https://leetcode.cn/problems/find-k-th-smallest-pair-distance/)
-4. [878. 第 N 个神奇数字](https://leetcode.cn/problems/nth-magical-number/) 1897
-5. [1201. 丑数 III](https://leetcode.cn/problems/ugly-number-iii/) 2039
-6. [793. 阶乘函数后 K 个零](https://leetcode.cn/problems/preimage-size-of-factorial-zeroes-function/) 2100
-7. [373. 查找和最小的 K 对数字](https://leetcode.cn/problems/find-k-pairs-with-smallest-sums/)
+1. [668. 乘法表中第 K 小的数](https://leetcode.cn/problems/kth-smallest-number-in-multiplication-table/) √
+2. [378. 有序矩阵中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-sorted-matrix/) √
+3. [719. 找出第 K 小的数对距离](https://leetcode.cn/problems/find-k-th-smallest-pair-distance/) √
+4. [878. 第 N 个神奇数字](https://leetcode.cn/problems/nth-magical-number/) 1897 √
+5. [1201. 丑数 III](https://leetcode.cn/problems/ugly-number-iii/) 2039 √
+6. [793. 阶乘函数后 K 个零](https://leetcode.cn/problems/preimage-size-of-factorial-zeroes-function/) 2100 √ 数学，前置
+7. [373. 查找和最小的 K 对数字](https://leetcode.cn/problems/find-k-pairs-with-smallest-sums/) 
 8. [1439. 有序矩阵中的第 k 个最小数组和](https://leetcode.cn/problems/find-the-kth-smallest-sum-of-a-matrix-with-sorted-rows/) 2134
 9. [786. 第 K 个最小的质数分数](https://leetcode.cn/problems/k-th-smallest-prime-fraction/) 2169
 10. [3116. 单面值组合的第 K 小金额](https://leetcode.cn/problems/kth-smallest-amount-with-single-denomination-combination/) 2387
@@ -1393,41 +1393,4 @@ d2 = 矩阵的平方和 - 1到n^2的平方和
 16.  [1611. 使整数变为 0 的最少操作次数](https://leetcode.cn/problems/minimum-one-bit-operations-to-make-integers-zero/) 2345
 17. [3514. 不同 XOR 三元组的数目 II](https://leetcode.cn/problems/number-of-unique-xor-triplets-ii/) 快速沃尔什变换（FWT）
 18. [LCP 81. 与非的谜题](https://leetcode.cn/problems/ryfUiz/)
-
-## 矩形
-
-1. [84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
-2.  [1793. 好子数组的最大分数](https://leetcode.cn/problems/maximum-score-of-a-good-subarray/) 1946
-3.  [85. 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)
-4. [221. 最大正方形](https://leetcode.cn/problems/maximal-square/)
-5.  [42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/) 做法不止一种
-6.  [1504. 统计全 1 子矩形](https://leetcode.cn/problems/count-submatrices-with-all-ones/)
-7. [1277. 统计全为 1 的正方形子矩阵](https://leetcode.cn/problems/count-square-submatrices-with-all-ones/)
-
-
-
-## 贡献法
-
-1. [907. 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/) 1976
-2.  [2104. 子数组范围和（最大值-最小值）](https://leetcode.cn/problems/sum-of-subarray-ranges/) O(*n*) 做法难度大约 2000
-3. [1856. 子数组最小乘积的最大值](https://leetcode.cn/problems/maximum-subarray-min-product/) 2051
-4.  [2818. 操作使得分最大](https://leetcode.cn/problems/apply-operations-to-maximize-score/) 2397
-5. [2281. 巫师的总力量和（最小值×和）](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/) 2621
-6.  [3430. 最多 K 个元素的子数组的最值之和](https://leetcode.cn/problems/maximum-and-minimum-sums-of-at-most-size-k-subarrays/) 2645
-7. [2334. 元素值大于变化阈值的子数组](https://leetcode.cn/problems/subarray-with-elements-greater-than-varying-threshold/) 2381
-8. [2962. 统计最大元素出现至少 K 次的子数组·我的题解](https://leetcode.cn/problems/count-subarrays-where-max-element-appears-at-least-k-times/solutions/2560940/hua-dong-chuang-kou-fu-ti-dan-pythonjava-xvwg/) 中的思考题（解答见评论）
-
-
-
-## 最小字典序
-
-1. [402. 移掉 K 位数字](https://leetcode.cn/problems/remove-k-digits/) 约 1800
-2.  [1673. 找出最具竞争力的子序列](https://leetcode.cn/problems/find-the-most-competitive-subsequence/) 1802
-3.  [316. 去除重复字母](https://leetcode.cn/problems/remove-duplicate-letters/) 2185
-4. [316 扩展：重复个数不超过 limit](https://leetcode.cn/contest/tianchi2022/problems/ev2bru/)
-5.  [1081. 不同字符的最小子序列](https://leetcode.cn/problems/smallest-subsequence-of-distinct-characters/) 同 316 题
-6.  [321. 拼接最大数](https://leetcode.cn/problems/create-maximum-number/)
-7.  [2030. 含特定字母的最小子序列](https://leetcode.cn/problems/smallest-k-length-subsequence-with-occurrences-of-a-letter/) 2562
-
-
 
