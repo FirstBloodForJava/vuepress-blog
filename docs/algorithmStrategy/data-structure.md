@@ -841,10 +841,10 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-1. [84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
-2.  [1793. 好子数组的最大分数](https://leetcode.cn/problems/maximum-score-of-a-good-subarray/) 1946
-3.  [85. 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)
-4. [221. 最大正方形](https://leetcode.cn/problems/maximal-square/)
+1. [84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/) √
+2.  [1793. 好子数组的最大分数](https://leetcode.cn/problems/maximum-score-of-a-good-subarray/) 1946 √
+3.  [85. 最大矩形](https://leetcode.cn/problems/maximal-rectangle/) √
+4. [221. 最大正方形](https://leetcode.cn/problems/maximal-square/) √
 5.  [42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/) 做法不止一种
 6.  [1504. 统计全 1 子矩形](https://leetcode.cn/problems/count-submatrices-with-all-ones/)
 7. [1277. 统计全为 1 的正方形子矩阵](https://leetcode.cn/problems/count-square-submatrices-with-all-ones/)
@@ -855,7 +855,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-1. [907. 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/) 1976
+1. [907. 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/) 1976 √
 2.  [2104. 子数组范围和（最大值-最小值）](https://leetcode.cn/problems/sum-of-subarray-ranges/) O(*n*) 做法难度大约 2000
 3. [1856. 子数组最小乘积的最大值](https://leetcode.cn/problems/maximum-subarray-min-product/) 2051
 4.  [2818. 操作使得分最大](https://leetcode.cn/problems/apply-operations-to-maximize-score/) 2397
@@ -870,8 +870,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
-1. [402. 移掉 K 位数字](https://leetcode.cn/problems/remove-k-digits/) 约 1800
-2.  [1673. 找出最具竞争力的子序列](https://leetcode.cn/problems/find-the-most-competitive-subsequence/) 1802
+1. [402. 移掉 K 位数字](https://leetcode.cn/problems/remove-k-digits/) 约 1800 √
+2.  [1673. 找出最具竞争力的子序列](https://leetcode.cn/problems/find-the-most-competitive-subsequence/) 1802 √
 3.  [316. 去除重复字母](https://leetcode.cn/problems/remove-duplicate-letters/) 2185
 4. [316 扩展：重复个数不超过 limit](https://leetcode.cn/contest/tianchi2022/problems/ev2bru/)
 5.  [1081. 不同字符的最小子序列](https://leetcode.cn/problems/smallest-subsequence-of-distinct-characters/) 同 316 题
