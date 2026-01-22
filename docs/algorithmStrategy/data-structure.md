@@ -24,173 +24,11 @@
 
 
 
-## 树
 
-树是一种数据结构，它是由n(n≥0)个有限节点组成一个具有层次关系的集合。
 
-每个节点有零个或多个子节点；没有父节点的节点称为根节点；每一个非根节点有且只有一个父节点；除了根节点外，每个子节点可以分为多个不相交的子树。
 
-- 节点的度：一个节点含有子节点的数量
-- 叶子节点或终端节点：度为零的节点
-- 分支节点或非叶子节点：度不为零的节点
-- 双亲节点或父节点：一个节点含有子节点，则这个节点为此节点的父节点
-- 兄弟节点：具有相同父节点的节点互称兄弟节点
-- 树的度：一棵树中，最大的节点的度称为树的度
-- 节点的层次：从根节点算第一层，根的子节点为第二层，一次类推
-- 树的高度或深度：树中节点的最大层次
-- 堂兄弟节点：双亲在同一层级的节点
-- 节点的祖先：从根到该节点所经分支上的所有节点
-- 子孙：以一个节点为根的子树中的任一节点都称为该节点的子孙
-- 森林：由m(m > 0)颗互不相交的树的集合称为森林
 
 
-
-**树的种类：**
-
-- 无序树：树种任意节点的子节点之间没有顺序关系。
-- 有序树：树种任意节点的子节点之间有顺序关系。
-- 二叉树：每个节点最多含有两个节点的树。
-- 满二叉树：叶节点除外，所有的节点均含有两个节点。
-- 完全二叉树：除最后一层外，所有层都是满节点，且最后一层缺右边连续节点的二叉树
-- 哈夫曼树：带权路径最短的二叉树称为哈夫曼树或最优二叉树。
-
-
-
-
-
-### 二叉树
-
-二叉树是n个有限元素的集合，该集合为空、或者由一个根的元素和两个不相交的子树组成，是有序树。
-
-二叉树(binary tree)是指树中节点的度不大于2的有序树，它是一种最简单且最重要的树。
-
-二叉树的递归定义为：二叉树是一棵空树，或者是一棵由一个根节点和两棵互不相交的，分别称作根的左子树和右子树组成的非空树；左子树和右子树又同样都是二叉树。
-
-集合为空时，二叉树也称为空二叉树，在二叉树中，每个元素也称为一个节点。
-
-二叉树特点：每个节点最多只能有两颗子树组成，且有左右之分。
-
-- 空二叉树
-- 只有一个根节点的二叉树
-- 只有左子树
-- 只有右子树
-- 完全二叉树
-
-
-
-
-
-### 红黑树
-
-二叉搜索树，满足BST的基本性质：
-
-1. 左子树中所有节点的值 小于 该节点的值
-2. 右子树中所有节点的值 大于 该节点的值
-3. 左、右子树也分别是二叉搜索树
-
-
-
-一颗红黑树必须同时满足的五个性质：
-
-1. 节点是红色或黑色；
-2. 根节点是黑色；
-3. 所有叶子节点（所有节点都指向空）都是黑色；
-4. 红色节点的两个子节点都必须是黑色（不能有两个连续的红色节点）；
-5. 从任意节点到其后代叶子节点的简单路径中，均包含相同数目的黑色节点（黑高）。
-
-
-
-
-
-
-
-### B-Tree
-
-对于一棵m阶B-tree，每个结点至多可以拥有m个子结点。各结点的关键字和可以拥有的子结点数都有限制，规定m阶B-tree中，根结点至少有2个子结点，除非根结点为叶子节点(又称为终端节点，一棵树没有子节点，即度为0)，相应的，根结点中关键字的个数为1~m-1；非根结点至少有[m/2]（[]，向上取整）个子结点，相应的，关键字个数为[m/2]-1~m-1。
-
-B-Tree中，每个节点包含：
-
-- 本节点所含的关键字的个数；
-- 指向父节点的指针；
-- 关键字；
-- 指向子节点的指针。
-
-
-
-### B+Tree
-
-其节点结构与B-tree相同，不同的是各结点的关键字和可以拥有的子结点数。如m阶B+树中，每个结点至多可以拥有m个子结点。非根结点至少有[m/2]个子结点，而关键字个数比B-tree多一个，为[m/2]~m。
-
-B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，一个少一个。
-
-
-
-## 字典树
-
-[字典树](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
-
-**基础**
-
-1. [208. 实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)
-2. [3597. 分割字符串](https://leetcode.cn/problems/partition-string/)
-3. [648. 单词替换](https://leetcode.cn/problems/replace-words/)
-4. [720. 词典中最长的单词](https://leetcode.cn/problems/longest-word-in-dictionary/)
-5. [2416. 字符串的前缀分数和](https://leetcode.cn/problems/sum-of-prefix-scores-of-strings/) 1725
-6. [677. 键值映射](https://leetcode.cn/problems/map-sum-pairs/)
-7. [1268. 搜索推荐系统](https://leetcode.cn/problems/search-suggestions-system/)
-8. [1233. 删除子文件夹](https://leetcode.cn/problems/remove-sub-folders-from-the-filesystem/)
-9. [820. 单词的压缩编码](https://leetcode.cn/problems/short-encoding-of-words/)
-10. [2261. 含最多 K 个可整除元素的子数组](https://leetcode.cn/problems/k-divisible-elements-subarrays/) 
-
-**进阶**
-
-1. [211. 添加与搜索单词 - 数据结构设计](https://leetcode.cn/problems/design-add-and-search-words-data-structure/)
-2. [676. 实现一个魔法字典](https://leetcode.cn/problems/implement-magic-dictionary/)
-3. [212. 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)
-4. [3093. 最长公共后缀查询](https://leetcode.cn/problems/longest-common-suffix-queries/) 2118
-5. [745. 前缀和后缀搜索](https://leetcode.cn/problems/prefix-and-suffix-search/)
-6. [3045. 统计前后缀下标对 II](https://leetcode.cn/problems/count-prefix-and-suffix-pairs-ii/) 2328
-7. [336. 回文对](https://leetcode.cn/problems/palindrome-pairs/)
-8. [1948. 删除系统中的重复文件夹](https://leetcode.cn/problems/delete-duplicate-folders-in-system/) 2534
-9. [425. 单词方块](https://leetcode.cn/problems/word-squares/) （会员题）
-10. [527. 单词缩写](https://leetcode.cn/problems/word-abbreviation/) （会员题）
-11. [588. 设计内存文件系统](https://leetcode.cn/problems/design-in-memory-file-system/) （会员题）
-12. [616. 给字符串添加加粗标签](https://leetcode.cn/problems/add-bold-tag-in-string/) （会员题）
-13. [758. 字符串中的加粗单词](https://leetcode.cn/problems/bold-words-in-string/) （会员题）
-14. [642. 设计搜索自动补全系统](https://leetcode.cn/problems/design-search-autocomplete-system/) （会员题）
-15. [1065. 字符串的索引对](https://leetcode.cn/problems/index-pairs-of-a-string/) （会员题）
-16. [1166. 设计文件系统](https://leetcode.cn/problems/design-file-system/) （会员题）
-17. [1858. 包含所有前缀的最长单词](https://leetcode.cn/problems/longest-word-with-all-prefixes/) （会员题）
-
-
-
-### 字典树 DP
-
-1. [139. 单词拆分](https://leetcode.cn/problems/word-break/)
-2. [140. 单词拆分 II](https://leetcode.cn/problems/word-break-ii/)
-3. [面试题 17.13. 恢复空格](https://leetcode.cn/problems/re-space-lcci/)
-4. [472. 连接词](https://leetcode.cn/problems/concatenated-words/) 约 2300
-5. [2977. 转换字符串的最小成本 II](https://leetcode.cn/problems/minimum-cost-to-convert-string-ii/) 2696
-
-
-
-### 异或字典树
-
-1. [421. 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/) 约 2000
-2. [2935. 找出强数对的最大异或值 II](https://leetcode.cn/problems/maximum-strong-pair-xor-ii/) 2349
-3. [1707. 与数组中元素的最大异或值](https://leetcode.cn/problems/maximum-xor-with-an-element-from-array/) 2359
-4. [1803. 统计异或值在范围内的数对有多少](https://leetcode.cn/problems/count-pairs-with-xor-in-a-range/) 2479
-5. [1938. 查询最大基因差](https://leetcode.cn/problems/maximum-genetic-difference-query/) 2503
-6. [3632. 异或至少为 K 的子数组数目](https://leetcode.cn/problems/subarrays-with-xor-at-least-k/) （会员题）
-7. [2479. 两个不重叠子树的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-non-overlapping-subtrees/) （会员题）
-
-
-
-
-
-**思维拓展**
-
-1. [440. 字典序的第K小数字](https://leetcode.cn/problems/k-th-smallest-in-lexicographical-order/)
 
 
 
@@ -856,8 +694,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 1. [907. 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/) 1976 √
-2.  [2104. 子数组范围和（最大值-最小值）](https://leetcode.cn/problems/sum-of-subarray-ranges/) O(*n*) 做法难度大约 2000
-3. [1856. 子数组最小乘积的最大值](https://leetcode.cn/problems/maximum-subarray-min-product/) 2051
+2.  [2104. 子数组范围和](https://leetcode.cn/problems/sum-of-subarray-ranges/) √ 最大值 - 最小值
+3. [1856. 子数组最小乘积的最大值](https://leetcode.cn/problems/maximum-subarray-min-product/) 2051 √ 前缀和 + 单调栈
 4.  [2818. 操作使得分最大](https://leetcode.cn/problems/apply-operations-to-maximize-score/) 2397
 5. [2281. 巫师的总力量和（最小值×和）](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/) 2621
 6.  [3430. 最多 K 个元素的子数组的最值之和](https://leetcode.cn/problems/maximum-and-minimum-sums-of-at-most-size-k-subarrays/) 2645
@@ -935,8 +773,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 带着问题去做题目：
 
-1. 在什么情况下，要用到哨兵节点（dummy node）？
-2. 在什么情况下，循环条件要写 `while (node != null)`？什么情况下要写 `while (node.next != null)`？
+1. 在什么情况下，要用到哨兵节点（dummy node）？头节点可能被删除
+2. 在什么情况下，循环条件要写 `while (node != null)`？什么情况下要写 `while (node.next != null)`？`node != null` 遍历所有节点；`node.next != null` 遍历到最后一个节点。
 
 ### 1.遍历链表
 
@@ -1057,6 +895,443 @@ class LazyHeap extends PriorityQueue<Integer> {
 4. [1265. 逆序打印不可变链表](https://leetcode.cn/problems/print-immutable-linked-list-in-reverse/)（会员题）
 
 
+
+## 树
+
+树是一种数据结构，它是由n(n≥0)个有限节点组成一个具有层次关系的集合。
+
+每个节点有零个或多个子节点；没有父节点的节点称为根节点；每一个非根节点有且只有一个父节点；除了根节点外，每个子节点可以分为多个不相交的子树。
+
+- 节点的度：一个节点含有子节点的数量
+- 叶子节点或终端节点：度为零的节点
+- 分支节点或非叶子节点：度不为零的节点
+- 双亲节点或父节点：一个节点含有子节点，则这个节点为此节点的父节点
+- 兄弟节点：具有相同父节点的节点互称兄弟节点
+- 树的度：一棵树中，最大的节点的度称为树的度
+- 节点的层次：从根节点算第一层，根的子节点为第二层，一次类推
+- 树的高度或深度：树中节点的最大层次
+- 堂兄弟节点：双亲在同一层级的节点
+- 节点的祖先：从根到该节点所经分支上的所有节点
+- 子孙：以一个节点为根的子树中的任一节点都称为该节点的子孙
+- 森林：由m(m > 0)颗互不相交的树的集合称为森林
+
+
+
+**树的种类：**
+
+- 无序树：树种任意节点的子节点之间没有顺序关系。
+- 有序树：树种任意节点的子节点之间有顺序关系。
+- 二叉树：每个节点最多含有两个节点的树。
+- 满二叉树：叶节点除外，所有的节点均含有两个节点。
+- 完全二叉树：除最后一层外，所有层都是满节点，且最后一层缺右边连续节点的二叉树
+- 哈夫曼树：带权路径最短的二叉树称为哈夫曼树或最优二叉树。
+
+
+
+
+
+### 二叉树
+
+二叉树是 n 个有限元素的集合，该集合为空、或者由一个根的元素和两个不相交的子树组成，是有序树。
+
+二叉树(binary tree)是指树中节点的度不大于2的有序树，它是一种最简单且最重要的树。
+
+二叉树的递归定义为：二叉树是一棵空树，或者是一棵由一个根节点和两棵互不相交的，分别称作根的左子树和右子树组成的非空树；左子树和右子树又同样都是二叉树。
+
+集合为空时，二叉树也称为空二叉树，在二叉树中，每个元素也称为一个节点。
+
+二叉树特点：每个节点最多只能有两颗子树组成，且有左右之分。
+
+- 空二叉树
+- 只有一个根节点的二叉树
+- 只有左子树
+- 只有右子树
+- 完全二叉树
+
+
+
+#### 1. 遍历二叉树
+
+1. [144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/)
+2.  [94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)
+3.  [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/)
+4. [872. 叶子相似的树](https://leetcode.cn/problems/leaf-similar-trees/) 1288
+5.  [LCP 44. 开幕式焰火](https://leetcode.cn/problems/sZ59z6/)
+6.  [404. 左叶子之和](https://leetcode.cn/problems/sum-of-left-leaves/)
+7. [671. 二叉树中第二小的节点](https://leetcode.cn/problems/second-minimum-node-in-a-binary-tree/)
+8.  [1469. 寻找所有的独生节点](https://leetcode.cn/problems/find-all-the-lonely-nodes/)（会员题）
+9. [1214. 查找两棵二叉搜索树之和](https://leetcode.cn/problems/two-sum-bsts/)（会员题）
+10.  [2764. 数组是否表示某二叉树的前序遍历](https://leetcode.cn/problems/is-array-a-preorder-of-some-binary-tree/)（会员题）
+
+
+
+#### 2. 自顶向下 DFS(先序遍历)
+
+1. [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
+3.  [112. 路径总和](https://leetcode.cn/problems/path-sum/)
+4. [129. 求根节点到叶节点数字之和](https://leetcode.cn/problems/sum-root-to-leaf-numbers/)
+5.  [199. 二叉树的右视图](https://leetcode.cn/problems/binary-tree-right-side-view/)
+6.  [1448. 统计二叉树中好节点的数目](https://leetcode.cn/problems/count-good-nodes-in-binary-tree/) 1360
+7. [1315. 祖父节点值为偶数的节点和](https://leetcode.cn/problems/sum-of-nodes-with-even-valued-grandparent/) 1427
+8.  [988. 从叶结点开始的最小字符串](https://leetcode.cn/problems/smallest-string-starting-from-leaf/) 1429
+9.  [1026. 节点与其祖先之间的最大差值](https://leetcode.cn/problems/maximum-difference-between-node-and-ancestor/) 1446
+10. [1022. 从根到叶的二进制数之和](https://leetcode.cn/problems/sum-of-root-to-leaf-binary-numbers/) 1462
+11.  [623. 在二叉树中增加一行](https://leetcode.cn/problems/add-one-row-to-tree/)
+12.  [1372. 二叉树中的最长交错路径](https://leetcode.cn/problems/longest-zigzag-path-in-a-binary-tree/) 1713
+13. [971. 翻转二叉树以匹配先序遍历](https://leetcode.cn/problems/flip-binary-tree-to-match-preorder-traversal/) 1787
+14. [2689. 从 Rope 树中提取第 K 个字符](https://leetcode.cn/problems/extract-kth-character-from-the-rope-tree/)（会员题）
+15.  [298. 二叉树最长连续序列](https://leetcode.cn/problems/binary-tree-longest-consecutive-sequence/)（会员题）
+16. [1430. 判断给定的序列是否是二叉树从根到叶的路径](https://leetcode.cn/problems/check-if-a-string-is-a-valid-sequence-from-root-to-leaves-path-in-a-binary-tree/)（会员题）
+17.  [545. 二叉树的边界](https://leetcode.cn/problems/boundary-of-binary-tree/)（会员题）
+
+
+
+#### 3. 自底向上 DFS(后序遍历)
+
+1.  [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
+3.  [965. 单值二叉树](https://leetcode.cn/problems/univalued-binary-tree/) 1178
+4. [100. 相同的树](https://leetcode.cn/problems/same-tree/)
+5.  [101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/)
+6.  [951. 翻转等价二叉树](https://leetcode.cn/problems/flip-equivalent-binary-trees/)
+7. [1379. 找出克隆二叉树中的相同节点](https://leetcode.cn/problems/find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree/)
+8.  [110. 平衡二叉树](https://leetcode.cn/problems/balanced-binary-tree/)
+9.  [226. 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)
+10. [617. 合并二叉树](https://leetcode.cn/problems/merge-two-binary-trees/)
+11.  [2331. 计算布尔二叉树的值](https://leetcode.cn/problems/evaluate-boolean-binary-tree/) 1304
+12.  [508. 出现次数最多的子树元素和](https://leetcode.cn/problems/most-frequent-subtree-sum/)
+13. [563. 二叉树的坡度](https://leetcode.cn/problems/binary-tree-tilt/)
+14.  [606. 根据二叉树创建字符串](https://leetcode.cn/problems/construct-string-from-binary-tree/)
+15.  [2265. 统计值等于子树平均值的节点数](https://leetcode.cn/problems/count-nodes-equal-to-average-of-subtree/) 1473
+16. [1026. 节点与其祖先之间的最大差值](https://leetcode.cn/problems/maximum-difference-between-node-and-ancestor/) 多种做法
+17.  [3319. 第 K 大的完美二叉子树的大小](https://leetcode.cn/problems/k-th-largest-perfect-subtree-size-in-binary-tree/) 1603
+18.  [1339. 分裂二叉树的最大乘积](https://leetcode.cn/problems/maximum-product-of-splitted-binary-tree/) 1675
+19. [1372. 二叉树中的最长交错路径](https://leetcode.cn/problems/longest-zigzag-path-in-a-binary-tree/) 1713
+20.  [1145. 二叉树着色游戏](https://leetcode.cn/problems/binary-tree-coloring-game/) 1741
+21.  [572. 另一棵树的子树](https://leetcode.cn/problems/subtree-of-another-tree/) 做到 O(*n*) 时间
+22. [1530. 好叶子节点对的数量](https://leetcode.cn/problems/number-of-good-leaf-nodes-pairs/) 做到低于 O(*n*2) 时间
+23.  [LCP 67. 装饰树](https://leetcode.cn/problems/KnLfVT/)
+24.  [298. 二叉树最长连续序列](https://leetcode.cn/problems/binary-tree-longest-consecutive-sequence/)（会员题）
+25. [250. 统计同值子树](https://leetcode.cn/problems/count-univalue-subtrees/)（会员题）
+26.  [1973. 值等于子节点值之和的节点数量](https://leetcode.cn/problems/count-nodes-equal-to-sum-of-descendants/)（会员题）
+27.  [663. 均匀树划分](https://leetcode.cn/problems/equal-tree-partition/)（会员题）
+28. [1120. 子树的最大平均值](https://leetcode.cn/problems/maximum-average-subtree/)（会员题）
+29.  [2792. 计算足够大的节点数](https://leetcode.cn/problems/count-nodes-that-are-great-enough/)（会员题）
+30.  [333. 最大二叉搜索子树](https://leetcode.cn/problems/largest-bst-subtree/)（会员题）
+31. [366. 寻找二叉树的叶子节点](https://leetcode.cn/problems/find-leaves-of-binary-tree/)（会员题）
+32.  [156. 上下翻转二叉树](https://leetcode.cn/problems/binary-tree-upside-down/)（会员题）
+33.  [1612. 检查两棵二叉表达式树是否等价](https://leetcode.cn/problems/check-if-two-expression-trees-are-equivalent/)（会员题）
+
+
+
+#### 4. 自底向上 DFS-删点
+
+1. [814. 二叉树剪枝](https://leetcode.cn/problems/binary-tree-pruning/) 1380
+2.  [1325. 删除给定值的叶子节点](https://leetcode.cn/problems/delete-leaves-with-a-given-value/) 1407
+3.  [1110. 删点成林](https://leetcode.cn/problems/delete-nodes-and-return-forest/) 1511
+
+
+
+#### 5. 有递有归
+
+1. [538. 把二叉搜索树转换为累加树](https://leetcode.cn/problems/convert-bst-to-greater-tree/) 1375 也可以用外部变量记录和
+2.  [1038. 从二叉搜索树到更大和树](https://leetcode.cn/problems/binary-search-tree-to-greater-sum-tree/) 同 538 题
+3. [865. 具有所有最深节点的最小子树](https://leetcode.cn/problems/smallest-subtree-with-all-the-deepest-nodes/) 1534 也可以自底向上
+4.  [1080. 根到叶路径上的不足节点](https://leetcode.cn/problems/insufficient-nodes-in-root-to-leaf-paths/) 1805
+
+
+
+#### 6. 二叉树的直径
+
+1. [543. 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/)
+2.  [687. 最长同值路径](https://leetcode.cn/problems/longest-univalue-path/)
+3.  [124. 二叉树中的最大路径和](https://leetcode.cn/problems/binary-tree-maximum-path-sum/)
+4.  [2385. 感染二叉树需要的总时间](https://leetcode.cn/problems/amount-of-time-for-binary-tree-to-be-infected/) 1711
+5.  [549. 二叉树最长连续序列 II](https://leetcode.cn/problems/binary-tree-longest-consecutive-sequence-ii/)（会员题）
+
+
+
+#### 7. 回溯
+
+1.  [257. 二叉树的所有路径](https://leetcode.cn/problems/binary-tree-paths/)
+2.  [113. 路径总和 II](https://leetcode.cn/problems/path-sum-ii/)
+3.  [1457. 二叉树中的伪回文路径](https://leetcode.cn/problems/pseudo-palindromic-paths-in-a-binary-tree/) 1405
+4. [437. 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)
+
+
+
+#### 8. 最近公共祖先
+
+1. [235. 二叉搜索树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-search-tree/)
+2.  [236. 二叉树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)
+3.  [1123. 最深叶节点的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-deepest-leaves/) 1607
+4. [2096. 从二叉树一个节点到另一个节点每一步的方向](https://leetcode.cn/problems/step-by-step-directions-from-a-binary-tree-node-to-another/) 1805
+5. [1740. 找到二叉树中的距离](https://leetcode.cn/problems/find-distance-in-a-binary-tree/)（会员题）
+6.  [1644. 二叉树的最近公共祖先 II](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree-ii/)（会员题）
+7. [1650. 二叉树的最近公共祖先 III](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree-iii/)（会员题）
+8.  [1676. 二叉树的最近公共祖先 IV](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree-iv/)（会员题）
+
+
+
+#### 9. 二叉搜索树
+
+1. [700. 二叉搜索树中的搜索](https://leetcode.cn/problems/search-in-a-binary-search-tree/)
+2.  [530. 二叉搜索树的最小绝对差](https://leetcode.cn/problems/minimum-absolute-difference-in-bst/) 1303
+3.  [783. 二叉搜索树节点最小距离](https://leetcode.cn/problems/minimum-distance-between-bst-nodes/) 同 530 题
+4. [938. 二叉搜索树的范围和](https://leetcode.cn/problems/range-sum-of-bst/) 1335
+5.  [501. 二叉搜索树中的众数](https://leetcode.cn/problems/find-mode-in-binary-search-tree/)
+6.  [230. 二叉搜索树中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-bst/)
+7. [98. 验证二叉搜索树](https://leetcode.cn/problems/validate-binary-search-tree/) 有前序、中序和后序三种做法
+8.  [1305. 两棵二叉搜索树中的所有元素](https://leetcode.cn/problems/all-elements-in-two-binary-search-trees/)
+9.  [99. 恢复二叉搜索树](https://leetcode.cn/problems/recover-binary-search-tree/)
+10. [897. 递增顺序搜索树](https://leetcode.cn/problems/increasing-order-search-tree/) 1473
+11.  [2476. 二叉搜索树最近节点查询](https://leetcode.cn/problems/closest-nodes-queries-in-a-binary-search-tree/) 1597
+12.  [653. 两数之和 IV - 输入二叉搜索树](https://leetcode.cn/problems/two-sum-iv-input-is-a-bst/)
+13. [1373. 二叉搜索子树的最大键值和](https://leetcode.cn/problems/maximum-sum-bst-in-binary-tree/) 1914
+14.  [1932. 合并多棵二叉搜索树](https://leetcode.cn/problems/merge-bsts-to-create-single-bst/) 2484
+15. [285. 二叉搜索树中的中序后继](https://leetcode.cn/problems/inorder-successor-in-bst/)（会员题）
+16.  [510. 二叉搜索树中的中序后继 II](https://leetcode.cn/problems/inorder-successor-in-bst-ii/)（会员题）
+17.  [270. 最接近的二叉搜索树值](https://leetcode.cn/problems/closest-binary-search-tree-value/)（会员题）
+18. [272. 最接近的二叉搜索树值 II](https://leetcode.cn/problems/closest-binary-search-tree-value-ii/)（会员题）
+19.  [255. 验证二叉搜索树的前序遍历序列](https://leetcode.cn/problems/verify-preorder-sequence-in-binary-search-tree/)（会员题）
+20.  [1902. 给定二叉搜索树的插入顺序求深度](https://leetcode.cn/problems/depth-of-bst-given-insertion-order/)（会员题）
+
+
+
+#### 10. 创建二叉树
+
+1.  [108. 将有序数组转换为二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/)
+2.  [654. 最大二叉树](https://leetcode.cn/problems/maximum-binary-tree/)
+3.  [998. 最大二叉树 II](https://leetcode.cn/problems/maximum-binary-tree-ii/) 1498
+4. [1008. 前序遍历构造二叉搜索树](https://leetcode.cn/problems/construct-binary-search-tree-from-preorder-traversal/) 1563
+5.  [1382. 将二叉搜索树变平衡](https://leetcode.cn/problems/balance-a-binary-search-tree/)
+6.  [2196. 根据描述创建二叉树](https://leetcode.cn/problems/create-binary-tree-from-descriptions/) 1644
+7. [105. 从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+8.  [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+9.  [889. 根据前序和后序遍历构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-postorder-traversal/) 1732
+10. [1028. 从先序遍历还原二叉树](https://leetcode.cn/problems/recover-a-tree-from-preorder-traversal/) 1797
+11.  [536. 从字符串生成二叉树](https://leetcode.cn/problems/construct-binary-tree-from-string/)（会员题）
+12.  [1628. 设计带解析函数的表达式树](https://leetcode.cn/problems/design-an-expression-tree-with-evaluate-function/)（会员题）
+13. [1597. 根据中缀表达式构造二叉表达式树](https://leetcode.cn/problems/build-binary-expression-tree-from-infix-expression/)（会员题）
+
+
+
+#### 11. 插入/删除节点
+
+1. [701. 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/)
+2.  [450. 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/)
+3.  [669. 修剪二叉搜索树](https://leetcode.cn/problems/trim-a-binary-search-tree/)
+4. [776. 拆分二叉搜索树](https://leetcode.cn/problems/split-bst/)（会员题）
+5.  [1666. 改变二叉树的根节点](https://leetcode.cn/problems/change-the-root-of-a-binary-tree/)（会员题）
+
+
+
+#### 12. 树形 DP
+
+1.  [337. 打家劫舍 III](https://leetcode.cn/problems/house-robber-iii/)
+2.  [968. 监控二叉树](https://leetcode.cn/problems/binary-tree-cameras/)
+3.  [LCP 10. 二叉树任务调度](https://leetcode.cn/problems/er-cha-shu-ren-wu-diao-du/)
+4. [LCP 34. 二叉树染色](https://leetcode.cn/problems/er-cha-shu-ran-se-UGC/)
+5.  [LCP 64. 二叉树灯饰](https://leetcode.cn/problems/U7WvvU/)
+6.  [2313. 二叉树中得到结果所需的最少翻转次数](https://leetcode.cn/problems/minimum-flips-in-binary-tree-to-get-result/)（会员题）
+
+
+
+#### 13. 二叉树 BFS
+
+1. [102. 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)
+2.  [103. 二叉树的锯齿形层序遍历](https://leetcode.cn/problems/binary-tree-zigzag-level-order-traversal/)
+3.  [107. 二叉树的层序遍历 II](https://leetcode.cn/problems/binary-tree-level-order-traversal-ii/)
+4. [199. 二叉树的右视图](https://leetcode.cn/problems/binary-tree-right-side-view/) 也可以 DFS
+5.  [513. 找树左下角的值](https://leetcode.cn/problems/find-bottom-left-tree-value/)
+6.  [515. 在每个树行中找最大值](https://leetcode.cn/problems/find-largest-value-in-each-tree-row/)
+7.  [637. 二叉树的层平均值](https://leetcode.cn/problems/average-of-levels-in-binary-tree/)
+8.  [1161. 最大层内元素和](https://leetcode.cn/problems/maximum-level-sum-of-a-binary-tree/) 1250
+9.  [993. 二叉树的堂兄弟节点](https://leetcode.cn/problems/cousins-in-binary-tree/) 1288
+10. [2583. 二叉树中的第 K 大层和](https://leetcode.cn/problems/kth-largest-sum-in-a-binary-tree/) 1374
+11.  [1302. 层数最深叶子节点的和](https://leetcode.cn/problems/deepest-leaves-sum/) 1388
+12.  [2415. 反转二叉树的奇数层](https://leetcode.cn/problems/reverse-odd-levels-of-binary-tree/) 1431
+13. [1609. 奇偶树](https://leetcode.cn/problems/even-odd-tree/) 1438
+14.  [623. 在二叉树中增加一行](https://leetcode.cn/problems/add-one-row-to-tree/)
+15.  [2471. 逐层排序二叉树所需的最少操作数目](https://leetcode.cn/problems/minimum-number-of-operations-to-sort-a-binary-tree-by-level/) 1635
+16. [2641. 二叉树的堂兄弟节点 II](https://leetcode.cn/problems/cousins-in-binary-tree-ii/) 1677
+17.  [919. 完全二叉树插入器](https://leetcode.cn/problems/complete-binary-tree-inserter/) 1691
+18.  [958. 二叉树的完全性检验](https://leetcode.cn/problems/check-completeness-of-a-binary-tree/) 1703
+19. [863. 二叉树中所有距离为 K 的结点](https://leetcode.cn/problems/all-nodes-distance-k-in-binary-tree/)
+20.  [662. 二叉树最大宽度](https://leetcode.cn/problems/maximum-width-of-binary-tree/)
+21.  [3157. 找到具有最小和的树的层数](https://leetcode.cn/problems/find-the-level-of-tree-with-minimum-sum/)（会员题）
+22. [1602. 找到二叉树中最近的右侧节点](https://leetcode.cn/problems/find-nearest-right-node-in-binary-tree/)（会员题）
+23.  [742. 二叉树最近的叶节点](https://leetcode.cn/problems/closest-leaf-in-a-binary-tree/)（会员题）
+24.  [1660. 纠正二叉树](https://leetcode.cn/problems/correct-a-binary-tree/)（会员题）
+
+
+
+#### 14. 链表+二叉树
+
+1. [114. 二叉树展开为链表](https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/)
+2.  [1367. 二叉树中的链表](https://leetcode.cn/problems/linked-list-in-binary-tree/) 1650
+3.  [109. 有序链表转换二叉搜索树](https://leetcode.cn/problems/convert-sorted-list-to-binary-search-tree/)
+4. [116. 填充每个节点的下一个右侧节点指针](https://leetcode.cn/problems/populating-next-right-pointers-in-each-node/) 做到 O(1) 空间
+5.  [117. 填充每个节点的下一个右侧节点指针 II](https://leetcode.cn/problems/populating-next-right-pointers-in-each-node-ii/) 做到 O(1) 空间
+6. [426. 将二叉搜索树转化为排序的双向链表](https://leetcode.cn/problems/convert-binary-search-tree-to-sorted-doubly-linked-list/)（会员题）
+
+
+
+#### 15. N 叉树
+
+1. [589. N 叉树的前序遍历](https://leetcode.cn/problems/n-ary-tree-preorder-traversal/)
+2.  [590. N 叉树的后序遍历](https://leetcode.cn/problems/n-ary-tree-postorder-traversal/)
+3.  [559. N 叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-n-ary-tree/)
+4. [429. N 叉树的层序遍历](https://leetcode.cn/problems/n-ary-tree-level-order-traversal/)
+5.  [427. 建立四叉树](https://leetcode.cn/problems/construct-quad-tree/)
+6.  [558. 四叉树交集](https://leetcode.cn/problems/logical-or-of-two-binary-grids-represented-as-quad-trees/)
+7. [428. 序列化和反序列化 N 叉树](https://leetcode.cn/problems/serialize-and-deserialize-n-ary-tree/)（会员题）
+8.  [1490. 克隆 N 叉树](https://leetcode.cn/problems/clone-n-ary-tree/)（会员题）
+9.  [1506. 找到 N 叉树的根节点](https://leetcode.cn/problems/find-root-of-n-ary-tree/)（会员题）
+10. [1522. N 叉树的直径](https://leetcode.cn/problems/diameter-of-n-ary-tree/)（会员题）
+11.  [1516. 移动 N 叉树的子树](https://leetcode.cn/problems/move-sub-tree-of-n-ary-tree/)（会员题）
+
+
+
+#### 16. 其他
+
+1. [1261. 在受污染的二叉树中查找元素](https://leetcode.cn/problems/find-elements-in-a-contaminated-binary-tree/) 1440
+2.  [1104. 二叉树寻路](https://leetcode.cn/problems/path-in-zigzag-labelled-binary-tree/) 1545
+3.  [987. 二叉树的垂序遍历](https://leetcode.cn/problems/vertical-order-traversal-of-a-binary-tree/) 1676
+4. [655. 输出二叉树](https://leetcode.cn/problems/print-binary-tree/)
+5.  [979. 在二叉树中分配硬币](https://leetcode.cn/problems/distribute-coins-in-binary-tree/) 1709 贡献法
+6.  [222. 完全二叉树的节点个数](https://leetcode.cn/problems/count-complete-tree-nodes/) 做到低于 O(*n*) 时间
+7. [297. 二叉树的序列化与反序列化](https://leetcode.cn/problems/serialize-and-deserialize-binary-tree/)
+8.  [449. 序列化和反序列化二叉搜索树](https://leetcode.cn/problems/serialize-and-deserialize-bst/)
+9.  [331. 验证二叉树的前序序列化](https://leetcode.cn/problems/verify-preorder-serialization-of-a-binary-tree/)
+10. [652. 寻找重复的子树](https://leetcode.cn/problems/find-duplicate-subtrees/)
+11.  [173. 二叉搜索树迭代器](https://leetcode.cn/problems/binary-search-tree-iterator/)
+12.  [2049. 统计最高分的节点数目](https://leetcode.cn/problems/count-nodes-with-the-highest-score/) 1912
+13. [2673. 使二叉树所有路径值相等的最小代价](https://leetcode.cn/problems/make-costs-of-paths-equal-in-a-binary-tree/) 1917
+14.  [2509. 查询树中环的长度](https://leetcode.cn/problems/cycle-length-queries-in-a-tree/) 1948
+15.  [2458. 移除子树后的二叉树高度](https://leetcode.cn/problems/height-of-binary-tree-after-subtree-removal-queries/) 2299 推荐
+16. [LCP 26. 导航装置](https://leetcode.cn/problems/hSRGyL/)
+17.  [LCP 60. 力扣泡泡龙](https://leetcode.cn/problems/WInSav/)
+18.  [314. 二叉树的垂直遍历](https://leetcode.cn/problems/binary-tree-vertical-order-traversal/)（会员题）
+19.  [666. 路径总和 IV](https://leetcode.cn/problems/path-sum-iv/)（会员题）
+20.  [1586. 二叉搜索树迭代器 II](https://leetcode.cn/problems/binary-search-tree-iterator-ii/)（会员题）
+21.  [2773. 特殊二叉树的高度](https://leetcode.cn/problems/height-of-special-binary-tree/)（会员题）
+22. [1485. 克隆含随机指针的二叉树](https://leetcode.cn/problems/clone-binary-tree-with-random-pointer/)（会员题）
+23.  [2445. 值为 1 的节点数](https://leetcode.cn/problems/number-of-nodes-with-value-one/)（会员题）
+24.  [431. 将 N 叉树编码为二叉树](https://leetcode.cn/problems/encode-n-ary-tree-to-binary-tree/)（会员题）
+25. [2005. 斐波那契树的移除子树游戏](https://leetcode.cn/problems/subtree-removal-game-with-fibonacci-tree/)（会员题）
+
+
+
+
+
+### 红黑树
+
+二叉搜索树，满足BST的基本性质：
+
+1. 左子树中所有节点的值 小于 该节点的值
+2. 右子树中所有节点的值 大于 该节点的值
+3. 左、右子树也分别是二叉搜索树
+
+
+
+一颗红黑树必须同时满足的五个性质：
+
+1. 节点是红色或黑色；
+2. 根节点是黑色；
+3. 所有叶子节点（所有节点都指向空）都是黑色；
+4. 红色节点的两个子节点都必须是黑色（不能有两个连续的红色节点）；
+5. 从任意节点到其后代叶子节点的简单路径中，均包含相同数目的黑色节点（黑高）。
+
+
+
+
+
+
+
+### B-Tree
+
+对于一棵m阶B-tree，每个结点至多可以拥有m个子结点。各结点的关键字和可以拥有的子结点数都有限制，规定m阶B-tree中，根结点至少有2个子结点，除非根结点为叶子节点(又称为终端节点，一棵树没有子节点，即度为0)，相应的，根结点中关键字的个数为1~m-1；非根结点至少有[m/2]（[]，向上取整）个子结点，相应的，关键字个数为[m/2]-1~m-1。
+
+B-Tree中，每个节点包含：
+
+- 本节点所含的关键字的个数；
+- 指向父节点的指针；
+- 关键字；
+- 指向子节点的指针。
+
+
+
+### B+Tree
+
+其节点结构与B-tree相同，不同的是各结点的关键字和可以拥有的子结点数。如m阶B+树中，每个结点至多可以拥有m个子结点。非根结点至少有[m/2]个子结点，而关键字个数比B-tree多一个，为[m/2]~m。
+
+B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，一个少一个。
+
+
+
+## 字典树 trie
+
+[字典树](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
+
+### 基础
+
+1. [208. 实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)
+2. [3597. 分割字符串](https://leetcode.cn/problems/partition-string/)
+3. [648. 单词替换](https://leetcode.cn/problems/replace-words/)
+4. [720. 词典中最长的单词](https://leetcode.cn/problems/longest-word-in-dictionary/)
+5. [2416. 字符串的前缀分数和](https://leetcode.cn/problems/sum-of-prefix-scores-of-strings/) 1725
+6. [677. 键值映射](https://leetcode.cn/problems/map-sum-pairs/)
+7. [1268. 搜索推荐系统](https://leetcode.cn/problems/search-suggestions-system/)
+8. [1233. 删除子文件夹](https://leetcode.cn/problems/remove-sub-folders-from-the-filesystem/)
+9. [820. 单词的压缩编码](https://leetcode.cn/problems/short-encoding-of-words/)
+10. [2261. 含最多 K 个可整除元素的子数组](https://leetcode.cn/problems/k-divisible-elements-subarrays/) 
+11. [1804. 实现 Trie （前缀树） II](https://leetcode.cn/problems/implement-trie-ii-prefix-tree/)（会员题）
+12. [2168. 每个数字的频率都相同的独特子字符串的数量](https://leetcode.cn/problems/unique-substrings-with-equal-digit-frequency/)（会员题）同 2261
+
+### 进阶
+
+1. [211. 添加与搜索单词 - 数据结构设计](https://leetcode.cn/problems/design-add-and-search-words-data-structure/)
+2. [676. 实现一个魔法字典](https://leetcode.cn/problems/implement-magic-dictionary/)
+3. [212. 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)
+4. [3093. 最长公共后缀查询](https://leetcode.cn/problems/longest-common-suffix-queries/) 2118
+5. [745. 前缀和后缀搜索](https://leetcode.cn/problems/prefix-and-suffix-search/)
+6. [3045. 统计前后缀下标对 II](https://leetcode.cn/problems/count-prefix-and-suffix-pairs-ii/) 2328
+7. [336. 回文对](https://leetcode.cn/problems/palindrome-pairs/)
+8. [1948. 删除系统中的重复文件夹](https://leetcode.cn/problems/delete-duplicate-folders-in-system/) 2534
+9. [425. 单词方块](https://leetcode.cn/problems/word-squares/) （会员题）
+10. [527. 单词缩写](https://leetcode.cn/problems/word-abbreviation/) （会员题）
+11. [588. 设计内存文件系统](https://leetcode.cn/problems/design-in-memory-file-system/) （会员题）
+12. [616. 给字符串添加加粗标签](https://leetcode.cn/problems/add-bold-tag-in-string/) （会员题）
+13. [758. 字符串中的加粗单词](https://leetcode.cn/problems/bold-words-in-string/) （会员题）
+14. [642. 设计搜索自动补全系统](https://leetcode.cn/problems/design-search-autocomplete-system/) （会员题）
+15. [1065. 字符串的索引对](https://leetcode.cn/problems/index-pairs-of-a-string/) （会员题）
+16. [1166. 设计文件系统](https://leetcode.cn/problems/design-file-system/) （会员题）
+17. [1858. 包含所有前缀的最长单词](https://leetcode.cn/problems/longest-word-with-all-prefixes/) （会员题）
+18. [440. 字典序的第K小数字](https://leetcode.cn/problems/k-th-smallest-in-lexicographical-order/) 思维扩展
+
+
+
+### 字典树 DP
+
+1. [139. 单词拆分](https://leetcode.cn/problems/word-break/)
+2. [140. 单词拆分 II](https://leetcode.cn/problems/word-break-ii/)
+3. [面试题 17.13. 恢复空格](https://leetcode.cn/problems/re-space-lcci/)
+4. [472. 连接词](https://leetcode.cn/problems/concatenated-words/) 约 2300
+5. [2977. 转换字符串的最小成本 II](https://leetcode.cn/problems/minimum-cost-to-convert-string-ii/) 2696
+
+
+
+### 异或字典树
+
+1. [421. 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/) 约 2000
+2. [2935. 找出强数对的最大异或值 II](https://leetcode.cn/problems/maximum-strong-pair-xor-ii/) 2349
+3. [1707. 与数组中元素的最大异或值](https://leetcode.cn/problems/maximum-xor-with-an-element-from-array/) 2359
+4. [1803. 统计异或值在范围内的数对有多少](https://leetcode.cn/problems/count-pairs-with-xor-in-a-range/) 2479
+5. [1938. 查询最大基因差](https://leetcode.cn/problems/maximum-genetic-difference-query/) 2503
+6. [3632. 异或至少为 K 的子数组数目](https://leetcode.cn/problems/subarrays-with-xor-at-least-k/) （会员题）
+7. [2479. 两个不重叠子树的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-non-overlapping-subtrees/) （会员题）
 
 
 
