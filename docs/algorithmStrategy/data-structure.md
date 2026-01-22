@@ -948,13 +948,31 @@ class LazyHeap extends PriorityQueue<Integer> {
 - 只有右子树
 - 完全二叉树
 
+**前序遍历**：根-左-右，先访问根节点值，再根访问左子树，最后访问根的右子树。
+
+**中序遍历**：左-根-右，先访问根的左子树，再获取根节点值，最后访问根的右子树。
+
+**后序遍历**：左-右-根，先访问根的左子树，再访问根的右子树，最后获取根节点值。
+
+
+
+
+
+
+
+问题1：一般来说，DFS 的递归边界是空节点。在什么情况下，要额外把**叶子节点**作为递归边界？
+
+问题2：在什么情况下，DFS 需要有返回值？什么情况下不需要有返回值？
+
+问题3：在什么情况下，题目更适合用**自顶向下**的方法解决？什么情况下更适合用**自底向上**的方法解决？
+
 
 
 #### 1. 遍历二叉树
 
-1. [144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/)
-2.  [94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)
-3.  [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/)
+1. [144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/) √
+2.  [94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/) √
+3.  [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/) √
 4. [872. 叶子相似的树](https://leetcode.cn/problems/leaf-similar-trees/) 1288
 5.  [LCP 44. 开幕式焰火](https://leetcode.cn/problems/sZ59z6/)
 6.  [404. 左叶子之和](https://leetcode.cn/problems/sum-of-left-leaves/)
@@ -1228,7 +1246,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ### 红黑树
 
-二叉搜索树，满足BST的基本性质：
+二叉搜索树，满足 BST 的基本性质：
 
 1. 左子树中所有节点的值 小于 该节点的值
 2. 右子树中所有节点的值 大于 该节点的值
@@ -1243,8 +1261,6 @@ class LazyHeap extends PriorityQueue<Integer> {
 3. 所有叶子节点（所有节点都指向空）都是黑色；
 4. 红色节点的两个子节点都必须是黑色（不能有两个连续的红色节点）；
 5. 从任意节点到其后代叶子节点的简单路径中，均包含相同数目的黑色节点（黑高）。
-
-
 
 
 
