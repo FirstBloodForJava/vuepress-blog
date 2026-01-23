@@ -973,10 +973,10 @@ class LazyHeap extends PriorityQueue<Integer> {
 1. [144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/) √
 2.  [94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/) √
 3.  [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/) √
-4. [872. 叶子相似的树](https://leetcode.cn/problems/leaf-similar-trees/) 1288
-5.  [LCP 44. 开幕式焰火](https://leetcode.cn/problems/sZ59z6/)
-6.  [404. 左叶子之和](https://leetcode.cn/problems/sum-of-left-leaves/)
-7. [671. 二叉树中第二小的节点](https://leetcode.cn/problems/second-minimum-node-in-a-binary-tree/)
+4. [872. 叶子相似的树](https://leetcode.cn/problems/leaf-similar-trees/) 1288 √
+5.  [LCP 44. 开幕式焰火](https://leetcode.cn/problems/sZ59z6/) √
+6.  [404. 左叶子之和](https://leetcode.cn/problems/sum-of-left-leaves/) √
+7. [671. 二叉树中第二小的节点](https://leetcode.cn/problems/second-minimum-node-in-a-binary-tree/) √
 8.  [1469. 寻找所有的独生节点](https://leetcode.cn/problems/find-all-the-lonely-nodes/)（会员题）
 9. [1214. 查找两棵二叉搜索树之和](https://leetcode.cn/problems/two-sum-bsts/)（会员题）
 10.  [2764. 数组是否表示某二叉树的前序遍历](https://leetcode.cn/problems/is-array-a-preorder-of-some-binary-tree/)（会员题）
