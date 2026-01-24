@@ -985,14 +985,14 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 #### 2. 自顶向下 DFS(先序遍历)
 
-1. [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
-2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
-3.  [112. 路径总和](https://leetcode.cn/problems/path-sum/)
-4. [129. 求根节点到叶节点数字之和](https://leetcode.cn/problems/sum-root-to-leaf-numbers/)
-5.  [199. 二叉树的右视图](https://leetcode.cn/problems/binary-tree-right-side-view/)
-6.  [1448. 统计二叉树中好节点的数目](https://leetcode.cn/problems/count-good-nodes-in-binary-tree/) 1360
-7. [1315. 祖父节点值为偶数的节点和](https://leetcode.cn/problems/sum-of-nodes-with-even-valued-grandparent/) 1427
-8.  [988. 从叶结点开始的最小字符串](https://leetcode.cn/problems/smallest-string-starting-from-leaf/) 1429
+1. [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/) √
+2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/) √
+3.  [112. 路径总和](https://leetcode.cn/problems/path-sum/) √
+4. [129. 求根节点到叶节点数字之和](https://leetcode.cn/problems/sum-root-to-leaf-numbers/) √
+5.  [199. 二叉树的右视图](https://leetcode.cn/problems/binary-tree-right-side-view/) √
+6.  [1448. 统计二叉树中好节点的数目](https://leetcode.cn/problems/count-good-nodes-in-binary-tree/) 1360 √
+7. [1315. 祖父节点值为偶数的节点和](https://leetcode.cn/problems/sum-of-nodes-with-even-valued-grandparent/) 1427 √
+8.  [988. 从叶结点开始的最小字符串](https://leetcode.cn/problems/smallest-string-starting-from-leaf/) 1429 √
 9.  [1026. 节点与其祖先之间的最大差值](https://leetcode.cn/problems/maximum-difference-between-node-and-ancestor/) 1446
 10. [1022. 从根到叶的二进制数之和](https://leetcode.cn/problems/sum-of-root-to-leaf-binary-numbers/) 1462
 11.  [623. 在二叉树中增加一行](https://leetcode.cn/problems/add-one-row-to-tree/)
