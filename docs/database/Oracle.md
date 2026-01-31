@@ -307,3 +307,35 @@ TO_CLOB('some large string')
 
 ~~~
 
+
+
+## 索引
+
+### 查询索引
+
+~~~sql
+SELECT 
+    ui.index_name,
+    ui.index_type,
+    ui.uniqueness,
+    uic.column_name,
+    uic.column_position
+FROM user_indexes ui
+JOIN user_ind_columns uic 
+    ON ui.index_name = uic.index_name
+WHERE ui.table_name = 'table_name'
+ORDER BY ui.index_name, uic.column_position;
+~~~
+
+
+
+### 创建索引
+
+联合索引创建逻辑：等值在前，范围在后；过滤强(高选择性)的在前，排序用的靠后。
+
+选择性 ≈ 不重复数 / 总行数
+
+1. 等值条件优于范围条件；
+2. 高选择性列优先
+3. 
+
