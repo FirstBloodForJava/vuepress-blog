@@ -993,11 +993,11 @@ class LazyHeap extends PriorityQueue<Integer> {
 6.  [1448. 统计二叉树中好节点的数目](https://leetcode.cn/problems/count-good-nodes-in-binary-tree/) 1360 √
 7. [1315. 祖父节点值为偶数的节点和](https://leetcode.cn/problems/sum-of-nodes-with-even-valued-grandparent/) 1427 √
 8.  [988. 从叶结点开始的最小字符串](https://leetcode.cn/problems/smallest-string-starting-from-leaf/) 1429 √
-9.  [1026. 节点与其祖先之间的最大差值](https://leetcode.cn/problems/maximum-difference-between-node-and-ancestor/) 1446
-10. [1022. 从根到叶的二进制数之和](https://leetcode.cn/problems/sum-of-root-to-leaf-binary-numbers/) 1462
-11.  [623. 在二叉树中增加一行](https://leetcode.cn/problems/add-one-row-to-tree/)
-12.  [1372. 二叉树中的最长交错路径](https://leetcode.cn/problems/longest-zigzag-path-in-a-binary-tree/) 1713
-13. [971. 翻转二叉树以匹配先序遍历](https://leetcode.cn/problems/flip-binary-tree-to-match-preorder-traversal/) 1787
+9.  [1026. 节点与其祖先之间的最大差值](https://leetcode.cn/problems/maximum-difference-between-node-and-ancestor/) 1446 √
+10. [1022. 从根到叶的二进制数之和](https://leetcode.cn/problems/sum-of-root-to-leaf-binary-numbers/) 1462 √
+11.  [623. 在二叉树中增加一行](https://leetcode.cn/problems/add-one-row-to-tree/) √
+12.  [1372. 二叉树中的最长交错路径](https://leetcode.cn/problems/longest-zigzag-path-in-a-binary-tree/) 1713 √
+13. [971. 翻转二叉树以匹配先序遍历](https://leetcode.cn/problems/flip-binary-tree-to-match-preorder-traversal/) 1787 √
 14. [2689. 从 Rope 树中提取第 K 个字符](https://leetcode.cn/problems/extract-kth-character-from-the-rope-tree/)（会员题）
 15.  [298. 二叉树最长连续序列](https://leetcode.cn/problems/binary-tree-longest-consecutive-sequence/)（会员题）
 16. [1430. 判断给定的序列是否是二叉树从根到叶的路径](https://leetcode.cn/problems/check-if-a-string-is-a-valid-sequence-from-root-to-leaves-path-in-a-binary-tree/)（会员题）
@@ -1007,13 +1007,13 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 #### 3. 自底向上 DFS(后序遍历)
 
-1.  [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
-2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
-3.  [965. 单值二叉树](https://leetcode.cn/problems/univalued-binary-tree/) 1178
-4. [100. 相同的树](https://leetcode.cn/problems/same-tree/)
-5.  [101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/)
-6.  [951. 翻转等价二叉树](https://leetcode.cn/problems/flip-equivalent-binary-trees/)
-7. [1379. 找出克隆二叉树中的相同节点](https://leetcode.cn/problems/find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree/)
+1.  [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/) √
+2.  [111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/) √
+3.  [965. 单值二叉树](https://leetcode.cn/problems/univalued-binary-tree/) 1178 √
+4. [100. 相同的树](https://leetcode.cn/problems/same-tree/) √
+5.  [101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/) √
+6.  [951. 翻转等价二叉树](https://leetcode.cn/problems/flip-equivalent-binary-trees/) 1477 √
+7. [1379. 找出克隆二叉树中的相同节点](https://leetcode.cn/problems/find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree/) √
 8.  [110. 平衡二叉树](https://leetcode.cn/problems/balanced-binary-tree/)
 9.  [226. 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)
 10. [617. 合并二叉树](https://leetcode.cn/problems/merge-two-binary-trees/)
