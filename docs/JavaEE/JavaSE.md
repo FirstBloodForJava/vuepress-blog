@@ -6,6 +6,8 @@
 2. shift+delete 永久删除
 3. windows+e 打开我的电脑
 
+
+
 ## java环境搭建
 
 jdk 的下载，oracle官网可以下载，根据电脑的位数，系统下载对应的jdk。
