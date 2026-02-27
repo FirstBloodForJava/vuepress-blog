@@ -1,0 +1,28 @@
+import{_ as i,c as n,e as l,o as e}from"./app-BIGZvh4f.js";const a={};function t(p,s){return e(),n("div",null,s[0]||(s[0]=[l(`<p>官网地址：https://www.elastic.co/guide/en/logstash/8.15/introduction.html</p><p>Logstash是一个具有实时管道功能的开源数据收集引擎。Logstatsh能动态统一处理来自不同源的数据，并且将其规范化到你选择的目的地。</p><p>Logstash能通过一些了的input、filter、output插件实现数据的提取和转换。</p><h2 id="logstash如何工作" tabindex="-1"><a class="header-anchor" href="#logstash如何工作"><span>Logstash如何工作</span></a></h2><p>Logstash管道执行过程有3个阶段：inputs -&gt; filters -&gt; outputs。inputs产生事件，filters修改它们，outputs发送它们到任意地方。inputs和outputs都支持加密和解密的编码，而不需要使用额外的过滤器。</p><h3 id="inputs" tabindex="-1"><a class="header-anchor" href="#inputs"><span>inputs</span></a></h3><p>常使用的inputs：</p><ol><li>file：从文件读取数据；</li><li>beats：可以结合filebeat使用；</li><li>kafka：从kafka的队列读取数据；</li><li>redis：使用redis的list数据类型读取数据，类似队列；</li><li>syslog：读取系统日志，遵循RFC3164标准协议。</li></ol><p>更多插件相关使用信息文档：https://www.elastic.co/guide/en/logstash/8.15/input-plugins.html</p><h3 id="filters" tabindex="-1"><a class="header-anchor" href="#filters"><span>filters</span></a></h3><p>过滤器可以和条件组合一起使用，再特定条件执行过滤器。例如:</p><div class="language-pipeline.conf line-numbers-mode" data-highlighter="prismjs" data-ext="pipeline.conf" data-title="pipeline.conf"><pre><code><span class="line">input {</span>
+<span class="line">    kafka {</span>
+<span class="line">        bootstrap_servers =&gt; &quot;kafka serverIP地址和端口，多个地址以逗号分隔&quot;</span>
+<span class="line">        client_id =&gt; &quot;logstash消费客户端ID名称&quot;</span>
+<span class="line">        group_id =&gt; &quot;logstashToEs&quot;</span>
+<span class="line">        auto_offset_reset =&gt; &quot;latest&quot;</span>
+<span class="line">        topics =&gt; &quot;kafka topic名称&quot;</span>
+<span class="line">        type =&gt; &quot;kafka topic名称&quot;</span>
+<span class="line">    }</span>
+<span class="line">}</span>
+<span class="line">filter {</span>
+<span class="line">    if [type] == &quot;kafka topic名称&quot; {</span>
+<span class="line">        json {</span>
+<span class="line">            source =&gt; &quot;message&quot;</span>
+<span class="line">            remove_field=&gt;[&quot;message&quot;]</span>
+<span class="line">        }</span>
+<span class="line">    }</span>
+<span class="line">}</span>
+<span class="line">output {</span>
+<span class="line">    if [type] == &quot;kafka topic名称&quot;{</span>
+<span class="line">        elasticsearch {</span>
+<span class="line">            hosts =&gt; [&quot;Elasticsearch serverIP地址和端口，多个地址以逗号分隔&quot;]</span>
+<span class="line">            index =&gt; &quot;Elasticsearch索引名称-%{+YYYY-MM}&quot;</span>
+<span class="line">        }</span>
+<span class="line">    }</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>常使用的过滤器：</p><ol><li>grok：解析和构建文本。将非结构化的日志解析成结构化且可查询的。内置120种模式；</li><li>geoip：添加有关IP地址的地址位置信息；</li><li>mutate：对字段进行转换，可以重命名、删除、替换修改字段，字段对应的值也能修改；</li><li>dtop：可以写条件丢弃事件；</li><li>clone：复制事件。</li></ol><p>更多过滤器及过滤器的使用方式文档：https://www.elastic.co/guide/en/logstash/8.15/filter-plugins.html</p><h3 id="outputs" tabindex="-1"><a class="header-anchor" href="#outputs"><span>outputs</span></a></h3><p>output是管道的最后阶段，一个事件可以配置多个output，一旦所有的output都执行完成，代表这个事件完成。</p><p>常用的outputs：</p><ol><li>elasticsearch：发送事件解析的数据到ES；</li><li>file：写入事件数据到磁盘的文件；</li><li>graphite：发送事件数据到grahpite，根据数据回执指标。http://graphite.readthedocs.io/en/latest/</li><li>statsd：发送数据到statsd服务器，将数据可视化。</li></ol><p>更多output及其使用方式文档：https://www.elastic.co/guide/en/logstash/8.15/output-plugins.html。</p><h3 id="codecs" tabindex="-1"><a class="header-anchor" href="#codecs"><span>codecs</span></a></h3><p>数据编码，可以在input或output及filter中使用。</p><p>常用的有：</p><ol><li>json：以Json的格式编码或解码数据；</li><li>multiline：合并多行文本在一个事件中。</li></ol><p>更多codecs及其使用方式文档：https://www.elastic.co/guide/en/logstash/8.15/codec-plugins.html。</p>`,25)]))}const c=i(a,[["render",t],["__file","Logstash-8.15.html.vue"]]),u=JSON.parse('{"path":"/monitoring/Logstash-8.15.html","title":"Logstash使用介绍","lang":"zh-CN","frontmatter":{"title":"Logstash使用介绍"},"headers":[{"level":2,"title":"Logstash如何工作","slug":"logstash如何工作","link":"#logstash如何工作","children":[{"level":3,"title":"inputs","slug":"inputs","link":"#inputs","children":[]},{"level":3,"title":"filters","slug":"filters","link":"#filters","children":[]},{"level":3,"title":"outputs","slug":"outputs","link":"#outputs","children":[]},{"level":3,"title":"codecs","slug":"codecs","link":"#codecs","children":[]}]}],"git":{"updatedTime":1740101392000,"contributors":[{"name":"oycm","username":"oycm","email":"1164864987@qq.com","commits":3,"url":"https://github.com/oycm"},{"name":"ouyangcm","username":"ouyangcm","email":"mingorg@163.com","commits":1,"url":"https://github.com/ouyangcm"}]},"filePathRelative":"monitoring/Logstash-8.15.md"}');export{c as comp,u as data};
