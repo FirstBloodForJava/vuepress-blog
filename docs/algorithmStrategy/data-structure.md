@@ -1121,14 +1121,14 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 1.  [108. 将有序数组转换为二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/) √
 2.  [654. 最大二叉树](https://leetcode.cn/problems/maximum-binary-tree/) √
-3.  [998. 最大二叉树 II](https://leetcode.cn/problems/maximum-binary-tree-ii/) 1498
-4. [1008. 前序遍历构造二叉搜索树](https://leetcode.cn/problems/construct-binary-search-tree-from-preorder-traversal/) 1563
-5.  [1382. 将二叉搜索树变平衡](https://leetcode.cn/problems/balance-a-binary-search-tree/)
-6.  [2196. 根据描述创建二叉树](https://leetcode.cn/problems/create-binary-tree-from-descriptions/) 1644
-7. [105. 从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
-8.  [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
-9.  [889. 根据前序和后序遍历构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-postorder-traversal/) 1732
-10. [1028. 从先序遍历还原二叉树](https://leetcode.cn/problems/recover-a-tree-from-preorder-traversal/) 1797
+3.  [998. 最大二叉树 II](https://leetcode.cn/problems/maximum-binary-tree-ii/) 1498 √
+4. [1008. 前序遍历构造二叉搜索树](https://leetcode.cn/problems/construct-binary-search-tree-from-preorder-traversal/) 1563 √
+5.  [1382. 将二叉搜索树变平衡](https://leetcode.cn/problems/balance-a-binary-search-tree/) √
+6.  [2196. 根据描述创建二叉树](https://leetcode.cn/problems/create-binary-tree-from-descriptions/) 1644 √
+7. [105. 从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) √ 理解二叉树的递归
+8.  [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/) √ 理解二叉树的递归
+9.  [889. 根据前序和后序遍历构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-postorder-traversal/) 1732 √ 理解二叉树的递归
+10. [1028. 从先序遍历还原二叉树](https://leetcode.cn/problems/recover-a-tree-from-preorder-traversal/) 1797 √ 理解二叉树的递归
 11.  [536. 从字符串生成二叉树](https://leetcode.cn/problems/construct-binary-tree-from-string/)（会员题）
 12.  [1628. 设计带解析函数的表达式树](https://leetcode.cn/problems/design-an-expression-tree-with-evaluate-function/)（会员题）
 13. [1597. 根据中缀表达式构造二叉表达式树](https://leetcode.cn/problems/build-binary-expression-tree-from-infix-expression/)（会员题）
@@ -1137,8 +1137,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 #### 11. 插入/删除节点
 
-1. [701. 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/)
-2.  [450. 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/)
+1. [701. 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/) √
+2.  [450. 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/) √
 3.  [669. 修剪二叉搜索树](https://leetcode.cn/problems/trim-a-binary-search-tree/)
 4. [776. 拆分二叉搜索树](https://leetcode.cn/problems/split-bst/)（会员题）
 5.  [1666. 改变二叉树的根节点](https://leetcode.cn/problems/change-the-root-of-a-binary-tree/)（会员题）
