@@ -1,18 +1,16 @@
 # SpringMVC
 
-Spring Web MVC是基于Servlet API上构建的原始web框架，一开始就存在与Spring的框架中，是spring-webmvc模块。也被称为Spring MVC。
+Spring Web MVC 是基于 `Servlet API` 上构建的原始 web 框架，一开始就存在与 Spring 的框架中，是 `spring-webmvc` 模块。也被称为 `Spring MVC`。
 
 
 
 ## 1.DispatcherServlet
 
-和许多其它Web框架一样，Spring MVC是围绕前端控制器模式设计的。在这种模式下，一个中央Servlet，即DispatcherServlet，为待处理的请求提供共享算法，实际工作由可配置的组件执行。
+和许多其它Web框架一样，`Spring MVC` 是围绕前端控制器模式设计的。在这种模式下，一个中央 Servlet，即`DispatcherServlet`，为待处理的请求提供共享算法，实际工作由可配置的组件执行。
 
-DispatcherServlet与其它Servlet一样，都需要使用Servlet规范声明的Java配置或web.xml配置。
+`DispatcherServlet` 与其它 Servlet 一样，都需要根据 Servlet 规范声明 Java 配置或web.xml配置。`DispatcherServlet` 通过使用 Spring 配置发现它需要的代理组件，用于请求映射，视图解析，异常处理等。
 
-
-
-spring mvc的web.xml配置：
+spring mvc 的 `web.xml` 配置：
 
 ~~~xml
 <web-app>
@@ -42,7 +40,6 @@ spring mvc的web.xml配置：
     </servlet-mapping>
 
 </web-app>
-
 ~~~
 
 
@@ -59,7 +56,7 @@ spring mvc的web.xml配置：
 
 
 
-配置层级WebApplicationContext：
+配置层级 WebApplicationContext：
 
 ~~~java
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -83,7 +80,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 ~~~
 
-xml等效配置：
+xml 等效配置：
 
 ~~~xml
 <web-app>
@@ -114,21 +111,18 @@ xml等效配置：
     </servlet-mapping>
 
 </web-app>
-
 ~~~
 
 
 
-### 特殊的Bean类型
+### Bean
 
-DispatcherServlet委托其特殊的Bean类型处理请求并合适的响应response。这类型的Bean由Spring框架提供的，可以自定义一些操作来扩展或替换它们。
-
-
+DispatcherServlet 委托其特殊的 Bean 类型处理请求并返回响应。这类型的 Bean 由 Spring 框架提供的，可以自定义一些操作来扩展或替换它们。
 
 | 类型                                        | 作用                                                         |
 | ------------------------------------------- | ------------------------------------------------------------ |
-| HandlerMapping                              | 将请求映射到前处理或后处理的拦截器列表<br />主要实现RequestMappingHandlerMapping()、<br />SimpleUrlHandlerMapping() |
-| HandlerAdapter                              | 帮助DispatcherServlet调用映射到请求的应用程序                |
+| HandlerMapping                              | 将请求映射到前处理或后处理的拦截器列表<br />主要实现 <br />RequestMappingHandlerMapping()、<br />SimpleUrlHandlerMapping() |
+| HandlerAdapter                              | 帮助 DispatcherServlet 调用映射到请求的应用程序<br />`RequestMappingHandlerAdapter` 处理 `HandlerMethod` 类型 handler<br />HttpRequestHandlerAdapter 处理 `HttpRequestHandler` 类型 handler<br />SimpleControllerHandlerAdapter 处理 `Controller` 类型 handler<br />CompositeHandlerAdapter 从配置的 `HandlerAdapter`  筛选可用的<br />SimpleServletHandlerAdapter 处理 `Servlet` 类型 handler |
 | HandlerExceptionResolver                    | 异常处理策略                                                 |
 | ViewResolver                                | 视图                                                         |
 | LocaleResolver, <br />LocaleContextResolver | 时区                                                         |
@@ -138,23 +132,27 @@ DispatcherServlet委托其特殊的Bean类型处理请求并合适的响应respo
 
 
 
+
+
+
+
 ### MVC配置
 
-DispatcherServlet会在WebApplicationContext中检查这些特有的Bean，如果不存在这些类型，则默认使用spring-webmvc模块中org\springframework\web\servlet目录下的DispatcherServlet.properties文件的配置。
+DispatcherServlet 会在 WebApplicationContext 中检查这些特有的 Bean，如果不存在这些类型，则默认使用spring-webmvc 模块中 `org\springframework\web\servlet` 目录下的 `DispatcherServlet.properties` 文件的配置。
 
-**没有看到MultipartResolver**
+**没有看到 MultipartResolver**
 
 ![image-20250122201857854](http://47.101.155.205/image-20250122201857854.png)
 
-可以通过Java代码或xml的形式配置所需的bean。
+可以通过 Java 代码或 xml 的形式配置所需的 bean。
 
-**SpringBoot通过Java配置Spring MVC并提供了许多额外的扩展功能。**
+**SpringBoot 通过 Java 配置 Spring MVC 并提供了许多额外的扩展功能。**
 
 
 
 ### Servlet配置
 
-在Servlet 3.0+环境中，可以通过编程方式配置Servlet容器作为一种替代方案。例子：
+在 Servlet 3.0+ 环境中，可以通过编程方式配置 Servlet 容器作为一种替代方案。例子：
 
 ~~~java
 import org.springframework.web.WebApplicationInitializer;
@@ -174,7 +172,7 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
 
 ~~~
 
-使用Java配置的方式，继承AbstractAnnotationConfigDispatcherServletInitializer抽象类的例子：
+使用 Java 配置的方式，继承 AbstractAnnotationConfigDispatcherServletInitializer 抽象类的例子：
 
 ~~~java
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -194,10 +192,9 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
         return new String[] { "/" };
     }
 }
-
 ~~~
 
-基于xml的配置，继承AbstractDispatcherServletInitializer抽象类的例子：
+基于 xml 的配置，继承 AbstractDispatcherServletInitializer 抽象类的例子：
 
 ~~~java
 public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
@@ -232,24 +229,23 @@ public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
 		return new DispatcherServlet(servletAppContext);
 	}
 }
-
 ~~~
 
 
 
-**isAsyncSupported()默认true的作用？**
+**isAsyncSupported() 默认true的作用？**
 
 
 
 ### 处理
 
-DispatcherServlet处理请求的方式：
+DispatcherServlet 处理请求的方式：
 
-1. 会搜索WebApplicationContext并将其作为属性绑定在请求中，以便controller和流程中的其它元素能够使用它。默认绑定到DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE key。
-2. LocaleResolver绑定到请求。
-3. ThemeResolver绑定到请求。不使用主题可以忽略。
-4. 如果添加了MultipartResolver解析，请求将包装在MultipartHttpServletRequest中。
-5. 寻找合适的处理程序HandlerAdapter。
+1. 会搜索 WebApplicationContext 并将其作为属性绑定在请求中，以便 controller 和流程中的其它元素能够使用它。默认绑定到 DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE = `DispatcherServlet.CONTEXT`。
+2. LocaleResolver 绑定到请求。
+3. ThemeResolver 绑定到请求。不使用主题可以忽略。
+4. 如果添加了 MultipartResolver 解析，请求将包装在 MultipartHttpServletReques t中。
+5. 寻找合适的处理程序 HandlerAdapter。
 6. 如果返回模型，则渲染视图。
 
 **返回last-modification-date作用？**
@@ -258,7 +254,7 @@ DispatcherServlet处理请求的方式：
 
 
 
-DispatcherServlet支持的初始化参数：
+DispatcherServlet 支持的初始化参数：
 
 | 参数名                         | 作用                                                         |
 | ------------------------------ | ------------------------------------------------------------ |
@@ -266,6 +262,17 @@ DispatcherServlet支持的初始化参数：
 | contextConfigLocation          | 传递给ConfigurableWebApplicationContext<br />的参数，支持指定多个，','分割 |
 | namespace                      | WebApplicationContext的名称，<br />默认[servlet-name]-servlet |
 | throwExceptionIfNoHandlerFound | 当找不到请求时，是否抛出异常。默认false。<br />如果找不到请求则返回404 |
+
+![image-20260313171548558](http://47.101.155.205/image-20260313171548558.png)
+
+1. `HandlerMapping.getHandler(HttpServletRequest request)`  根据请求查询被包装的 `HandlerExecutionChain(包含 Handler 对象，以及配置的拦截器)`。如果根据请求查询不到 `handler`，可能会返回 `ResourceHttpRequestHandler = HttpRequestHandlerAdapter` 去加载静态资源。
+2. 在 `DispatcherServlet` 已配置的 `HandlerAdapter` 中查早第一个支持 handler 的适配器。
+3. 适配器调用 handler 处理请求。
+4. 如果有异常，调用异常处理器，调用拦截器的后置处理器。
+
+
+
+
 
 
 
@@ -3698,3 +3705,23 @@ MVC测试：https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-fr
 1. JSF：https://www.oracle.com/technetwork/java/javaee/javaserverfaces-139869.html
 2. Struts：https://struts.apache.org/
 3. Tapestry：https://tapestry.apache.org/
+
+
+
+## MVC 配置说明
+
+### HttpProperties
+
+`spring.http`
+
+| key                    | 默认值   | 说明                                              |
+| ---------------------- | -------- | ------------------------------------------------- |
+| logRequestDetails      | false    | debug/trace 日志格式下是否输出请求的敏感信息      |
+| encoding               | Encoding | 配置 http 编码                                    |
+| encoding.charset       | UTF-8    | StandardCharsets.UTF_8                            |
+| encoding.force         | false    | CharacterEncodingFilter                           |
+| encoding.forceRequest  | false    | CharacterEncodingFilter，是否强制设置请求字符编码 |
+| encoding.forceResponse | false    | CharacterEncodingFilter，是否强制设置响应字符编码 |
+| encoding.mapping       | null     | Map<Locale, Charset>                              |
+
+![image-20260313110932970](http://47.101.155.205/image-20260313110932970.png)
