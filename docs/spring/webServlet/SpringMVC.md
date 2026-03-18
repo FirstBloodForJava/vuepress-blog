@@ -239,7 +239,7 @@ public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
 
 ### 处理
 
-DispatcherServlet 处理请求的方式：
+`DispatcherServlet` 处理请求的方式：
 
 1. 会搜索 WebApplicationContext 并将其作为属性绑定在请求中，以便 controller 和流程中的其它元素能够使用它。默认绑定到 DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE = `DispatcherServlet.CONTEXT`。
 2. LocaleResolver 绑定到请求。
@@ -248,13 +248,53 @@ DispatcherServlet 处理请求的方式：
 5. 寻找合适的处理程序 HandlerAdapter。
 6. 如果返回模型，则渲染视图。
 
-**返回last-modification-date作用？**
+**返回 last-modification-date 作用？**
 
-**实现接口LastModified作用？**
+除了直接访问静态资源，接口默认情况下，响应头没有 `Last-Modified` key。浏览器的 GET 响应头存在 `Last-Modified` key，后续发起请求，请求头中携带 `If-Modified-Since` `Wed, 18 Mar 2026 05:19:46 GMT` 的时间，如果当前请求获取的 `getLastModified` > 0 且 小于上传的时间，表示资源未修改，当前请求提前结束。
+
+**注意，这里的 Date 时间规定是 格林尼治标准时间 GMT**
+
+**实现接口 LastModified 作用？**
+
+返回当前请求的 `Last-Modified` 时间，时间精确到秒。
+
+~~~java
+@Component("/test")
+public class TestController implements Controller, LastModified {
+
+    private long lastModified = System.currentTimeMillis();
+    private String data = "{\"name\":\"zhangsan\",\"age\":18}";
+
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request,
+                                      HttpServletResponse response) throws Exception {
+        // 设置内容类型
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 直接写入响应
+        response.getWriter().write(data);
+        response.getWriter().flush();
+
+        // 返回null，表示不需要视图渲染
+        return null;
+    }
+
+    @Override
+    public long getLastModified(HttpServletRequest request) {
+        return lastModified;
+    }
+
+    public void updateData(String newData) {
+        this.data = newData;
+        this.lastModified = System.currentTimeMillis();
+    }
+
+}
+~~~
 
 
 
-DispatcherServlet 支持的初始化参数：
+`DispatcherServlet` 支持的初始化参数：
 
 | 参数名                         | 作用                                                         |
 | ------------------------------ | ------------------------------------------------------------ |
@@ -267,7 +307,7 @@ DispatcherServlet 支持的初始化参数：
 
 1. `HandlerMapping.getHandler(HttpServletRequest request)`  根据请求查询被包装的 `HandlerExecutionChain(包含 Handler 对象，以及配置的拦截器)`。如果根据请求查询不到 `handler`，可能会返回 `ResourceHttpRequestHandler = HttpRequestHandlerAdapter` 去加载静态资源。
 2. 在 `DispatcherServlet` 已配置的 `HandlerAdapter` 中查早第一个支持 handler 的适配器。
-3. 适配器调用 handler 处理请求。
+3. 适配器调用 `handler.handleRequest(...)` 处理请求。
 4. 如果有异常，调用异常处理器，调用拦截器的后置处理器。
 
 
@@ -278,7 +318,7 @@ DispatcherServlet 支持的初始化参数：
 
 ### 拦截器
 
-HandlerMapping能处理拦截器，拦截器org.springframework.web.servlet.HandlerInterceptor提供了三种方法支持灵活的拦截。
+HandlerMapping 能处理拦截器，拦截器org.springframework.web.servlet.HandlerInterceptor提供了三种方法支持灵活的拦截。
 
 - preHandle(...)：在HandlerMapping之后，在HandlerAdapter调用handler之前。有返回值，返回true则拦截器链路继续执行；返回false，则中断这个拦截器链的执行。
 - postHandle(...)：在HandlerAdapter调用handler之后，在DispatcherServlet渲染视图之前。
@@ -296,22 +336,26 @@ HandlerMapping能处理拦截器，拦截器org.springframework.web.servlet.Hand
 
 ### 异常处理
 
-如果在映射请求或请求处理(Controller)发生异常，DispatcherServlet会委托HandlerExceptionResolver bean链处理异常并提供合适的返回。
+如果在映射请求或请求处理 `Controller` 发生异常，`DispatcherServlet` 会委托 `HandlerExceptionResolver ` bean 链处理异常并提供合适的返回。
+
+默认情况下，依次调用 `ExceptionHandlerExceptionResolver`，`ResponseStatusExceptionResolver`，`DefaultHandlerExceptionResolver`，成功解析 `ModelAndView` 则提前结束。
+
+默认的处理逻辑，是执行请求转发逻辑，将请求转发到默认的 `/error` 返回响应结果。
 
 
 
-可用的HandlerExceptionResolver实现：
+可用的 `HandlerExceptionResolver` 实现：
 
-| HandlerExceptionResolver          | 描述                                                         |
-| --------------------------------- | ------------------------------------------------------------ |
-| SimpleMappingExceptionResolver    | 如果是浏览器请求则渲染渲染页面返回                           |
-| DefaultHandlerExceptionResolver   | 解决异常映射对应的http状态码，ResponseEntityExceptionHandler |
-| ResponseStatusExceptionResolver   | 使用@ResponseStatus注解响应状态码                            |
-| ExceptionHandlerExceptionResolver | 根据@ExceptionHandler注解配置进行异常处理                    |
+| HandlerExceptionResolver          | 描述                                            |
+| --------------------------------- | ----------------------------------------------- |
+| SimpleMappingExceptionResolver    | 如果是浏览器请求则渲染渲染页面返回              |
+| DefaultHandlerExceptionResolver   | 解决 SpringMVC 处理定义的依次，返回对于的错误码 |
+| ResponseStatusExceptionResolver   | 使用 `@ResponseStatus` 注解响应状态码           |
+| ExceptionHandlerExceptionResolver | 根据 `@ExceptionHandler` 注解配置进行异常处理   |
 
 
 
-**拦截器链**：可以通过实现HandlerExceptionResolver接口来自定义拦截器，order属性可以定义顺序。
+**拦截器链**：可以通过实现 `HandlerExceptionResolver` 接口来自定义拦截器，order 属性可以定义执行顺序。
 
 
 
