@@ -4,7 +4,7 @@
 
 特点：
 
-- 通过自定义过滤器，可以将所有请求的状态码都设为200；
+- 通过自定义过滤器，可以将所有请求的状态码都设为 200；
 - 转发请求失败时，例如未在 ribbon 要求时间内响应，zuul 默认会发起重试请求。可能由于 zuul 的原因，下游服务读取请求数据出现 `UT000128: Remote peer closed connection before all data could be read` 异常。**原因：由于超时请求中断，触发了 zuul 的 error 类型过滤器 SendErrorFilter，该过滤器逻辑是将请求又转发到 /error 上下文，请求又进入了 HttpServlet 上下文，当前线程又在过滤器中执行了一次，导致重复发送到下游。重发的过程中，可能失败（ConnectTimeout 连接时间太短），再次触发 error 由于上一次已经标记执行过，所以不会再进来，到这里，请求就已经结束了，但是 debug 发现 error 还会再进来然后报错。需要自定义错误过滤器才能解决问题。**
 
 ![image-20250709220516919](http://47.101.155.205/image-20250709220516919.png)
@@ -35,13 +35,15 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 
 ## 使用介绍
 
+Zuul 在 `ZuulServerAutoConfiguration` 自动配置了 `ZuulServlet`，Servlet 注册添加的 urlMapp 是 `/*`，高于 SpringMVC 默认的 `DispatcherServlet(/)`。Servlet 处理请求第一级先到 `ZuulServlet`，`ZuulServlet` 的方法 `service` 定义了请求代理处理过程逻辑。如果 `DispatcherServlet` 注册的 `urlmapping` 高于 `ZuulServlet`，在 `DispatcherServlet` 查找 handler 时，zuul 定义的 `ZuulHandlerMapping` 映射会根据配置返回 `ZuulController` 处理器，里面执行逻辑同 `ZuulServlet`。
+
 
 
 ### 过滤器
 
 **过滤器执行原理介绍：**
 
-`HttpServlet` 的实现 `ZuulServlet`，在 `service` 处理 Web 请求中，设计了过滤器执行过程：
+`ZuulServlet` 实现 `HttpServlet(Servlet)`  ，在 `service` 处理 Web 请求中，设计了过滤器执行过程：
 
 1. `service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse)` 方法处理所有请求；
 2. Server 初始化时创建 `ZuulRunner`；
