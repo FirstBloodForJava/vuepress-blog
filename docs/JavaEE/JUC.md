@@ -1008,15 +1008,24 @@ public String toString() {
 
 线程池最大连接数确定
 
-CPU确定，CPU密集型
+CPU 确定，CPU 密集型
 
-IO确定，IO密集型
+IO 确定，IO 密集型
 
 
 
 ### Future
 
-`ExecutorService`提供了`submit`方法获取任务的结果。
+`Future` 是 JUC 中的一个接口，表示异步计算的结果。它提供了方法来检查计算是否已完成，等待其完成并获取计算结果。
+
+**任务取消需要满足以下条件**：返回 true, 任务不一定就被取消了
+
+1. 任务未完成；
+2. 线程响应中断(包含可中断方法 `sleep()`，`wait()`，`join`，主动检查中断状态 `Thread.currentThread().isInterrupted()`)；任务在队列中。
+
+
+
+`ExecutorService` 提供了 `submit` 方法获取任务的结果。
 
 ~~~java
 <T> Future<T> submit(Callable<T> task);
@@ -1036,13 +1045,13 @@ V get() throws InterruptedException, ExecutionException;
 V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException;
 
-// 取消任务执行
+// 取消任务执行, 返回 true, 任务不一定就被取消了
 boolean cancel(boolean mayInterruptIfRunning);
 
-// 返回true 表示任务在调用前被取消
+// 返回 true 表示任务在调用前被取消
 boolean isCancelled();
 
-// 返回treu 表示任务完成，完成可能时正常完成、异常终止或取消
+// 返回 true 表示任务完成，完成可能时正常完成、异常终止或取消
 boolean isDone();
 
 ~~~
@@ -1051,11 +1060,13 @@ boolean isDone();
 
 #### FutureTask
 
-Future的主要实现类FutureTask。实现了Future和Runnable接口，实现Future提供获取异步计算结果的功能，以及取消(cancel)任务的功能。
+Future 的主要实现类 `FutureTask`。实现了 Future 和 Runnable 接口，提供获取异步计算结果的功能，以及取消任务的功能。
 
-**Future被一个线程使用后，不能在被其它线程使用，因为可能不会执行里面的Callable的call方法。**
+**Future 被一个线程使用后，不能再被其它线程使用，因为可能不会执行里面的 Callable 的 call 方法。**
 
 ![image-20241110164231095](http://47.101.155.205/image-20241110164231095.png)
+
+
 
 任务的状态转换过程：
 
@@ -1068,9 +1079,15 @@ Future的主要实现类FutureTask。实现了Future和Runnable接口，实现Fu
 
 
 
-**get获取异步结果：**
+**get 获取异步结果：**
 
 ![image-20241110164730797](http://47.101.155.205/image-20241110164730797.png)
+
+
+
+`FutureTask.cancel()` 取消任务
+
+![image-20260319171942629](http://47.101.155.205/image-20260319171942629.png)
 
 
 
