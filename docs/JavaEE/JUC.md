@@ -1233,9 +1233,9 @@ class FibonacciTask extends RecursiveTask<Integer> {
 
 
 
-## AQS线程同步器
+## AQS 线程同步器
 
-AQS是抽象类AbstractQueuedSynchronizer的简称，定义了实现线程同步器的基础框架，线程同步器的作用是协调多个线程对共享资源的访问。可重入锁`ReentrantLock`就组合了该类实现了锁的功能。
+AQS 是抽象类 `AbstractQueuedSynchronizer` 的简称，定义了实现线程同步器的基础框架，线程同步器的作用是协调多个线程对共享资源的访问。可重入锁 `ReentrantLock` 就组合了该类实现了锁的功能。
 
 - ReentrantLock：控制多个线程对共享资源的访问。
 - CountDownLatch：控制多个线程的同时启动。
@@ -1244,11 +1244,11 @@ AQS是抽象类AbstractQueuedSynchronizer的简称，定义了实现线程同步
 
 
 
-**在线程同步方面，AQS不是基于synchronized关键字加锁实现的，而是通过自身的状态(state)、线程等待队列，自旋锁和CAS机制来实现无锁化的线程安全操作，同时基于LockSupport类提供的方法对线程的状态进行控制，如果使线程阻塞或唤醒阻塞的线程。**
+**在线程同步方面，AQS 不是基于 synchronized 关键字加锁实现的，而是通过自身的状态(state)、线程等待队列，自旋锁和 CAS 机制来实现无锁化的线程安全操作，同时基于 LockSupport 类提供的方法对线程的状态进行控制，如果使线程阻塞或唤醒阻塞的线程。**
 
 
 
-`ReentrantLock`中的AQS实现(FairSync/NonfairSync)`tryAcquire`方法，来判断是否可以访问共享资源；tryRelease方法释放共享资源，允许其它线程访问共享资源。
+`ReentrantLock` 中的 AQS 实现(FairSync/NonfairSync) `tryAcquire` 方法，来判断是否可以访问共享资源；tryRelease 方法释放共享资源，允许其它线程访问共享资源。
 
 公平策略：内部使用一种先入先出队列来存放等待线程，其中等待事件最长的线程优先被唤醒。问题：**执行满的线程会影响整体的吞吐量**。
 
@@ -1256,7 +1256,7 @@ AQS是抽象类AbstractQueuedSynchronizer的简称，定义了实现线程同步
 
 ### ReentrantLock
 
-
+可重入锁：一个线程可以多次获取 ReentrantLock 锁，对应多次获取需要多次释放。
 
 ![image-20250406165112311](http://47.101.155.205/image-20250406165112311.png)
 
@@ -1264,13 +1264,57 @@ AQS是抽象类AbstractQueuedSynchronizer的简称，定义了实现线程同步
 
 ![image-20250406165344207](http://47.101.155.205/image-20250406165344207.png)
 
+**等待通知机制**
+
+~~~java
+class Resource {
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition empty = lock.newCondition();
+    private Condition full = lock.newCondition();
+    private Queue<Integer> queue = new LinkedList<>();
+    private final int MAX_CAPACITY = 10;
+
+    public void produce(int value) throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.size() == MAX_CAPACITY) {
+                // 队列满了, 阻塞, 直到被其他线程唤醒或中断
+                full.await();
+            }
+            queue.add(value);
+            empty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int consume() throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.isEmpty()) {
+                // 队列空了, 阻塞, 直到被其他线程唤醒或中断
+                empty.await();
+            }
+            int value = queue.poll();
+            // 消费之后, 唤醒一个等待的消费线程
+            full.signal();
+            return value;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+~~~
+
+
+
 
 
 ### CountDownLatch
 
-计数器开关：让调用`CountDownLatch.await()`方法的线程等待(线程状态`WAITING`)，直到`CountDownLatch.countDown()`执行n次，计数器为0，线程开始执行。
+计数器开关：让调用 `CountDownLatch.await()` 方法的线程等待(线程状态`WAITING`)，直到 `CountDownLatch.countDown()` 执行n次，计数器为0，线程开始执行。
 
-通过调用`LockSupport.park(this)`;让线程进入WAITING状态。
+通过调用 `LockSupport.park(this)`，让线程进入 WAITING 状态。
 
 ![image-20250406171242961](http://47.101.155.205/image-20250406171242961.png)
 
@@ -1367,19 +1411,19 @@ class Work02 implements Runnable {
 
 ### CyclicBarrier
 
-可以控制一组线程进行循环工作。与`CountDownLatch`功能差不多，不过这个计数可以重置为初始值。
+可以控制一组线程进行循环工作。与 `CountDownLatch` 功能差不多，不过这个计数可以重置为初始值。
 
-**all-or-none模式，要么所以成功，要么所有失败。任何子线程的中断或异常，或者超时退出，所有线程退出。**
+**all-or-none 模式，要么所以成功，要么所有失败。任何子线程的中断或异常，或者超时退出，所有线程退出。**
 
-循环使用计数器：计数器执行到临界点，如果`CyclicBarrier`的`Runnable`不为空，则调用一次Runnable的run方法，重置计数器值为初始值，唤醒其它等待线程。
+循环使用计数器：计数器执行到临界点，如果 `CyclicBarrier` 的 `Runnable` 不为空，则调用一次 Runnable 的run 方法，重置计数器值为初始值，唤醒其它等待线程。
 
-**await()**：计数器减1，如果计数器为0执行可用的run方法，重置计数器；不为0，则释放锁等待。
+**await()**：计数器减 1，如果计数器为 0，则执行可用的 run 方法，重置计数器；不为 0，则释放锁等待。
 
 ~~~java
-// final ReentrantLock lock = new ReentrantLock();await方法通过lock加锁
+// final ReentrantLock lock = new ReentrantLock();await 方法通过 lock 加锁
 // final Condition trip = lock.newCondition();通过这个实现线程间的通知
-// CyclicBarrier对象调用await()方法，await()调用私有的dowait方法，lock.lock()加锁，index = --count;
-// 如果index==0;如果构造方法的Runnable对象不为空，调用run方法，然后执行nextGeneration方法;
+// CyclicBarrier 对象调用 await() 方法，await() 调用私有的 dowait 方法，lock.lock() 加锁，index = --count;
+// 如果 index==0;如果构造方法的 Runnable 对象不为空，调用 run 方法，然后执行 nextGeneration 方法;
 // 重新设置循环值，唤醒其它等待的线程，结束
 
 private void nextGeneration() {
@@ -1391,9 +1435,9 @@ private void nextGeneration() {
 }
 
 private final Condition trip = lock.newCondition();
-//不为0分为两种情况，第一种情况是直接调用await方法不传参数，第二种情况是传递等待时间参数(期限等待)
-//1.线程直接等待trip.await();这个时候如果线程被唤醒，如果当前线程没有执行interrupt(或者说当前线程的isInterrupted是false)，继续向下执行。如果程序是被interrupt则下次唤醒时，index==0时，会执行上面的breakBarrier方法，直接抛出了异常，根本就没有进入for循环。
-//在第一次执行barrier.await()之后执行Thread.currentThread().interrupt();都可以得到await方法的结果。第二次进入dowait方法，因为Thread.interrupted()方法的结果为true，都直接抛出异常。这个过程，barrier.await()执行之前的代码可以执行两次。
+//不为 0 分为两种情况，第一种情况是直接调用 await 方法不传参数，第二种情况是传递等待时间参数(期限等待)
+//1.线程直接等待 trip.await() ;这个时候如果线程被唤醒，如果当前线程没有执行 interrupt (或者说当前线程的isInterrupted是false)，继续向下执行。如果程序是被interrupt则下次唤醒时，index==0 时，会执行上面的breakBarrier 方法，直接抛出了异常，根本就没有进入for循环。
+// 在第一次执行barrier.await()之后执行 Thread.currentThread().interrupt();都可以得到 await 方法的结果。第二次进入 dowait 方法，因为 Thread.interrupted() 方法的结果为 true，都直接抛出异常。这个过程，barrier.await() 执行之前的代码可以执行两次。
 
 ~~~
 
@@ -1462,7 +1506,7 @@ class Worker implements Runnable {
 
 ### Semaphore
 
-计数信号量：一个信号量维护了一些许可证，acquire()方法每次会消耗一个许可证，如果没有获取到则会阻塞线程；release()添加一个许可证，并唤醒阻塞的线程。
+计数信号量：一个信号量维护了一些许可证，acquire()方法每次会消耗一个许可证，如果没有获取到则会阻塞线程；release() 添加一个许可证，并唤醒阻塞的线程。
 
 支持公平性：体现在如果有等待获取凭证的线程，应该是先等待的先获取凭证。
 
