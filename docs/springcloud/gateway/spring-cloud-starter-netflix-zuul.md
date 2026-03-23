@@ -1,5 +1,3 @@
-
-
 # zuul
 
 特点：
@@ -31,11 +29,27 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 
 ![image-20240930135955382](http://47.101.155.205/image-20240930135955382.png)
 
+## 配置
+
+| key                                    | value     | 说明                                                         |
+| -------------------------------------- | --------- | ------------------------------------------------------------ |
+| zuul.ribbonIsolationStrategy           | SEMAPHORE | 默认值，当前线程执行 `HystrixCommand.run()`，                |
+|                                        | THREAD    | 新开线程执行 `HystrixCommand.run()`，通过核心线程数配置控制并发 |
+| zuul.semaphore.maxSemaphores           | 100       | 控制 SEMAPHORE 模式并发，<br />zuul.eureka.`service`.semaphore.maxSemaphores 单独配置 |
+| zuul.threadPool.useSeparateThreadPools | false     | SEMAPHORE 配置才生效，是否单独配置线程执行 run               |
+| zuul.threadPool.threadPoolKeyPrefix    | ""        |                                                              |
+|                                        |           |                                                              |
+|                                        |           |                                                              |
+|                                        |           |                                                              |
+|                                        |           |                                                              |
+
 
 
 ## 使用介绍
 
 Zuul 在 `ZuulServerAutoConfiguration` 自动配置了 `ZuulServlet`，Servlet 注册添加的 urlMapp 是 `/*`，高于 SpringMVC 默认的 `DispatcherServlet(/)`。Servlet 处理请求第一级先到 `ZuulServlet`，`ZuulServlet` 的方法 `service` 定义了请求代理处理过程逻辑。如果 `DispatcherServlet` 注册的 `urlmapping` 高于 `ZuulServlet`，在 `DispatcherServlet` 查找 handler 时，zuul 定义的 `ZuulHandlerMapping` 映射会根据配置返回 `ZuulController` 处理器，里面执行逻辑同 `ZuulServlet`。
+
+
 
 
 
@@ -632,35 +646,53 @@ public class CustomErrorFilter extends ZuulFilter {
 
 
 
-### hystrix和ribbon时间
+### hystrix 和 ribbon
 
-Ribbon超时时间
+Ribbon 超时时间
 
 ![image-20231113141016743](http://47.101.155.205/image-20231113141016743.png)
 
-默认全局时间：`ribbonTimeout = (ribbon.ReadTimeout + ribbon.ConnectTimeout) * (1) * (1+1)` 
+Ribbon 时间配置
 
-`ribbon.ReadTimeout + ribbon.ConnectTimeout` 表示单次 ribbon请求的最大时间， 默认2000 ms。
+| 全局配置                        | 单个 service 配置                         | 说明      |
+| ------------------------------- | ----------------------------------------- | --------- |
+| ribbon.ReadTimeout              | `service`.ribbon.ReadTimeout              | 默认 1000 |
+| ribbon.ConnectTimeout           | `service`.ribbon.ConnectTimeout           | 默认 1000 |
+| ribbon.MaxAutoRetries           | `service`.ribbon.MaxAutoRetries           | 默认 0    |
+| ribbon.MaxAutoRetriesNextServer | `service`.ribbon.MaxAutoRetriesNextServer | 默认 1    |
+
+
+
+默认全局时间：`ribbonTimeout = (ribbon.ReadTimeout + ribbon.ConnectTimeout) * (MaxAutoRetries + 1) * (MaxAutoRetriesNextServer + 1)` 
+
+`ribbon.ReadTimeout + ribbon.ConnectTimeout` 表示单次 ribbon 请求的最大时间， 默认 2000 ms。
 
 `ribbon.MaxAutoRetries` 表示开启重试机制的次数，默认 0 次。
 
 `ribbon.MaxAutoRetriesNextServer` 表示最大自动重试下一个服务器，默认一次。**作用是什么？**
 
+MaxAutoRetries 次数失败后，参试切换另一台服务器的次数。
 
 
-Hystrix超时时间
+
+**重试次数配置未生效，读取超时，一个可用节点的情况下，会默认发起下一个请求。但是如果配置 DispatchServlet 来处理请求，就不会重试两次的情况。**
+
+
+
+Hystrix 熔断时间获取
 
 ![image-20231113141217463](http://47.101.155.205/image-20231113141217463.png)
 
+Hystrix 熔断时间配置：
 
+- `hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds` ，全局熔断配置
+- hystrix.command.`serviceId`.execution.isolation.thread.timeoutInMilliseconds，单个 service 熔断配置
+
+这里的熔断配置是为了创建 `HystrixCommand`。
 
 配置文件
 
 ![image-20231113141237886](http://47.101.155.205/image-20231113141237886.png)
-
-调用过程
-
-![image-20231113142602157](http://47.101.155.205/image-20231113142602157.png)
 
 
 
