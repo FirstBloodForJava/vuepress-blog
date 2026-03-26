@@ -323,13 +323,13 @@ org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCust
 
 ## Tomcat容器启动
 
-ServletWeb应用，创建`ServletWebServerApplicationContext`上下文对象，调用`refresh()`。方法中调用`onRefresh()`创建Tomcat 容器。获取上下文`ServletWebServerFactory` Bean，用来创建SpringBoot定义的`WebServer`对象。
+ServletWeb 应用，创建 `ServletWebServerApplicationContext` 上下文对象，调用 `refresh()`。方法中调用 `onRefresh()` 创建 Tomcat 容器。获取上下文 `ServletWebServerFactory` Bean，用来创建 SpringBoot 定义的 `WebServer` 对象。
 
 
 
-**临时目录创建**：临时根目录通过`TempDirectory.location()`获取，前缀默认使用`tomcat`，后缀使用配置端口，中间值使用`SecureRandom.nextLong()`获取随机数。
+**临时目录创建**：临时根目录通过 `TempDirectory.location()` 获取，前缀默认使用 `tomcat`，后缀使用配置端口，中间值使用 `SecureRandom.nextLong()` 获取随机数。
 
-Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
+Windows 临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 
 
@@ -337,60 +337,60 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 `TomcatServletWebServerFactory.getWebServer()`
 
-1. 创建连接器：默认使用`org.apache.coyote.http11.Http11NioProtocol`，属性`protocol`可配置该连接器类型。
+1. 创建连接器：默认使用 `org.apache.coyote.http11.Http11NioProtocol`，属性 `protocol` 可配置该连接器类型。
 2. 创建在临时目录中创建工作目录，并设置连接器。
-3. 连接器设置`Server`绑定的地址；使用`TomcatProtocolHandlerCustomizer`实例对`ProtocolHandler`自定义(默认没有)；连接器设置默认URL编码(默认UTF-8)；设置延迟初始容器socket(避免ApplicationContext初始化慢的情况)；是否设置`ssl`连接(其中有判断使用使用http2协议)；是否设置自定义`TomcatConnectorCustomizer`连接器压缩；对连接器进行自定义。
-   1. `AbstractProtocol`设置最大工作线程数(默认200)，配置方式：`server.tomcat.maxThreads`；
-   2. `AbstractProtocol`设置最小工作线程数(默认10)，配置方式：`server.tomcat.minSpareThreads`；
-   3. `AbstractHttp11Protocol`设置http请求头最大容量(默认8KB)，配置方式：`server.tomcat.maxHttpHeaderSize`；
-   4. `AbstractHttp11Protocol`设置http请求体最大容量(默认2MB)，配置方式：`server.tomcat.maxSwallowSize`；
-   5. `Connector`设置http表单最大容量(默认2MB)，配置方式：`server.tomcat.maxHttpFormPostSize`；
-   6. `AbstractProtocol`设置最大连接数(默认8192)，配置方式：`server.tomcat.maxConnections`；
-   7. `AbstractProtocol`设置当线程都在使用时，传入连接请求的最大队列长度(默认100)，配置方式：`server.tomcat.acceptCount`；
-   8. `AbstractProtocol`设置将保留在缓存中并在后续请求中重用的空闲处理器的最大数量(默认200)。设为-1，表示缓存是无限的，理论大小等于最大连接数。配置方式：`server.tomcat.processorCache`；
-4. 再次将连接器绑定到tomcat，为什么这样做？
-5. Tomcat 服务设置默认引擎；设置延迟`server.tomcat.backgroundProcessorDelay`默认10s；
-6. 如果有配置其它连接器，则在tomcat上添加连接器；
+3. 连接器设置 `Server` 绑定的地址；使用 `TomcatProtocolHandlerCustomizer` 实例对 `ProtocolHandler` 自定义(默认没有)；连接器设置默认 URL 编码(默认 UTF-8)；设置延迟初始容器 socket (避免ApplicationContext 初始化慢的情况)；是否设置 `ssl` 连接(其中有判断使用使用 http2 协议)；是否设置自定义 `TomcatConnectorCustomizer` 连接器压缩；对连接器进行自定义。`customizeConnector` 方法遍历 `TomcatConnectorCustomizer` 设置（TomcatWebServerFactoryCustomizer 在 TomcatServletWebServerFactory 被创建后，对 Connector 进行设置）
+   1. `AbstractProtocol` 设置最大工作线程数(默认 200)，配置方式：`server.tomcat.maxThreads`；
+   2. `AbstractProtocol` 设置最小工作线程数(默认 10)，配置方式：`server.tomcat.minSpareThreads`；
+   3. `AbstractHttp11Protocol` 设置 http 请求头最大容量(默认 8KB)，配置方式：`server.tomcat.maxHttpHeaderSize`；
+   4. `AbstractHttp11Protocol` 设置 http请求体最大容量(默认 2MB)，配置方式：`server.tomcat.maxSwallowSize`；
+   5. `Connector` 设置http表单最大容量(默认2MB)，配置方式：`server.tomcat.maxHttpFormPostSize`；
+   6. `AbstractProtocol` 设置最大连接数(默认 8192)，配置方式：`server.tomcat.maxConnections`；
+   7. `AbstractProtocol` 设置当线程都在使用时，传入连接请求的最大队列长度(默认100)，配置方式：`server.tomcat.acceptCount`；
+   8. `AbstractProtocol` 设置将保留在缓存中并在后续请求中重用的空闲处理器的最大数量(默认 200)。设为 -1，表示缓存是无限的，理论大小等于最大连接数。配置方式：`server.tomcat.processorCache`；
+4. 再次将连接器绑定到 tomcat，为什么这样做？
+5. Tomcat 服务设置默认引擎；设置延迟 `server.tomcat.backgroundProcessorDelay`默认10s；
+6. 如果有配置其它连接器，则在 tomcat 上添加连接器；
 7. 一些固定设置；
-8. 重写`postProcessContext`方法调用；
+8. 重写 `postProcessContext` 方法调用；
 
 `TomcatServletWebServerFactory.getTomcatWebServer(Tomcat tomcat)`：
 
-1. 创建`TomcatWebServer`对象，打印`Tomcat initialized with port(s)`+端口+协议日志；
-2. 是否重写设置引擎名称，格式Tomcat-i；
+1. 创建 `TomcatWebServer` 对象，打印 `Tomcat initialized with port(s)`+端口+协议日志；
+2. 是否重写设置引擎名称，格式 Tomcat-i；
 3. 删除服务连接器，以免协议绑定在服务启动时发生。**为什么？**
-4. Tocat启动。调用`StandardServer`父类`start()`方法。触发之前注册的监听器。
-   1. 创建一个优先级为1，核心线程数2的`ScheduledThreadPoolExecutor`，线程名称前缀`Catalina-utility-`；
+4. Tocat 启动。调用 `StandardServer` 父类 `start()` 方法。触发之前注册的监听器。
+   1. 创建一个优先级为 1，核心线程数 2 的 `ScheduledThreadPoolExecutor`，线程名称前缀`Catalina-utility-`；
    2. 注册缓存，作用？
    3. 注册`MBeanFactory` ，作用？
-   4. 注册`naming resources`，和Server一样，也有状态；
-   5. 初始化定义Service，和Server一样，也有状态；
-   6. 启动Serive，打印日志`Starting service` + 服务名，启动引擎。
-5. 启动之后，由于Tomcat所有线程都是守护线程，创建一个阻塞非守护线程，用来关闭Server，线程名`container-i`；
+   4. 注册 `naming resources`，和 Server一样，也有状态；
+   5. 初始化定义 Service，和 Server 一样，也有状态；
+   6. 启动 service，打印日志 `Starting service` + 服务名，启动引擎。
+5. 启动之后，由于 Tomcat 所有线程都是守护线程，创建一个阻塞非守护线程，用来关闭 Server，线程名`container-i`；
 
 
 
-**finishRefresh()**调用`startWebServer()`启动Tomcat容器。最后发布`ServletWebServerInitializedEvent`事件。
+`finishRefresh()` 调用 `startWebServer()` 启动 Tomcat 容器。最后发布`ServletWebServerInitializedEvent` 事件。
 
 
 
 ### 处理请求线程池创建
 
-队列使用`TaskQueue`，继承`LinkedBlockingQueue`，队列类型为`Runnable`，创建队列的容量默认是最大。
+队列使用 `TaskQueue` ，继承 `LinkedBlockingQueue`，队列类型为 `Runnable`，创建队列的容量默认是最大。
 
-使用tomcat自定义的`TaskThreadFactory`线程工厂，线程名称前缀`http-nio-[port]-exec`，线程优先级5，默认都是守护线程。
+使用 tomcat 自定义的 `TaskThreadFactory` 线程工厂，线程名称前缀 `http-nio-[port]-exec`，线程优先级5，默认都是守护线程。
 
-线程池`ThreadPoolExecutor`，继承`java.util.concurrent.ThreadPoolExecutor`。初始化默认就激活了最小数量(核心线程数)的线程。拒绝策略，抛出`RejectedExecutionException`异常。
-
-
+线程池 `ThreadPoolExecutor`，继承 `java.util.concurrent.ThreadPoolExecutor`。初始化默认就激活了最小数量(核心线程数)的线程。拒绝策略，抛出 `RejectedExecutionException` 异常。
 
 
 
-**Tomcat线程池execute(Runnable command)执行逻辑：**
 
-线程池的逻辑没有大改，而是通过重写自定义`TaskQueue`阻塞队列的`offer`方法，来改变线程池的逻辑。
 
-重写了线程池`afterExecute`，在任务执行完毕后调用。作用是：当前线程使用数量计数减一，判断是否需要停止当前线程。**TaskQueue队列的poll方法也调用了是否关闭线程的方法，take方法相同。**
+**Tomcat 线程池 execute(Runnable command) 执行逻辑：**
+
+线程池的逻辑没有大改，而是通过重写自定义 `TaskQueue` 阻塞队列的 `offer` 方法，来改变线程池的逻辑。
+
+重写了线程池 `afterExecute`，在任务执行完毕后调用。作用是：当前线程使用数量计数减一，判断是否需要停止当前线程。**TaskQueue 队列的 poll 方法也调用了是否关闭线程的方法，take 方法相同。**
 
 **正在处理的请求的线程超过核心线程数，开始激活其它线程处理请求。**
 
@@ -398,7 +398,7 @@ Windows临时目录：`C:\Users\lenovo\AppData\Local\Temp`
 
 
 
-### 影响tomcat处理请求配置
+### 影响 tomcat 处理请求配置
 
 ~~~properties
 # tomcat最大连接数
@@ -412,11 +412,11 @@ server.tomcat.minSpareThreads=10
 
 ~~~
 
-**使用jmeter发起300个请求，每个请求睡眠3s。100个请求耗时3s，100个请求耗时大于3s小于6s，100个请求失败。**
+**使用 jmeter 发起300个请求，每个请求睡眠 3s。100 个请求耗时 3s，100 个请求耗时大于 3s 小于 6s，100 个请求失败。**
 
-**没有超过6s，可能是jmeter发起请求时有部分耗时。**
+**没有超过 6s，可能是 jmeter 发起请求时有部分耗时。**
 
-**说明tomcat处理请求的并发数量由最大连接数和队列长度决定。超过最大连接数的数量会先进入等待队列(TCP连接以及建立)，待前面请求处理完成(释放连接)，再分发到工作线程处理请求。**
+**说明 tomcat 处理请求的并发数量由最大连接数和队列长度决定。超过最大连接数的数量会先进入等待队列(TCP 连接以及建立)，待前面请求处理完成(释放连接)，再分发到工作线程处理请求。**
 
 ![image-20250410203715184](http://47.101.155.205/image-20250410203715184.png)
 
@@ -426,25 +426,25 @@ server.tomcat.minSpareThreads=10
 
 
 
-### Tomcat线程模型
+### Tomcat 线程模型
 
 ![image-20250410212000843](http://47.101.155.205/image-20250410212000843.png)
 
 
 
-`Acceptor`线程接收新连接，注册到`Poller`线程的`Selector`中。
+`Acceptor` 线程接收新连接，注册到 `Poller` 线程的 `Selector` 中。
 
-`Poller`线程负责监听Socket事件(通过`Selector`)，检测到就绪事件后封装成Runnable分发给工作线程。
+`Poller` 线程负责监听 Socket 事件(通过 `Selector` )，检测到就绪事件后封装成 Runnable 分发给工作线程。
 
 ![image-20250410213126229](http://47.101.155.205/image-20250410213126229.png)
 
 
 
-## Undertow容器启动过程
+## Undertow 容器启动过程
 
-### 1.配置ServerFactory工厂
+### 1.配置 ServerFactory 工厂
 
-通用`ServletWebServerFactoryCustomizer`配置。
+通用 `ServletWebServerFactoryCustomizer` 配置。
 
 UndertowWebServerFactoryCustomizer
 
@@ -452,35 +452,35 @@ UndertowWebServerFactoryCustomizer
 
 ![image-20250411204239303](http://47.101.155.205/image-20250411204239303.png)
 
-1. server配置，配置请求头最大大小(`server.maxHttpHeaderSize=8KB`)，连接超时时间(`server.connectionTimeout=null`)；通过往工厂添加自定义器`UndertowBuilderCustomizer`对象设置配置。
-2. `server.undertow`配置
-   1. `bufferSize=null`，每个缓存区的大小，默认来自JVM可以最大内存；
-   2. `ioThreads=null`，I/O工作线程线程数，默认是可用处理器数量`Runtime.getRuntime().availableProcessors()`；
-   3. `workerThreads=null`，工作中线程数，默认是I/O线程8倍；
-   4. `directBuffers=null`，是否在Java堆外分配缓冲区。默认来自JVM可以最大内存；
-   5. `maxHttpPostSize=-1`，Http Post请求最大大小，-1表示无限制；通过`UndertowBuilderCustomizer`设置；
-   6. `maxParameters=1000`，查询参数或路径参数最大数量，为了避免基于哈希冲突的Dos攻击；
-   7. `maxHeaders=200`，请求头最大数量，为了避免基于哈希冲突的Dos攻击；
-   8. `maxCookies=200`，Cookie最大数量，为了避免基于哈希冲突的Dos攻击；
+1. server 配置，配置请求头最大大小(`server.maxHttpHeaderSize=8KB`)，连接超时时间(`server.connectionTimeout=null`)；通过往工厂添加自定义器 `UndertowBuilderCustomizer` 对象设置配置。
+2. `server.undertow` 配置
+   1. `bufferSize=null`，每个缓存区的大小，默认来自 JVM 可用最大内存；
+   2. `ioThreads=null`，I/O 工作线程线程数，默认是可用处理器数量`Runtime.getRuntime().availableProcessors()`；
+   3. `workerThreads=null`，工作中线程数，默认是 I/O 线程 8 倍；
+   4. `directBuffers=null`，是否在 Java 堆外分配缓冲区。默认来自 JVM 可以最大内存；
+   5. `maxHttpPostSize=-1`，Http Post 请求字节最大大小，-1 表示无限制；通过`UndertowBuilderCustomizer` 设置；
+   6. `maxParameters=1000`，查询参数或路径参数最大数量，为了避免基于哈希冲突的 Dos 攻击；
+   7. `maxHeaders=200`，请求头最大数量，为了避免基于哈希冲突的 Dos 攻击；
+   8. `maxCookies=200`，Cookie 最大数量，为了避免基于哈希冲突的 Dos 攻击；
    9. `allowEncodedSlash=false`，服务器是否应该解码百分比编码斜杠字符。由于不同的服务器对斜杠的解释不同，启用编码斜杠可能会带来安全隐患。只有在遗留应用程序需要它时才启用它。
-   10. `decodeUrl=true`，是否对URL进行解码。当禁用时，URL中的百分比编码字符将保持原样。
+   10. `decodeUrl=true`，是否对 URL 进行解码。当禁用时，URL 中的百分比编码字符将保持原样。
    11. `urlCharset=UTF-8`，解码使用的字符集；
-   12. `alwaysSetKeepAlive=true`，是否在所有响应头中添加`Connection=keep-alive`；
+   12. `alwaysSetKeepAlive=true`，是否在所有响应头中添加 `Connection=keep-alive`；
    13. `noRequestTimeout=null`，连接超过此时间没有请求，则关闭连接；
-   14. `options.server=map`，key要遵循`UndertowOptions`类中静态属性名称`Option`规则。
+   14. `options.server=map`，key要遵循 `UndertowOptions` 类中静态属性名称 `Option` 规则。
    15. `options.socket=map`，
-3. `server.undertow.accesslog`配置
+3. `server.undertow.accesslog` 配置
    1. `enabled=false`，是否开启访问日志；
    2. `dir=logs`，访问日志目录；
    3. `pattern=common`，日志格式；
    4. `prefix=access_log.`，日志文件前缀；
    5. `suffix=log`，日志文件后缀；
    6. `rotate=true`，是否启用日志轮换；
-4. `server.forwardHeadersStrategy=null`，配置根据请求头转发策略；是否使用`x-forward-`头转发请求策略，默认false；
+4. `server.forwardHeadersStrategy=null`，配置根据请求头转发策略；是否使用 `x-forward-` 头转发请求策略，默认 false；
 
 
 
-### 2.根据ServerFactory创建Server
+### 2.根据 ServerFactory 创建 Server
 
 ![image-20250411210309520](http://47.101.155.205/image-20250411210309520.png)
 
@@ -488,9 +488,9 @@ UndertowWebServerFactoryCustomizer
 
 ![image-20250411205238518](http://47.101.155.205/image-20250411205238518.png)
 
-1. 容器的一些固定设置+SpringMVC打通；
-2. 容器的Bulder固定设置；在这个过程中，对Builder执行自定义的`UndertowBuilderCustomizer`操作；`addHttpListener`添加一个Server监听器，供启动Server使用；
-3. 创建`UndertowServletWebServer` Server对象；
+1. 容器的一些固定设置 +SpringMVC 打通；
+2. 容器的 Bulder 固定设置；在这个过程中，对 Builder 执行自定义的 `UndertowBuilderCustomizer` 操作；`addHttpListener` 添加一个Server监听器，供启动 Server 使用；
+3. 创建 `UndertowServletWebServer` Server对象；
 
 
 
@@ -512,25 +512,25 @@ UndertowWebServerFactoryCustomizer
 
 **Undertow.start()**
 
-1. 获取Undertow容器版本；
-2. 先通过`ServiceLoader.load(XnioProvider.class, classLoader)`创建Xnio对象。再创建`NioXnioWorker`对象：
-   1. 创建工作线程池`TaskPool`，重写`terminated()`方法。默认情况下，核心线程数就等于最大线程数、使用无界阻塞队列、使用AbortPolicy拒绝策略、线程工厂使用`AccessController.doPrivileged(.)`创建线程对象，线程组为null，线程空闲时间60s，是否守护线程可配置，默认线程名称**XNIO-i task-i(XNIO-i是默认自动生成前缀，名称可配置)**。
-   2. 创建工作I/O线程集合，`WorkerThread`线程集合。线程名称：**XNIO-i  I/O-j(j从1开始，累加)**
-   3. 创建工作Accept线程，`WorkerThread`线程。线程名称：**XNIO-i Accept**。
-   4. 注册MBean。
-   5. `NioXnioWorker`调用`start()`。启动I/O线程和Accept线程。
-3. 默认的Socket配置设置，以及自定义的Socket配置设置：
-   1. `Options.WORKER_IO_THREADS`配置I/O工作线程数量。
-   2. `Options.TCP_NODELAY`配置是否禁用Nagle算法；开启会有延迟。
-   3. `Options.REUSE_ADDRESSES`是否复用绑定的ip地址。
-   4. `Options.BALANCING_TOKENS`连接平衡配置，默认没有用。
-   5. `Options.BALANCING_CONNECTIONS`连接平衡配置，默认没有用。
-   6. `Options.BACKLOG`连接满了的队列上限；
+1. 获取 Undertow 容器版本；
+2. 先通过 `ServiceLoader.load(XnioProvider.class, classLoader)` 创建 Xnio 对象。再创建`NioXnioWorker` 对象：
+   1. 创建工作线程池 `TaskPool`，重写 `terminated()` 方法。默认情况下，核心线程数就等于最大线程数、使用无界阻塞队列、使用 `AbortPolicy` 拒绝策略、线程工厂 `WorkerThreadFactory` 使用 `AccessController.doPrivileged(.)` 创建线程对象，线程组为 null，线程空闲时间 60s，是否守护线程可配置，默认线程名称 `name-task-i`（name 可通过 `WORKER_NAME` 配置，默认 `XNIO-i`，i 随着 XnioWorker 构造方法调用增加）。
+   2. 创建工作 I/O 线程集合，`WorkerThread` 线程集合。线程名称：**XNIO-i  I/O-j(j从1开始，累加)**
+   3. 创建工作 Accept 线程，`WorkerThread` 线程。线程名称：**XNIO-i Accept**。
+   4. 注册 MBean。
+   5. `NioXnioWorker` 调用 `start()`。启动 I/O 线程和 Accept 线程。
+3. 默认的 Socket 配置设置，以及自定义的 Socket 配置设置：
+   1. `Options.WORKER_IO_THREADS` 配置 I/O 工作线程数量。
+   2. `Options.TCP_NODELAY` 配置是否禁用 Nagle 算法；开启会有延迟。
+   3. `Options.REUSE_ADDRESSES` 是否复用绑定的 ip 地址。
+   4. `Options.BALANCING_TOKENS` 连接平衡配置，默认没有用。
+   5. `Options.BALANCING_CONNECTIONS` 连接平衡配置，默认没有用。
+   6. `Options.BACKLOG` 服务端 socket 的等待连接队列长度；
    7. 其它自定义配置，可覆盖前面的配置。
-4. 默认的Server配置设置，以及自定义Server配置设置：
-   1. `UndertowOptions.NO_REQUEST_TIMEOUT`连接空闲时间，新建TCP连接，超过时间未发送请求头数据关闭连接。
+4. 默认的 Server 配置设置，以及自定义 Server 配置设置：
+   1. `UndertowOptions.NO_REQUEST_TIMEOUT` 连接空闲时间，新建 TCP 连接，超过时间未发送请求头数据关闭连接。
    2. 其它自定义配置，可覆盖前面的配置。
-5. 根据配置的`byteBufferPool`设置缓冲区大小，默认情况见`2`中说明。
+5. 根据配置的 `byteBufferPool` 设置缓冲区大小，默认情况见 `2` 中说明。
 6. 注册监听。
 
 
@@ -547,7 +547,7 @@ UndertowWebServerFactoryCustomizer
 
 
 
-通过`Class.getResourceAsStream("path")`获取jar包中的properties文件(获取Undertow容器版本)：
+通过 `Class.getResourceAsStream("path")` 获取jar包中的 properties 文件(获取 Undertow 容器版本)：
 
 ~~~java
 public class Version {
@@ -607,7 +607,7 @@ public class Version {
 
 ### 5.自定义容器配置
 
-通过注入`UndertowBuilderCustomizer` Bean对`Undertow.Builder`对象自定义配置。
+通过注入 `UndertowBuilderCustomizer` Bean对 `Undertow.Builder` 对象自定义配置。
 
 
 
@@ -678,7 +678,7 @@ public class CustomUndertowConfig {
 
 
 
-### 6.Linux查询JVM可以处理器
+### 6.Linux 查询 JVM 可以处理器
 
 **非容器环境(逻辑核心数)：**
 
@@ -709,3 +709,36 @@ cat /sys/fs/cgroup/cpu/cpu.cfs_period_us
 ~~~
 
 **容器可以处理器数量 = 容器配额时间 / 时间周期**
+
+
+
+### 7.获取 Undertow MBean
+
+~~~java
+ObjectName pattern = new ObjectName("org.xnio:*");
+Set<ObjectName> mbeans = mbeanServer.queryNames(pattern, null);
+for (ObjectName name : mbeans) {
+    MBeanInfo mBeanInfo = mbeanServer.getMBeanInfo(name);
+    // XnioWorkerMXBean
+    if (mBeanInfo.getClassName() == null || !mBeanInfo.getClassName().contains("NioXnioWorker")) {
+        continue;
+    }
+    System.out.println("Found: " + name);
+    String workerName = (String) mbeanServer.getAttribute(name, "Name");
+    String providerName = (String) mbeanServer.getAttribute(name, "ProviderName");
+    int ioThreads = (int) mbeanServer.getAttribute(name, "IoThreadCount");
+    int workerQueueSize = (int) mbeanServer.getAttribute(name, "WorkerQueueSize");
+    int corePoolSize = (int) mbeanServer.getAttribute(name, "CoreWorkerPoolSize");
+    int maxPoolSize = (int) mbeanServer.getAttribute(name, "MaxWorkerPoolSize");
+    boolean shutdownRequested = (boolean) mbeanServer.getAttribute(name, "ShutdownRequested");
+
+    System.out.println("  Worker: " + workerName);
+    System.out.println("  providerName: " + providerName);
+    System.out.println("  I/O Threads: " + ioThreads);
+    System.out.println("  workerQueueSize: " + workerQueueSize);
+    System.out.println("  Core Pool: " + corePoolSize);
+    System.out.println("  Max Pool: " + maxPoolSize);
+    System.out.println("  ShutdownRequested: " + shutdownRequested);
+}
+~~~
+
