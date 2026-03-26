@@ -4,6 +4,7 @@
 
 - 通过自定义过滤器，可以将所有请求的状态码都设为 200；
 - 转发请求失败时，例如未在 ribbon 要求时间内响应，zuul 默认会发起重试请求。可能由于 zuul 的原因，下游服务读取请求数据出现 `UT000128: Remote peer closed connection before all data could be read` 异常。**原因：由于超时请求中断，触发了 zuul 的 error 类型过滤器 SendErrorFilter，该过滤器逻辑是将请求又转发到 /error 上下文，请求又进入了 HttpServlet 上下文，当前线程又在过滤器中执行了一次，导致重复发送到下游。重发的过程中，可能失败（ConnectTimeout 连接时间太短），再次触发 error 由于上一次已经标记执行过，所以不会再进来，到这里，请求就已经结束了，但是 debug 发现 error 还会再进来然后报错。需要自定义错误过滤器才能解决问题。**
+- 本质原因是 apache 连接池，同一个路由获取连接的代码出现了阻塞，一直没有被唤醒。
 
 ![image-20250709220516919](http://47.101.155.205/image-20250709220516919.png)
 
@@ -31,6 +32,8 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 
 ## 配置
 
+**ribbon 执行策略：**
+
 | key                                    | value     | 说明                                                         |
 | -------------------------------------- | --------- | ------------------------------------------------------------ |
 | zuul.ribbonIsolationStrategy           | SEMAPHORE | 默认值，当前线程执行 `HystrixCommand.run()`，                |
@@ -42,6 +45,24 @@ spring关于spring-cloud-starter-netflix-zuul(最后支持的版本)：https://d
 |                                        |           |                                                              |
 |                                        |           |                                                              |
 |                                        |           |                                                              |
+
+**http 转发客户端配置**
+
+| key                                    | value            | 说明                           |
+| -------------------------------------- | ---------------- | ------------------------------ |
+| zuul.host.maxTotalConnections          | 200              | 整个 zuul 最大的代理连接打开数 |
+| maxPerRouteConnections                 | 20               | 每个路由最大的代理连接打开数   |
+| socketTimeoutMillis                    | 10000            | ms，响应超时时间               |
+| connectTimeoutMillis                   | 2000             | ms，建立连接最大等待时间       |
+| connectionRequestTimeoutMillis         | -1               | 从连接管理器开始的请求超时时间 |
+| timeToLive                             | -1               | 连接数使用期限                 |
+| timeUnit                               | MILLISECONDS     | timeToLive 时间单位            |
+| HttpClientRibbonConfiguration          |                  | 每个 service 单独创建一个      |
+| ribbon.MaxTotalConnections             | 200              |                                |
+| ribbon.MaxConnectionsPerHost           | 50               |                                |
+| ribbon.ConnectionCleanerRepeatInterval | 30000            | 执行关闭过期连接的间隔时间     |
+| ribbon.PoolKeepAliveTime               | 900L             |                                |
+| ribbon.PoolKeepAliveTimeUnits          | TimeUnit.SECONDS |                                |
 
 
 
