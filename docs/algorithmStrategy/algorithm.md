@@ -1394,3 +1394,158 @@ d2 = 矩阵的平方和 - 1到n^2的平方和
 17. [3514. 不同 XOR 三元组的数目 II](https://leetcode.cn/problems/number-of-unique-xor-triplets-ii/) 快速沃尔什变换（FWT）
 18. [LCP 81. 与非的谜题](https://leetcode.cn/problems/ryfUiz/)
 
+
+
+## 回溯
+
+### 1. 入门回溯
+
+1. [17. 电话号码的字母组合](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/)
+
+
+
+### 2. 子集型回溯
+
+1. [78. 子集](https://leetcode.cn/problems/subsets/)
+2.  [1863. 找出所有子集的异或总和再求和](https://leetcode.cn/problems/sum-of-all-subset-xor-totals/) 1372
+3.  [784. 字母大小写全排列](https://leetcode.cn/problems/letter-case-permutation/)
+4. [3566. 等积子集的划分方案](https://leetcode.cn/problems/partition-array-into-two-equal-product-subsets/) 1459
+5.  [2044. 统计按位或能得到最大值的子集数目](https://leetcode.cn/problems/count-number-of-maximum-bitwise-or-subsets/) 1568
+6.  [LCP 51. 烹饪料理](https://leetcode.cn/problems/UEcfPD/)
+7. [2397. 被列覆盖的最多行数](https://leetcode.cn/problems/maximum-rows-covered-by-columns/) 1719
+8.  [1239. 串联字符串的最大长度](https://leetcode.cn/problems/maximum-length-of-a-concatenated-string-with-unique-characters/) 1720
+9.  [2212. 射箭比赛中的最大得分](https://leetcode.cn/problems/maximum-points-in-an-archery-competition/) 1869
+10. [1255. 得分最高的单词集合](https://leetcode.cn/problems/maximum-score-words-formed-by-letters/) 1882
+11.  [2151. 基于陈述统计最多好人数](https://leetcode.cn/problems/maximum-good-people-based-on-statements/) 1980
+12.  [2597. 美丽子集的数目](https://leetcode.cn/problems/the-number-of-beautiful-subsets/) 2023
+13. [2959. 关闭分部的可行集合数目](https://leetcode.cn/problems/number-of-possible-sets-of-closing-branches/) 2077
+14.  [1601. 最多可达成的换楼请求数目](https://leetcode.cn/problems/maximum-number-of-achievable-transfer-requests/) 2119
+15.  [1617. 统计子树中城市之间最大距离](https://leetcode.cn/problems/count-subtrees-with-max-distance-between-cities/) 2309
+16. [2174. 通过翻转行或列来去除所有的 1 II](https://leetcode.cn/problems/remove-all-ones-with-row-and-column-flips-ii/)（会员题）
+17.  [320. 列举单词的全部缩写](https://leetcode.cn/problems/generalized-abbreviation/)（会员题）
+18.  [254. 因子的组合](https://leetcode.cn/problems/factor-combinations/)（会员题）
+
+
+
+**思维扩展**
+
+1. [39. 组合总和](https://leetcode.cn/problems/combination-sum/) 同一个数可以重复选
+2.  [2002. 两个回文子序列长度的最大乘积](https://leetcode.cn/problems/maximum-product-of-the-length-of-two-palindromic-subsequences/) 1869
+
+
+
+### 3. 划分型回溯
+
+1. [131. 分割回文串](https://leetcode.cn/problems/palindrome-partitioning/)
+2.  [2698. 求一个整数的惩罚数](https://leetcode.cn/problems/find-the-punishment-number-of-an-integer/) 1679
+3.  [1593. 拆分字符串使唯一子字符串的数目最大](https://leetcode.cn/problems/split-a-string-into-the-max-number-of-unique-substrings/) 1740
+4. [1849. 将字符串拆分为递减的连续值](https://leetcode.cn/problems/splitting-a-string-into-descending-consecutive-values/) 1747
+5.  [93. 复原 IP 地址](https://leetcode.cn/problems/restore-ip-addresses/)
+6.  [140. 单词拆分 II](https://leetcode.cn/problems/word-break-ii/)
+7. [291. 单词规律 II](https://leetcode.cn/problems/word-pattern-ii/)（会员题）
+
+
+
+### 4. 组合型回溯
+
+1. [77. 组合](https://leetcode.cn/problems/combinations/)
+2.  [216. 组合总和 III](https://leetcode.cn/problems/combination-sum-iii/)
+3.  [1286. 字母组合迭代器](https://leetcode.cn/problems/iterator-for-combination/) 1591
+4. [22. 括号生成](https://leetcode.cn/problems/generate-parentheses/) 本质是从 2*n* 个位置中选 *n* 个位置放左括号，剩余 *n* 个位置放右括号
+5.  [301. 删除无效的括号](https://leetcode.cn/problems/remove-invalid-parentheses/)
+
+
+
+### 5. 排列型回溯
+
+1. [46. 全排列](https://leetcode.cn/problems/permutations/)
+2.  [3799. 单词方块 II](https://leetcode.cn/problems/word-squares-ii/) 1606
+3.  [3376. 破解锁的最少时间 I](https://leetcode.cn/problems/minimum-time-to-break-locks-i/) 1793
+4. [51. N 皇后](https://leetcode.cn/problems/n-queens/) 本质是枚举列号的全排列
+5.  [52. N 皇后 II](https://leetcode.cn/problems/n-queens-ii/)
+6.  [2850. 将石头分散到网格图的最少移动次数](https://leetcode.cn/problems/minimum-moves-to-spread-stones-over-grid/) 2001
+7. [1718. 构建字典序最大的可行序列](https://leetcode.cn/problems/construct-the-lexicographically-largest-valid-sequence/) 2080
+8.  [1307. 口算难题](https://leetcode.cn/problems/verbal-arithmetic-puzzle/) 2250
+9.  [37. 解数独](https://leetcode.cn/problems/sudoku-solver/)
+10. [3437. 全排列 III](https://leetcode.cn/problems/permutations-iii/)（会员题）
+11.  [267. 回文排列 II](https://leetcode.cn/problems/palindrome-permutation-ii/)（会员题）
+
+
+
+### 6. 有重复元素的回溯
+
+1. [90. 子集 II](https://leetcode.cn/problems/subsets-ii/)
+2.  [40. 组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)
+3.  [491. 非递减子序列](https://leetcode.cn/problems/non-decreasing-subsequences/)
+4. [47. 全排列 II](https://leetcode.cn/problems/permutations-ii/)
+5.  [1079. 活字印刷](https://leetcode.cn/problems/letter-tile-possibilities/) 1741
+6.  [3646. 下一个特殊回文数](https://leetcode.cn/problems/next-special-palindrome-number/) 2445
+7. [2014. 重复 K 次的最长子序列](https://leetcode.cn/problems/longest-subsequence-repeated-k-times/) 2558
+
+
+
+### 7. 搜索
+
+1. [3211. 生成不含相邻零的二进制字符串](https://leetcode.cn/problems/generate-binary-strings-without-adjacent-zeros/) 1353
+2.  [967. 连续差相同的数字](https://leetcode.cn/problems/numbers-with-same-consecutive-differences/) 1433
+3.  [2094. 找出 3 位偶数](https://leetcode.cn/problems/finding-3-digit-even-numbers/)
+4. [1415. 长度为 n 的开心字符串中字典序第 k 小的字符串](https://leetcode.cn/problems/the-k-th-lexicographical-string-of-all-happy-strings-of-length-n/) 1576 O(n)
+5. [1219. 黄金矿工](https://leetcode.cn/problems/path-with-maximum-gold/) 1663
+6.  [79. 单词搜索](https://leetcode.cn/problems/word-search/)
+7.  [980. 不同路径 III](https://leetcode.cn/problems/unique-paths-iii/) 1830
+8. [2002. 两个回文子序列长度的最大乘积](https://leetcode.cn/problems/maximum-product-of-the-length-of-two-palindromic-subsequences/) 1869
+9.  [1255. 得分最高的单词集合](https://leetcode.cn/problems/maximum-score-words-formed-by-letters/) 1882
+10.  [3669. K 因数分解](https://leetcode.cn/problems/balanced-k-factor-decomposition/) 1917
+11. [756. 金字塔转换矩阵](https://leetcode.cn/problems/pyramid-transition-matrix/) 1990
+12.  [473. 火柴拼正方形](https://leetcode.cn/problems/matchsticks-to-square/) 子集分割问题，*k*=4
+13.  [212. 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)
+14. [638. 大礼包](https://leetcode.cn/problems/shopping-offers/)
+15.  [1240. 铺瓷砖](https://leetcode.cn/problems/tiling-a-rectangle-with-the-fewest-squares/) 2242
+16.  [679. 24 点游戏](https://leetcode.cn/problems/24-game/)
+17. [282. 给表达式添加运算符](https://leetcode.cn/problems/expression-add-operators/)
+18.  [126. 单词接龙 II](https://leetcode.cn/problems/word-ladder-ii/)
+19.  [691. 贴纸拼词](https://leetcode.cn/problems/stickers-to-spell-word/)
+20. [2056. 棋盘上有效移动组合的数目](https://leetcode.cn/problems/number-of-valid-move-combinations-on-chessboard/) 2611
+21.  [2386. 找出数组的第 K 大和](https://leetcode.cn/problems/find-the-k-sum-of-an-array/) 2648
+22.  [3509. 最大化交错和为 K 的子序列乘积](https://leetcode.cn/problems/maximum-product-of-subsequences-with-an-alternating-sum-equal-to-k/) 2703
+23. [488. 祖玛游戏](https://leetcode.cn/problems/zuma-game/)
+24.  [LCP 58. 积木拼接](https://leetcode.cn/problems/De4qBB/)
+25.  [面试题 17.25. 单词矩阵](https://leetcode.cn/problems/word-rectangle-lcci/)
+26. [2664. 巡逻的骑士](https://leetcode.cn/problems/the-knights-tour/)（会员题）
+27.  [3565. 顺序网格路径覆盖](https://leetcode.cn/problems/sequential-grid-path-cover/)（会员题）
+28.  [247. 中心对称数 II](https://leetcode.cn/problems/strobogrammatic-number-ii/)（会员题）
+29.  [248. 中心对称数 III](https://leetcode.cn/problems/strobogrammatic-number-iii/)（会员题）
+30.  [411. 最短独占单词缩写](https://leetcode.cn/problems/minimum-unique-word-abbreviation/)（会员题）
+31.  [1088. 易混淆数 II](https://leetcode.cn/problems/confusing-number-ii/)（会员题）
+
+
+
+### 8. 折半枚举
+
+1. [805. 数组的均值分割](https://leetcode.cn/problems/split-array-with-same-average/) 1983
+2.  [494. 目标和](https://leetcode.cn/problems/target-sum/)
+3.  [3566. 等积子集的划分方案](https://leetcode.cn/problems/partition-array-into-two-equal-product-subsets/)
+4. [1755. 最接近目标值的子序列和](https://leetcode.cn/problems/closest-subsequence-sum/) 2364
+5.  [956. 最高的广告牌](https://leetcode.cn/problems/tallest-billboard/) 2381
+6.  [2035. 将数组分成两个数组并最小化数组和的差](https://leetcode.cn/problems/partition-array-into-two-arrays-to-minimize-sum-difference/) 2490
+7. [3801. 合并有序列表的最小成本](https://leetcode.cn/problems/minimum-cost-to-merge-sorted-lists/) 优化
+8.  [3267. 统计近似相等数对 II](https://leetcode.cn/problems/count-almost-equal-pairs-ii/) 优化
+9.  [LCP 82. 万灵之树](https://leetcode.cn/problems/cnHoX6/)
+
+
+
+## 递归/分治
+
+1. [3537. 填充特殊网格](https://leetcode.cn/problems/fill-a-special-grid/) 1542
+2.  [215. 数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/) 先做这题再做 912 题
+3.  [912. 排序数组](https://leetcode.cn/problems/sort-an-array/) 手写快排
+4.  [880. 索引处的解码字符串](https://leetcode.cn/problems/decoded-string-at-index/) 2011
+5.  [3307. 找出第 K 个字符 II](https://leetcode.cn/problems/find-the-k-th-character-in-string-game-ii/) 2232
+6.  [1545. 找出第 N 个二进制字符串中的第 K 位](https://leetcode.cn/problems/find-kth-bit-in-nth-binary-string/) 
+7. [3614. 用特殊操作处理字符串 II](https://leetcode.cn/problems/process-string-with-special-operations-ii/)
+8.  [932. 漂亮数组](https://leetcode.cn/problems/beautiful-array/) 约 2500
+
+
+
+
+
