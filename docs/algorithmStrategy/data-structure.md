@@ -769,7 +769,7 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 ## 链表
 
-[链表](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
+[第一节](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
 
 带着问题去做题目：
 
@@ -931,6 +931,8 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 ### 二叉树
+
+[第二节](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
 
 二叉树是 n 个有限元素的集合，该集合为空、或者由一个根的元素和两个不相交的子树组成，是有序树。
 
@@ -1288,6 +1290,8 @@ B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，
 
 
 ### 一般树
+
+[第三节](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
 
 #### 1. 遍历
 

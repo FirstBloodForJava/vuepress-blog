@@ -1398,6 +1398,8 @@ d2 = 矩阵的平方和 - 1到n^2的平方和
 
 ## 回溯
 
+[第四节](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
+
 ### 1. 入门回溯
 
 1. [17. 电话号码的字母组合](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/)
@@ -1535,6 +1537,8 @@ d2 = 矩阵的平方和 - 1到n^2的平方和
 
 
 ## 递归/分治
+
+[第五节](https://leetcode.cn/discuss/post/3142882/fen-xiang-gun-ti-dan-lian-biao-er-cha-sh-6srp/)
 
 1. [3537. 填充特殊网格](https://leetcode.cn/problems/fill-a-special-grid/) 1542
 2.  [215. 数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/) 先做这题再做 912 题
