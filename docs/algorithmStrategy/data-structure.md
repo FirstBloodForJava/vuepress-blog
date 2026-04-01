@@ -1287,6 +1287,147 @@ B+和B-（即B）是因为每个结点上的关键字不同。一个多一个，
 
 
 
+### 一般树
+
+#### 1. 遍历
+
+1. [2368. 受限条件下可到达节点的数目](https://leetcode.cn/problems/reachable-nodes-with-restrictions/) 1477
+2.  [1466. 重新规划路线](https://leetcode.cn/problems/reorder-routes-to-make-all-paths-lead-to-the-city-zero/) 1634
+3. [582. 杀掉进程](https://leetcode.cn/problems/kill-process/)（会员题）
+
+
+
+#### 2. 自顶向下 DFS
+
+1. [1376. 通知所有员工所需的时间](https://leetcode.cn/problems/time-needed-to-inform-all-employees/) 1561
+2.  [3528. 单位转换 I](https://leetcode.cn/problems/unit-conversion-i/) 1580
+3. [1443. 收集树上所有苹果的最少时间](https://leetcode.cn/problems/minimum-time-to-collect-all-apples-in-a-tree/) 1683
+4.  [3820. 树上的勾股距离节点](https://leetcode.cn/problems/pythagorean-distance-nodes-in-a-tree/) 1725
+5. [1377. T 秒后青蛙的位置](https://leetcode.cn/problems/frog-position-after-t-seconds/) 1824
+6.  [3067. 在带权树网络中统计可连接服务器对数目](https://leetcode.cn/problems/count-pairs-of-connectable-servers-in-a-weighted-tree-network/) 1909
+7. [3372. 连接两棵树后最大目标节点数目 I](https://leetcode.cn/problems/maximize-the-number-of-target-nodes-after-connecting-trees-i/) 1927
+8.  [2467. 树上最大得分和路径](https://leetcode.cn/problems/most-profitable-path-in-a-tree/) 2053
+9. [3373. 连接两棵树后最大目标节点数目 II](https://leetcode.cn/problems/maximize-the-number-of-target-nodes-after-connecting-trees-ii/) 2162
+10.  [1766. 互质树](https://leetcode.cn/problems/tree-of-coprimes/) 2232
+11. [2791. 树中可以形成回文的路径数](https://leetcode.cn/problems/count-paths-that-can-form-a-palindrome-in-a-tree/) 2677
+12.  [3535. 单位转换 II](https://leetcode.cn/problems/unit-conversion-ii/)（会员题）
+
+
+
+#### 3. 自底向上 DFS
+
+1.  [690. 员工的重要性](https://leetcode.cn/problems/employee-importance/)
+2.  [3249. 统计好节点的数目](https://leetcode.cn/problems/count-the-number-of-good-nodes/) 1566
+3. [1519. 子树中标签相同的节点数](https://leetcode.cn/problems/number-of-nodes-in-the-sub-tree-with-the-same-label/) 1809
+4.  [3558. 给边赋权值的方案数 I](https://leetcode.cn/problems/number-of-ways-to-assign-edge-weights-i/) 1845
+5. [3593. 使叶子路径成本相等的最小增量](https://leetcode.cn/problems/minimum-increments-to-equalize-leaf-paths/) 1959
+6.  [2872. 可以被 K 整除连通块的最大数目](https://leetcode.cn/problems/maximum-number-of-k-divisible-components/) 1968
+7. [2477. 到达首都的最少油耗](https://leetcode.cn/problems/minimum-fuel-cost-to-report-to-the-capital/) 2012
+8.  [3812. 翻转树上最少边](https://leetcode.cn/problems/minimum-edge-toggles-on-a-tree/) 2179
+9. [2973. 树中每个节点放置的金币数目](https://leetcode.cn/problems/find-number-of-coins-to-place-in-tree-nodes/) 2277
+10.  [2440. 创建价值相同的连通块](https://leetcode.cn/problems/create-components-with-same-value/) 2460
+11. [1273. 删除树节点](https://leetcode.cn/problems/delete-tree-nodes/)（会员题）
+12.  [3004. 相同颜色的最大子树](https://leetcode.cn/problems/maximum-subtree-of-the-same-color/)（会员题）
+
+
+
+#### 4. 有递有归
+
+1. [3593. 使叶子路径成本相等的最小增量](https://leetcode.cn/problems/minimum-increments-to-equalize-leaf-paths/) 1959 也可以自底向上
+2. [3331. 修改后子树的大小](https://leetcode.cn/problems/find-subtree-sizes-after-changes/) 2046
+
+
+
+#### 5. 树的直径
+
+1. [2246. 相邻字符不同的最长路径](https://leetcode.cn/problems/longest-path-with-different-adjacent-characters/) 2126
+2.  [3203. 合并两棵树后的最小直径](https://leetcode.cn/problems/find-minimum-diameter-after-merging-two-trees/) 2266
+3. [1617. 统计子树中城市之间最大距离](https://leetcode.cn/problems/count-subtrees-with-max-distance-between-cities/) 2309
+4.  [2538. 最大价值和与最小价值和的差值](https://leetcode.cn/problems/difference-between-maximum-and-minimum-price-sum/) 2398
+5. [1245. 树的直径](https://leetcode.cn/problems/tree-diameter/)（会员题）
+6.  [3787. 查找树的直径端点](https://leetcode.cn/problems/find-diameter-endpoints-of-a-tree/)（会员题）
+7. [3313. 查找树中最后标记的节点](https://leetcode.cn/problems/find-the-last-marked-nodes-in-tree/)（会员题）
+
+
+
+#### 6. 树的拓扑排序
+
+1. [310. 最小高度树](https://leetcode.cn/problems/minimum-height-trees/)
+2.  [3812. 翻转树上最少边](https://leetcode.cn/problems/minimum-edge-toggles-on-a-tree/) 2179
+3. [2603. 收集树中金币](https://leetcode.cn/problems/collect-coins-in-a-tree/) 2712
+
+
+
+#### 7. DFS 时间戳
+
+1. [3515. 带权树中的最短路径](https://leetcode.cn/problems/shortest-path-in-a-weighted-tree/) 2312
+2. [LCP 05. 发 LeetCoin](https://leetcode.cn/problems/coin-bonus/) 同 3515 题
+3. [2322. 从树中删除边的最小分数](https://leetcode.cn/problems/minimum-score-after-removals-on-a-tree/) 2392
+4.  [3327. 判断 DFS 字符串是否是回文串](https://leetcode.cn/problems/check-if-dfs-strings-are-palindromes/) 2454
+5. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 2646 做法不止一种
+
+
+
+#### 8. LCA、倍增算法
+
+1.  [1483. 树节点的第 K 个祖先](https://leetcode.cn/problems/kth-ancestor-of-a-tree-node/) 2115 模板题
+2.  [3559. 给边赋权值的方案数 II](https://leetcode.cn/problems/number-of-ways-to-assign-edge-weights-ii/) 2146
+3. [3553. 包含给定路径的最小带权子树 II](https://leetcode.cn/problems/minimum-weighted-subgraph-with-the-required-paths-ii/) 2411 结论
+4.  [3585. 树中找到带权中位节点](https://leetcode.cn/problems/find-weighted-median-node-in-tree/) 2429
+5. [2846. 边权重均等查询](https://leetcode.cn/problems/minimum-edge-weight-equilibrium-queries-in-a-tree/) 2508
+6.  [2646. 最小化旅行的价格总和](https://leetcode.cn/problems/minimize-the-total-price-of-the-trips/) **树上差分**
+7. [2277. 树中最接近路径的节点](https://leetcode.cn/problems/closest-node-to-path-in-tree/)（会员题）
+
+数组上的倍增：
+
+1. [3534. 针对图的路径存在性查询 II](https://leetcode.cn/problems/path-existence-queries-in-a-graph-ii/) 2507
+2. [2836. 在传球游戏中最大化函数值](https://leetcode.cn/problems/maximize-value-of-function-in-a-ball-passing-game) 2769 做法不止一种
+3. [3464. 正方形上的点之间的最大距离](https://leetcode.cn/problems/maximize-the-distance-between-points-on-a-square/)
+
+
+
+#### 9. 虚树
+
+1. [3786. 树组的交互代价总和](https://leetcode.cn/problems/total-sum-of-interaction-cost-in-tree-groups/) 与 20 无关的做法
+
+
+
+#### 10. 树上启发式合并
+
+1. [2003. 每棵子树内缺失的最小基因值](https://leetcode.cn/problems/smallest-missing-genetic-value-in-each-subtree/) 2415
+2. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 2646 
+3. [3575. 最大好子树分数](https://leetcode.cn/problems/maximum-good-subtree-score/) 做到 O(*n*log*n*⋅2*D*)
+
+
+
+#### 11. 点分治
+
+1. [3372. 连接两棵树后最大目标节点数目 I](https://leetcode.cn/problems/maximize-the-number-of-target-nodes-after-connecting-trees-i/)
+
+
+
+#### 12. 树上滑动窗口
+
+1. [3425. 最长特殊路径](https://leetcode.cn/problems/longest-special-path/) 2435
+2.  [3486. 最长特殊路径 II](https://leetcode.cn/problems/longest-special-path-ii/) 2925
+
+
+
+#### 13. 其他
+
+1. [2867. 统计树中的合法路径数目](https://leetcode.cn/problems/count-valid-paths-in-a-tree/) 2428
+2.  [2421. 好路径的数目](https://leetcode.cn/problems/number-of-good-paths/) 2445
+3. [1719. 重构一棵树的方案数](https://leetcode.cn/problems/number-of-ways-to-reconstruct-a-tree/) 3018
+4.  [2479. 两个不重叠子树的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-non-overlapping-subtrees/)（会员题）
+
+
+
+
+
+
+
+
+
 ## 字典树 trie
 
 [字典树](https://leetcode.cn/discuss/post/3583665/fen-xiang-gun-ti-dan-chang-yong-shu-ju-j-bvmv/)
