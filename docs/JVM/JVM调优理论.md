@@ -81,11 +81,25 @@ WebLogic是Oracle提供的一套企业级Java应用服务器(Java EE Application
 
 ### 堆外内存溢出
 
-堆外内存溢出，配置了-XX:+HeapDumpOnOutOfMemoryError参数，可能也不会生成dump文件。但是系统日志里面可能会打印发生的相关信息。堆外内存的回收不像堆内内存回收一样，是程序通知其要垃圾收集，而是Full GC出现顺带回收。
+堆外内存溢出，配置了 `-XX:+HeapDumpOnOutOfMemoryError` 参数，可能也不会生成dump文件。但是系统日志里面可能会打印发生的相关信息。堆外内存的回收不像堆内内存回收一样，是程序通知其要垃圾收集，而是Full GC出现顺带回收。
 
 -XX:+DisableExplicitGC 关闭人工触发垃圾收集。
 
 -XX:MaxDirectMemorySize设置直接内存大小。
+
+堆内存设置多大，堆外内存设置太小，导致直接内存溢出：
+
+**org.springframework.kafka.listener.KafkaMessageListenerContainer - Error while stopping the container: 
+java.lang.OutOfMemoryError: Direct buffer memory**
+
+~~~bash
+-Xms2048M
+-Xmx8192M
+-XX:MaxDirectMemorySize=512M
+
+~~~
+
+
 
 
 
