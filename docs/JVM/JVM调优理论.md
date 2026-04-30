@@ -81,9 +81,15 @@ WebLogic是Oracle提供的一套企业级Java应用服务器(Java EE Application
 
 ### 堆外内存溢出
 
-堆外内存溢出，配置了 `-XX:+HeapDumpOnOutOfMemoryError` 参数，可能也不会生成dump文件。但是系统日志里面可能会打印发生的相关信息。堆外内存的回收不像堆内内存回收一样，是程序通知其要垃圾收集，而是Full GC出现顺带回收。
+堆外内存溢出，配置了 `-XX:+HeapDumpOnOutOfMemoryError` 参数，可能也不会生成dump文件。但是系统日志里面可能会打印发生的相关信息。堆外内存的回收不像堆内内存回收一样，是程序通知其要垃圾收集，而是 GC 出现顺带回收（分情况）。
 
 -XX:+DisableExplicitGC 关闭人工触发垃圾收集。
+
+
+
+#### 直接内存溢出
+
+`ByteBuffer.allocateDirect()` 申请直接内存 `DirectByteBuffer` 引用。`DirectByteBuffer` 被回收时，会释放直接内存。
 
 -XX:MaxDirectMemorySize设置直接内存大小。
 
@@ -163,9 +169,9 @@ java.lang.OutOfMemoryError: Direct buffer memory**
 
 ## IDEA编辑器实战分析
 
-### IDEA启动没有JVM进程
+### IDEA启动没有 JVM 进程
 
-使用jps -l查询所有Java启动的JVM进程id，发现没有之前IDEA启动的类，说明可能是出现了什么问题。
+使用 jps -l 查询所有 Java 启动的 JVM 进程 id，发现没有之前 IDEA 启动的类，说明可能是出现了什么问题。
 
 
 
