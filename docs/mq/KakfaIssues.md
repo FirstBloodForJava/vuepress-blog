@@ -82,7 +82,7 @@ producer.flush();
 
 生产者出现 `kafka-producer-network-thread` 线程死亡，`producer.flush()`，可能导致死锁。
 
-![image-20260429153941071](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20260429153941071.png)
+![image-20260429153941071](http://47.101.155.205/image-20260429153941071.png)
 
 **解决方式**：flush 没有提供超时方法，避免调用 flush 方法。
 
