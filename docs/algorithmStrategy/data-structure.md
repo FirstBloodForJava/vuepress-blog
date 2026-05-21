@@ -1714,6 +1714,212 @@ class UnionFind {
 
 树状数组，又称二叉索引树或 Fenwick 树，是由Peter M. Fenwick于1994年在《SOFTWARE PRACTICE AND EXPERIENCE》期刊发表论文《A New Data Structure for Cumulative Frequency Tables》提出的数据结构，最初用于解决数据压缩中的累积频率计算问题，现主要用于高效计算数列的**前缀和**与**区间和**。
 
+给你一个数组，如何快速计算任意一段连续子数组的元素和？
+
+暴力的做法，遍历 [l, r] 之间的所有元素求和，时间复杂度是 O(n)。
+
+[l, r] 连续子数组的和，可以看作下标从 1 到 r 的子数组元素和，再减去下标从 1 到 l-1 的子数组元素和。按照这个思路，只要记录每个从 1 到 i 的元素和，就能 O(1) 的计算任意连续子数组的和。
+
+**更新**，如果我要更新子数组的元素呢？这样包含元素 i 的和都需要修改，时间复杂度又是 O(n)。
+
+能不能把区间和拆分成若干段？这样我就不需要更新修改元素后的所有元素和。
+
+![image-20260521194540195](http://47.101.155.205/image-20260521194540195.png)
+
+一个长为 16 的数组，数组下标从 1 开始。相邻两个数求和，直到合并后的数量为 1。
+
+观察：区间 [1, 11] 的和，等于 [1,8]，[9, 10], [11, 11] 关键区间的和，发现这里的区间长度，恰好对应 11 二进制 1 的 bit。11 = 1011 = 8 + 2 + 1。
+
+按照这个规则，看 [1,  1] 到 [1, 8] 区间如何拆分：
+
+~~~md
+[1, 1] = [1, 1]; 						1 = 1
+[1, 2] = [1, 2]; 						2 = 2
+[1, 3] = [1, 2] + [3, 3]; 				3 = 2 + 1
+[1, 4] = [1, 4]; 						4 = 4
+[1, 5] = [1, 4] + [5, 5];	 			5 = 4 + 1
+[1, 6] = [1, 4] + [5, 6]; 				6 = 4 + 2
+[1, 7] = [1, 4] + [5, 6] + [7, 7]; 		7 = 4 + 2 + 1
+[1, 8] = [1, 8]; 						8 = 8
+~~~
+
+观察，发现总共有多少个不同的关键区间？
+
+8 个。[1, 1]，[1, 2]，[3, 3]，[1, 4]，[5, 5]，[5, 6]，[7, 7]，[1, 8]。
+
+一般地：
+
+- 如果 i 是 2 的幂，那么 [1, i] 区间无需拆分（注意 lowbit(i) = i，i-lowbit(i) + 1 = 1，此时可以看作恰好拆分成 [1, i] 区间）。
+- 如果 i 不是 2 的幂，那么可以拆分出一个长为 lowbit(i) 的 [i - lowbit(i) + 1, i] 关键区间，问题转换成 [1, i-lowbit(i)] 区间如何拆分，这是一个规模更小的子问题。[1, 7] 拆分出一个 [7, 7] 关键区间，转换成 [1, 6] 区间怎么拆分。 
+
+按顺序拆分 [1, 1]，[1, 2]，[1, 3]，... [1, n] 每次恰好会拆分出一个新的关键区间 [i - lowbit(i) + 1, i]，[1, i - lowbit(i)] 关键区间再前面以及拆分，不算新的关键区间，所以总共有 n 个不同的关键区间。
+
+由于每个关键区间的右端点互不相同，所以可以把**右端点为 i 的关键区间元素和保存在 tree[i] 中**。
+
+就可以按照以下方法，**计算 [1, i] 区间的和**：
+
+1. 初始化元素和为 s；
+2. 每次循环，s += tree[i]，tree[i] 表示 [i - lowbit(i) + 1, i] 关键区间的和；
+3. 然后更新 i = i - lowbit，表示要求下一个 [1, i - lowbit] 区间和，重复第 2 步；
+4. 直到 i = 0，返回 s。
+
+一个正整数 i 二进制长度就是 log i + 1，所以任意一个前缀至多拆分出 log n 个关键区间，求区间和的时间复杂度是 O(logn)。
+
+当 nums[i] 修改时，如果更新 tree 数组？包含 i 的关键区间都需要更新。
+
+例如，当下标 5 值更新时，那么关键区间 [5, 5]，[5, 6]，[1, 8]，[1, 16] 都需要更新，三个关键区间右端点依次为5，6，8，16。如果把有关系的关键区间连边，则可以得到下图的结构：
+
+![image-20260521205303496](http://47.101.155.205/image-20260521205303496.png)
+
+注意到：
+
+~~~md
+5 + lowbit(5) = 5 + 1 = 6;
+6 + lowbit(6) = 6 + 2 = 8;
+8 + lowbit(8) = 8 + 8 = 16;
+~~~
+
+猜想：如果 x 表示更新的是关键区间的右端点，那么下一个被更新关键区间右端点为 x + lowbit(x)。
+
+需要证明两点：
+
+1. 右端点为 x 的关键区间，被右端点为 x+lowbit(x) 的关键区间所包含（右边的关键区间的左端点不变或变小，小于或等于 x-lowbit(x) + 1）。
+2. 右端点在 [x + 1, x + lowbit(x) - 1] 的关键区间，与右端点为 x 的关键区间没有交集（这里的关键区间左端点要大于 x 或 x+lowbit(x)）。
+
+**1 的证明**：
+
+ 设 y = x + lowbit(x)，由于 y > x，只需要证明两个关键区间的左端点满足，y 的左端点小于等于 x 的左端点：
+
+~~~md
+y - lowbit(y) + 1 <= x - lowbit(x) + 1；
+即 y - lowbit(y) <= x - lowbit(x)；就能证明包含关系。
+
+设 lowbit(x) = 2^k，那么 x = m * 2^(k+1) + 2^k，这里 m 是一个非负整数。
+所以右边不等式为：x - lowbit(x) = m * 2^(k+1)
+
+由于 y = x + lowbit(x) = (m+1) * 2^(k+1)，得到 lowbit(y) >= 2^(k+1)
+所以做左边不等式为 y - lowbit(y) <= (m+1) * 2^(k+1) - min(lowbit(y)) = m * 2^(k+1)
+
+综上所述 y - lowbit(y) <= m * 2^(k+1) = x - lowbit(x)
+说明以上包含关系成立
+~~~
+
+**2 的证明**：
+
+~~~md
+设 y = x + b，其中 1 < b < 2^k（2^k 表示 x 的 lowbit，同 1）
+只需要证明 y - lowbit(y) + 1 > x
+y = m * 2^(k+1) + 2^k + b
+由于 b < 2^k，所以 lowbit(y) = lowbit(b)
+y - lowbit(y) + 1
+= x + b - lowbit(b) + 1;
+= x + (b - lowbit(b)) + 1;
+= x + 1 + (b - lowbit(b))
+由于 b - lowbit(b) >= 0
+所以 y - lowbit(y) + 1 >= x + 1 > x
+说明 右端点在 [x + 1, x + lowbit(x) - 1] 的关键区间，与右端点为 x 的关键区间没有交集。
+~~~
+
+更新 update(idx, val) ：
+
+1. 设 delta = val - nums[idx]，相当于把 index 增加 delta，然后把 nums[idx] = val；
+2. 初始化 i = idx + 1（关键区间的右端点，下标从 1 开始），tree[i] += delta，这是第一个更新的关键区间右端点，更新i += lowbit(i)。
+3. 不断循环第 2 步，直到 i > n（n 是 nums 长度）。
+
+
+
+**如何更具 nums 数组初始化 tree  数组？**
+
+n log n 写法，把 tree 数组都初始化 为 0，对于每个 nums[i]，调用一次 update(idx, val)。
+
+~~~java
+class NumArray {
+    private int[] nums;
+    private int[] tree;
+
+    public NumArray(int[] nums) {
+        int n = nums.length;
+        // nums[i] 也默认为 0，这样 delta 就是 nums[i]
+        this.nums = new int[n];
+        tree = new int[n + 1];
+        for (int i = 0; i < n; i++) {
+            update(i, nums[i]);
+        }
+    }
+
+    public void update(int index, int val) {
+        int delta = val - nums[index];
+        nums[index] = val;
+        for (int i = index + 1; i < tree.length; i += i & -i) {
+            tree[i] += delta;
+        }
+    }
+
+    private int prefixSum(int i) {
+        int s = 0;
+        for (; i > 0; i &= i - 1) {
+            s += tree[i];
+        }
+        return s;
+    }
+
+    public int sumRange(int left, int right) {
+        return prefixSum(right + 1) - prefixSum(left);
+    }
+}
+~~~
+
+n 写法，计算 tree[i] 后，把 tree[i] 追加到 tree[i + lowbit[i]]。根据前面 update(idx, val)，i+lowbit(i) 为右端点的关键区间左端点，是包含 i 为右端点的关键区间。
+
+n logn 更新 tree[1] 给 1, 2, 4, 8, ... 增加 nums[0]；
+
+n 更新 tree[1]，tree[1] += nums[0]，tree[2] += tree[1]，下次更新 tree[2] += nums[0] 就是 [1, 2] 关键区间的和，再追加到 [1, 4] 关键区间，这样累计到 n，n 是 nums.length。
+
+~~~java
+class NumArray {
+    private int[] nums;
+    private int[] tree;
+
+    public NumArray(int[] nums) {
+        int n = nums.length;
+        this.nums = nums;
+        tree = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            tree[i] += nums[i - 1];
+            // 下一个关键区间的右端点
+            int nxt = i + (i & -i);
+            if (nxt <= n) {
+                tree[nxt] += tree[i];
+            }
+        }
+    }
+
+    public void update(int index, int val) {
+        int delta = val - nums[index];
+        nums[index] = val;
+        for (int i = index + 1; i < tree.length; i += i & -i) {
+            tree[i] += delta;
+        }
+    }
+
+    private int prefixSum(int i) {
+        int s = 0;
+        for (; i > 0; i &= i - 1) {
+            s += tree[i];
+        }
+        return s;
+    }
+
+    public int sumRange(int left, int right) {
+        return prefixSum(right + 1) - prefixSum(left);
+    }
+}
+~~~
+
+
+
+
+
 
 
 
