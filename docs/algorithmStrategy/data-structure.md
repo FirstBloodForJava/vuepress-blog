@@ -1710,6 +1710,14 @@ class UnionFind {
 
 
 
+### 树状数组
+
+树状数组，又称二叉索引树或 Fenwick 树，是由Peter M. Fenwick于1994年在《SOFTWARE PRACTICE AND EXPERIENCE》期刊发表论文《A New Data Structure for Cumulative Frequency Tables》提出的数据结构，最初用于解决数据压缩中的累积频率计算问题，现主要用于高效计算数列的**前缀和**与**区间和**。
+
+
+
+
+
 ## 伸展树
 
 
