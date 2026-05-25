@@ -80,6 +80,10 @@ export default defineUserConfig({
           {
             text: '数学',
             link: 'math'
+          },
+          {
+            text: '字符串',
+            link: 'string'
           }
         ]
       },
