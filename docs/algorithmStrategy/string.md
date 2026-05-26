@@ -2,7 +2,7 @@
 
 ## 1. KMP
 
-
+![image-20260526170912449](http://47.101.155.205/image-20260526170912449.png)
 
 1. [28. 找出字符串中第一个匹配项的下标](https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/) **模板题**
 2. [796. 旋转字符串](https://leetcode.cn/problems/rotate-string/) 做到线性时间复杂度
