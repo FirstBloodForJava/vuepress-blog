@@ -1636,16 +1636,15 @@ class UnionFind {
 
 ### 带权并查集
 
-~~~java
-// 模板来源 https://leetcode.cn/circle/discuss/mOr1u6/
-class UnionFind {
-    private final int[] fa; // 代表元
-    private final int[] dis; // dis[x] 表示 x 到（x 所在集合的）代表元的距离
-    // 注意数据范围，必要时使用 long[] dis
+带权并查集原理：一维数轴相对距离模型。
 
-    public UnionFind(int n) {
-        // 一开始有 n 个集合 {0}, {1}, ..., {n-1}
-        // 集合 i 的代表元是自己，自己到自己的距离是 0
+~~~java
+public class BasicWeightUnionFind {
+
+    private final int[] fa; // 代表元
+    private final int[] dis; // dis[x] 表示 x 到（x 所在集合的）代表元（fa[x]）的距离，dis[x] = fa[x] - x，后面后用到这个定义
+
+    public BasicWeightUnionFind(int n) {
         fa = new int[n];
         dis = new int[n];
         for (int i = 0; i < n; i++) {
@@ -1657,6 +1656,12 @@ class UnionFind {
     // 同时做路径压缩
     public int find(int x) {
         if (fa[x] != x) {
+            /*
+            a -> b 10;
+            b -> c 20;
+            a -> c ?
+            dis[a] = dis[b] + (b-a)
+             */
             int root = find(fa[x]);
             dis[x] += dis[fa[x]]; // 递归更新 x 到其代表元的距离
             fa[x] = root;
@@ -1669,8 +1674,13 @@ class UnionFind {
         return find(x) == find(y);
     }
 
-    // 计算从 from 到 to 的相对距离
-    // 调用时需保证 from 和 to 在同一个集合中，否则返回值无意义
+
+    /**
+     * 需要保证 from, to 在一个集合中
+     * @param from
+     * @param to
+     * @return
+     */
     public int getRelativeDistance(int from, int to) {
         find(from);
         find(to);
@@ -1678,25 +1688,35 @@ class UnionFind {
         return dis[from] - dis[to];
     }
 
-    // 合并 from 和 to，新增信息 to - from = value
-    // 其中 to 和 from 表示未知量，下文的 x 和 y 也表示未知量
-    // 如果 from 和 to 不在同一个集合，返回 true，否则返回是否与已知信息矛盾
+    /**
+     * to - from 表示 to 到 from 的距离是 value
+     *
+     * @param from
+     * @param to
+     * @param value
+     * @return 如果 from 和 to 不在同一个集合，返回 true，否则返回是否与已知信息矛盾
+     */
     public boolean merge(int from, int to, int value) {
         int x = find(from), y = find(to);
-        if (x == y) { // from 和 to 在同一个集合，不做合并
+        if (x == y) {
             // to-from = (x-from) - (x-to) = dis[from] - dis[to] = value
             return dis[from] - dis[to] == value;
         }
-        //    x --------- y
-        //   /           /
-        // from ------- to
-        // 已知 x-from = dis[from] 和 y-to = dis[to]，现在合并 from 和 to，新增信息 to-from = value
-        // 由于 y-from = (y-x) + (x-from) = (y-to) + (to-from)
-        // 所以 y-x = (to-from) + (y-to) - (x-from) = value + dis[to] - dis[from]
-        dis[x] = value + dis[to] - dis[from]; // 计算 x 到其代表元 y 的距离
+        /*
+        已知 dis[from] = x-from; dis[to] = y-to; value = to-from;
+        现在要计算 y-x 距离
+           x ----?---- y
+          /           /
+        from ------- to
+        由于 y-from = (y-x) + (x-from) = (y-to) + (to-from)，把 (x-from) 移项到右边得
+        dis[x] = y-x = (y-to) + (to-from) - (x-from)
+               = dis[to] + value - dis[from];
+         */
+        dis[x] = value + dis[to] - dis[from];
         fa[x] = y;
         return true;
     }
+
 }
 ~~~
 
