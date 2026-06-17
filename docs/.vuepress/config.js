@@ -51,6 +51,16 @@ export default defineUserConfig({
         text: '首页',
         link: '/'
       },
+      {
+        text: 'AI',
+        prefix: '/AI',
+        children: [
+          {
+            text: 'AI coding',
+            link: 'AICoding'
+          }
+        ]
+      },
       //  算法策略
       {
         text: '算法策略',
