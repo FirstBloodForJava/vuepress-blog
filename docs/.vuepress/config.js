@@ -5,6 +5,7 @@ import { docsearchPlugin } from '@vuepress/plugin-docsearch'
 import { prismjsPlugin } from '@vuepress/plugin-prismjs'
 import { markdownImagePlugin } from '@vuepress/plugin-markdown-image'
 import { markdownMathPlugin } from '@vuepress/plugin-markdown-math'
+import { markdownChartPlugin } from '@vuepress/plugin-markdown-chart'
 
 export default defineUserConfig({
   head: [
@@ -649,6 +650,20 @@ export default defineUserConfig({
     }),
     markdownMathPlugin({
 
+    }),
+    markdownChartPlugin({
+      // 启用 Chart.js
+      chartjs: true,
+      // 启用 ECharts
+      echarts: true,
+      // 启用 Flowchart.js
+      flowchart: true,
+      // 启用 Markmap
+      markmap: true,
+      // 启用 Mermaid
+      mermaid: true,
+      // 启用 PlantUML
+      plantuml: true,
     }),
 
   ]
