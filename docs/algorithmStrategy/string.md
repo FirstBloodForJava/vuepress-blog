@@ -112,6 +112,26 @@ public int[] z(char[] s) {
 
 ## 3. Manacher
 
+[wiki Manacher](https://oi-wiki.org/string/manacher/)
+
+Manacher 算法可以计算以 s[i]（或者 s[i] 和 s[i+1]）为回文中心最长回文子串的长度。
+
+原字符串为 s，将 s 按以下规则转换成 t。
+
+1. s 每个字符前插入 #；
+2. s 开头添加 ^，s 结尾添加 $。
+
+s 字符串长为 n，则 t 字符串长为 2n + 3。
+
+例如 s = abaabc，t = ^#a#b#a#a#b#c#$。
+
+s 下标 si 和 t 下标 ti 的关系是：2si + 2 = ti。
+
+定义 halfLen[i] 表示字符串 t 以 t[i] 为回文中心的最长回文子串的回文半径（包括回文中心）。
+
+- 当 ti 是偶数（>= 2）时，halfLen[ti] - 1 可以表示以 s[ti/2 - 1] 为中心的最长回文子串长度；t[ti] 前后有字符 #，所以 halfLen[ti] >= 2，当出现回文字符时，后面会紧跟字符 #，halfLen[ti] += 2，原字符串子串回文半径为 halfLen[ti]/2，回文串长度为：回文半径 * 2 - 1，即 halfLen[ti] - 1。
+- 当 ti 是奇数（>= 3）时，halfLen[ti] - 1 可以表示以 s[ti/2 - 1] 和 s[ti/2] 为中心的最长回文子串长度；t[ti]字符为 #，所以 halfLen[ti] >= 1，当出现回文字符时，后面会紧跟回文字符+#，halfLen[ti] +=2，原字符串子串回文半径为 halfLen[ti]/2（下取整），回文串长度为：回文半径 * 2，即 halfLen[ti] - 1。
+
 
 
 1. [5. 最长回文子串](https://leetcode.cn/problems/longest-palindromic-substring/) **模板题**
