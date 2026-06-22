@@ -1,5 +1,7 @@
 # 字符串
 
+[字符串](https://leetcode.cn/discuss/post/3144832/fen-xiang-gun-ti-dan-zi-fu-chuan-kmpzhan-ugt4/)
+
 ## 1. KMP
 
 真前缀：不包含最后一个字符；
@@ -112,7 +114,15 @@ public int[] z(char[] s) {
 
 ## 3. Manacher
 
+Manacher 算法作用：
+
+1. 判断任意子串是否为回文串，[l, r] 区间中心 i 最长回文串长度 >= r-l+1；
+2. 计算从 *s*[i] 开始的最长回文子串的长度。遍历过程计算，halfLen 是否等于 j-i+1。
+3. 计算以 *s*[i] 结尾的最长回文子串的长度。
+
 [wiki Manacher](https://oi-wiki.org/string/manacher/)
+
+
 
 Manacher 算法可以计算以 s[i]（或者 s[i] 和 s[i+1]）为回文中心最长回文子串的长度。
 
@@ -131,6 +141,67 @@ s 下标 si 和 t 下标 ti 的关系是：2si + 2 = ti。
 
 - 当 ti 是偶数（>= 2）时，halfLen[ti] - 1 可以表示以 s[ti/2 - 1] 为中心的最长回文子串长度；t[ti] 前后有字符 #，所以 halfLen[ti] >= 2，当出现回文字符时，后面会紧跟字符 #，halfLen[ti] += 2，原字符串子串回文半径为 halfLen[ti]/2，回文串长度为：回文半径 * 2 - 1，即 halfLen[ti] - 1。
 - 当 ti 是奇数（>= 3）时，halfLen[ti] - 1 可以表示以 s[ti/2 - 1] 和 s[ti/2] 为中心的最长回文子串长度；t[ti]字符为 #，所以 halfLen[ti] >= 1，当出现回文字符时，后面会紧跟回文字符+#，halfLen[ti] +=2，原字符串子串回文半径为 halfLen[ti]/2（下取整），回文串长度为：回文半径 * 2，即 halfLen[ti] - 1。
+
+朴素算法：时间复杂度 O(n^2)
+
+~~~java
+public static void manacher(String s) {
+    int n = s.length();
+    char[] ts = new char[2 * n + 3];
+    Arrays.fill(ts, '#');
+    ts[0] = '^';
+    ts[2 * n + 2] = '$';
+    for (int i = 0; i < n; i++) {
+        ts[2 * i + 2] = s.charAt(i);
+    }
+    // ts 末尾 #$ 两个字符，不在计算范围内
+    int[] halfLen = new int[ts.length - 2];
+    for (int i = 2; i < halfLen.length; i++) {
+        halfLen[i] = 1;
+        while (ts[i - halfLen[i]] == ts[i + halfLen[i]]) {
+            halfLen[i]++;
+        }
+    }
+}
+~~~
+
+s = cacacacacaca，计算字符串 s 的 halfLen[i]
+
+现在只计算以 s[i] 为回文中心，最长回文半径，记为 halfLen[i]。
+
+![image-20260622135936916](http://47.101.155.205/image-20260622135936916.png)
+
+和 Z 函数类似，维护一个以 boxM 为中心，最长的回文半径的右端点 boxR（开区间）。(2*boxM - boxR, boxR) 区间的字符串是回文串。
+
+~~~java
+public static void manacher(String s) {
+    int n = s.length();
+    char[] ts = new char[2 * n + 3];
+    Arrays.fill(ts, '#');
+    ts[0] = '^';
+    ts[2 * n + 2] = '$';
+    for (int i = 0; i < n; i++) {
+        ts[2 * i + 2] = s.charAt(i);
+    }
+    // ts 末尾 #$ 两个字符，不在计算范围内
+    int[] halfLen = new int[ts.length - 2];
+    int boxM = 0, boxR = 0;
+    for (int i = 2; i < halfLen.length; i++) {
+        int hl = 1;
+        if (i < boxR) {
+            hl = Math.min(halfLen[2 * boxM - i], boxR - i);
+        }
+        while (ts[i - hl] == ts[i + hl]) {
+            hl++;
+            boxM = i;
+            boxR = i + hl;
+        }
+        halfLen[i] = hl;
+    }
+}
+~~~
+
+
 
 
 
