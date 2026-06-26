@@ -1137,6 +1137,25 @@ class LazyHeap extends PriorityQueue<Integer> {
 
 
 
+~~~mermaid
+graph TB
+    A((3)) --> B((9))
+    A --> C((20))
+    C --> D((15))
+    C --> E((7))
+~~~
+
+~~~md
+preorder = [3, 9, 20, 15, 7];
+inorder	 = [9, 3, 15, 20, 7];
+~~~
+
+
+
+
+
+
+
 #### 11. 插入/删除节点
 
 1. [701. 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/) √
