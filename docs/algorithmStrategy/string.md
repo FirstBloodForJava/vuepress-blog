@@ -460,7 +460,7 @@ public class Solution_8 {
 
 ## 7. AC 自动机
 
-
+AC 自动机（Aho-Corasick Automaton）是一种经典且高效的多模式匹配算法。它能够在一段文本中，同时查找出所有给定的关键词（即模式串），解决 KMP 等单模式匹配算法无法高效处理多关键词的问题。
 
 1. [1032. 字符流](https://leetcode.cn/problems/stream-of-characters/) 1970 **模板题**
 2. [面试题 17.17. 多次搜索](https://leetcode.cn/problems/multi-search-lcci/) **模板题**
