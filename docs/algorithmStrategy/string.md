@@ -462,6 +462,39 @@ public class Solution_8 {
 
 AC 自动机（Aho-Corasick Automaton）是一种经典且高效的多模式匹配算法。它能够在一段文本中，同时查找出所有给定的关键词（即模式串），解决 KMP 等单模式匹配算法无法高效处理多关键词的问题。
 
+在文中"abcbbcaada"，查找模式串["abca", "bbca","cbc","bcb", "da" ] 匹配情况。
+
+把模式串构建一个字典树，如下图：
+
+~~~mermaid
+graph TD
+    root(( )) --> a((a))
+    root --> b((b))
+    root --> c((c))
+    root --> d((d))
+
+    a --> ab((b))
+    ab --> abc((c))
+    abc --> abca(((a)))
+
+    b --> bb((b))
+    b --> bc((c))
+    bb --> bbc((c))
+    bbc --> bbca(((a)))
+    bc --> bcb(((b)))
+
+    c --> cb((b))
+    cb --> cbc(((c)))
+
+    d --> da(((a)))
+~~~
+
+abcbbcaada 匹配到字典树路径 a->b->c，节点 c 后面没有可匹配的字符 a，意味着以 a 开始的字符串已经无法再继续匹配模式串，借鉴 KMP 算法思想，能否在模式串中找到和 bc 匹配路径节点，这样就相当从 b 开始匹配模式串，跳过了前面 bc 的匹配步骤，减少了匹配次数。
+
+这里就需要和 kmp 算法一样，要预处理字典树中，要知道节点 c 所在路径最长匹配前缀的尾节点。 
+
+
+
 1. [1032. 字符流](https://leetcode.cn/problems/stream-of-characters/) 1970 **模板题**
 2. [面试题 17.17. 多次搜索](https://leetcode.cn/problems/multi-search-lcci/) **模板题**
 3. [1408. 数组中的字符串匹配](https://leetcode.cn/problems/string-matching-in-an-array/) 做到线性时间复杂度
