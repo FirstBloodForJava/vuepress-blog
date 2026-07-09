@@ -427,10 +427,12 @@ def lowerBound(nums: Array[Int], x: Int): Int = {
     /*
     注意循环结束时: l == r + 1
 	如果存在 nums(i) >= x, 根据循环条件
-		则 nums(l-1) < r, nums(l) == nums(r+1) >= x, 即 nums(l) >= x
+		则 nums(l-1) < x, nums(l) == nums(r+1) >= x, 即 nums(l) >= x
 	如果不存在 nums(i) >= x, 根据循环条件, 则 l 不断右移, 直到 l = n = r + 1
 	
 	所以 l 可以是答案, 当 l < n 时, 就是答案
+    ~(-(x + 1)) = x
+    ~x + 1 = -x => ~x = -x - 1
 	*/
 	l
 }
