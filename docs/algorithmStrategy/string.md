@@ -506,13 +506,21 @@ class Node {
 ~~~
 
 son 的父节点是 cur，父节点 cur 通过字符 c 指向 son，son = cur.son[c]。
+
 字典树根节点 root 的 fail 节点为 null。
+
 root 所有子节点的 fail 节点是 root。root.son[i].fail = root。
+
 从 root 的所有子节点开始 bfs 遍历，已知 cur 及小于 cur 所有节点的 fail 节点，开始求 cur 所有子节点的 fail 节点。
+
 cur 通过字符 c 指向子节点 son，son = cur.son[c]：
-	如果 cur.fail[c] 存在，则让 son 的 fail 节点指向 cur.fail[c]，即 son.fail = cur.fail[c]；
-	如果 cur.fail[c] 不存在，那么继续找 cur.fail.fail[c] 是否存在，重复判断过程，直到 fail 节点指向空节点；
-	如果依然不存在，fail 节点指向根节点。
+
+​	如果 cur.fail[c] 存在，则让 son 的 fail 节点指向 cur.fail[c]，即 son.fail = cur.fail[c]；
+
+​	如果 cur.fail[c] 不存在，那么继续找 cur.fail.fail[c] 是否存在，重复判断过程，直到 fail 节点指向空节点；
+
+​	如果依然不存在，fail 节点指向根节点。
+
 bfs 遍历完整棵树，就完成了 fail 节点的构建。
 
 ![image-20260714164401772](http://47.101.155.205/image-20260714164401772.png)
