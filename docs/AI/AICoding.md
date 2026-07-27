@@ -272,4 +272,219 @@ claude --version
 
 
 
+## Claude Code 使用
 
+### 核心配置文件
+
+>  settings.json
+
+优先级（从高到低）：项目根/ `.claude/settings.local.json` > 项目根/`.claude/settings.json`  > `用户目录/.claude/settings.json`。
+
+~~~json
+{
+    // api 配置
+    "env": {
+        "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "ANTHROPIC_MODEL": "deepseek-v4-pro[1m]",
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-v4-pro[1m]",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-v4-flash",
+        "CLAUDE_CODE_SUBAGENT_MODEL": "deepseek-v4-flash",
+        "CLAUDE_CODE_EFFORT_LEVEL": "max"
+    },
+    "theme": "dark",
+    
+    // 允许 Claude Code 执行的操作（不再需要每次确认）
+    "permissions": {
+        "allow": [
+            "Read", // 读取文件
+            "Write", // 写入文件
+            "Bash(npm *)", // 执行 npm 命令
+            "Bash(git *)", // 执行 git 命令
+            "Bash(node *)" // 执行 node 命令
+        ],
+        "deny": [
+            "Bash(rm -rf *)" // 禁止执行危险的删除命令
+        ]
+    },
+    // 默认使用的模型
+    "model": "sonnet",
+    // 自动紧凑阈值（上下文使用超过此比例时自动压缩）
+    "autoCompactThreshold": 80
+}
+~~~
+
+
+
+> CLAUDE.md
+
+`CLAUDE.md` 是 Claude Code 的**项目记忆文件**，它的核心作用是**为 Claude 提供持久的、跨会话的项目上下文和指令**。
+
+CLAUDE.md 文件是分层加载，按需生效：
+
+| 层级         | 路径                         | 作用范围       | 适合写什么                                           |
+| ------------ | ---------------------------- | -------------- | ---------------------------------------------------- |
+| **全局级**   | 用户目录`/.claude/CLAUDE.md` | 所有项目都会读 | 个人习惯、身份、翻译偏好                             |
+| **项目级**   | 项目根目录/`CLAUDE.md`       | 仅本项目       | 项目技术栈、架构、规范、进度（可提交 Git，团队共享） |
+| **文件夹级** | 子目录/`CLAUDE.md`           | 仅该子目录     | 模块专属约定                                         |
+
+生成 CLAUDE.md 文件方式：
+
+1. `/init` 创建项目级：在项目根目录运行 `claude` 后输入 `/init`，cc 会自动扫描项目并生成一份 `CLAUDE.md` 初稿。
+2. `/memory`：可设置是否自动记忆，或直接编辑指定的 `CLAUDE.md` 文件。
+
+**全局设置**：
+
+~~~markdown
+## 沟通方式
+- 默认中文回复；代码、命令、变量名、文件路径保持英文
+- 结论先行，简洁直接，不先铺垫背景
+- 不谄媚，不夸"这是个很好的问题"，不以"当然可以"开头
+- 给真实判断——方案有问题直接指出，发现更好做法主动说明
+
+## Git
+- 不自动 `git commit` 或 `git push`，除非我明确要求
+- 提交前先展示将要提交的变更摘要
+- commit message 使用简洁英文
+
+## 红线操作
+以下操作即使在 auto-accept 模式下也必须先问我：
+- 删除文件、目录或 git 历史
+- 修改 `.env`、密钥、token、证书、CI/CD 配置
+- `git push`、`git rebase`、`git reset --hard`、强制推送
+- 公开发布（`npm publish`、生产部署等）
+~~~
+
+
+
+~~~markdown
+# 项目名称
+
+## 项目概述
+一句话描述这个项目做什么。
+
+## 技术栈
+- 前端：Next.js 14 + TypeScript + Tailwind CSS
+- 后端：Next.js API Routes
+- 数据库：Prisma + SQLite
+- 部署：Vercel
+
+## 项目结构
+```
+src/
+├── app/         # Next.js App Router 页面
+│   ├── api/      # API 路由
+│   ├── layout.tsx # 全局布局
+│   └── page.tsx   # 首页
+├── components/   # React 组件
+│   ├── ui/      # 通用UI组件
+│   └── features/  # 业务组件
+├── lib/         # 工具函数和配置
+├── prisma/      # 数据库 schema 和迁移
+└── types/       # TypeScript 类型定义
+```
+
+## 编码规范
+- 使用函数式组件 + React Hooks
+- 组件文件使用 PascalCase 命名（如 BookmarkCard.tsx）
+- 工具函数使用 camelCase 命名
+- API 路由返回统一格式：{ success: boolean, data?: any, error?: string }
+- 所有数据库操作通过 Prisma Client 执行
+
+## 当前开发状态
+-  项目初始化完成
+-  数据库 Schema 设计完成
+-  书签 CRUD API 开发中
+-  前端页面待开发
+-  搜索功能待开发
+
+## 注意事项
+- SQLite 数据库文件在 prisma/dev.db，不要提交到 Git
+- 环境变量在 .env 文件中，不要提交到 Git
+- 所有新功能先创建 Git 分支再开发
+~~~
+
+
+
+**自建参考文档**：某种场景下，读取指定的 `CLAUDE.md` 文件。
+
+~~~markdown
+## 外部参考文档
+
+- 修改前端视觉、调颜色、调间距时 → 必读 `docs/brand-visual.md`
+- 写产品文案、按钮文字、提示语时 → 必读 `docs/copywriting-style.md`
+- 写 API 、定义返回格式时 → 必读 `docs/api-conventions.md`
+~~~
+
+
+
+>.claudeignore
+
+类似于 `.gitignore`，用来告诉 Claude Code 哪些文件/目录不需要关注：
+
+~~~
+# .claudeignore 示例
+node_modules/      # 前端依赖包目录（太大了，AI不需要看）
+.next/            # Next.js 构建产物
+dist/            # 编译输出
+*.log            # 日志文件
+.env             # 环境变量（包含敏感信息）
+~~~
+
+
+
+
+
+### 模型选择与切换
+
+~~~bash
+# 指定模型启动-临时
+claude --model opus
+
+# 启动后切换使用模型
+/model
+
+# 环境变量指定默认模型
+export ANTHROPIC_MODEL="sonnet"
+
+# settings.json 配置文件指定模型
+
+~~~
+
+
+
+### 常用命令
+
+| 命令       | 作用                                        | 使用场景                            |
+| ---------- | ------------------------------------------- | ----------------------------------- |
+| `/help`    | 显示帮助信息                                | 忘记命令时查看                      |
+| `/model`   | 查看/切换当前模型（高/中/低档）             | 需要换用更强/更快的模型时           |
+| `/compact` | 压缩当前对话的上下文                        | 对话太长，AI 开始“遗忘”早期内容时   |
+| `/clear`   | 完全清空当前对话                            | 开始全新的任务时                    |
+| `/context` | 详细查看上下文占比（各 MCP/Skill 各占多少） | 优化 token、诊断哪里挨上下文        |
+| `/memory`  | 查看/编辑 CLAUDE.md 与自动记忆              | 管理项目/全局记忆、开启 Auto Memory |
+| `/status`  | 查看会话状态                                | 确认模型、Token 消耗                |
+| `/cost`    | 查看当前会话费用                            | 监控花了多少钱                      |
+| `/review`  | 对当前项目进行代码审查                      | 完成功能后检查质量                  |
+| `/init`    | 自动生成项目的 CLAUDE.md                    | 进入新项目后的第一件事              |
+| `/plan`    | 切入 Plan Mode（只读规划模式）              | 复杂任务起手                        |
+| `/rewind`  | 回滚 cc 之前的修改                          | “后悔药”，下面重点讲                |
+| `/resume`  | 选择历史会话恢复                            | 上次话题还没聊完                    |
+| `/btw`     | “顺便问一句”，不污染主上下文                | 主任务进行中想问个无关问题          |
+
+
+
+
+
+| 命令            | 作用                                               | 使用场景                     |
+| --------------- | -------------------------------------------------- | ---------------------------- |
+| `/skill <名称>` | 直接调用某个 Skill                                 | 手动触发，不要等 AI 自己决定 |
+| `/agent`        | 创建、查看、调用子代理（SubAgent）                 | 手工创建专项 SubAgent        |
+| `/plugin`       | 插件管理界面（discover / installed）               | 发现、安装、卸载插件         |
+| `/login`        | 使用 Claude 官方订阅会员登录                       | 有 Claude Pro/Max 会员时首选 |
+| `/simplify`     | 派 3 个子 Agent 从代码质量/性能/复用性三个角度优化 | 快速全面优化已有代码         |
+
+
+
+`@文件/目录` 引用文件
