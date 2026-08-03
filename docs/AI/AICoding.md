@@ -272,6 +272,17 @@ claude --version
 
 
 
+**启动命令**
+
+| 命令                                  | 作用                     |
+| ------------------------------------- | ------------------------ |
+| claude                                | 默认启动                 |
+| claude -c                             | 启动时直接接上次会话     |
+| claude --permission-mode plan         | 启动直接进入 Plan 模式   |
+| claude --dangerously-skip-permissions | 危险模式启动：不需要确认 |
+
+
+
 ## Claude Code 使用
 
 ### 核心配置文件
@@ -454,7 +465,7 @@ export ANTHROPIC_MODEL="sonnet"
 
 
 
-### 常用命令
+### 启动后常用命令
 
 | 命令       | 作用                                        | 使用场景                            |
 | ---------- | ------------------------------------------- | ----------------------------------- |
@@ -488,3 +499,15 @@ export ANTHROPIC_MODEL="sonnet"
 
 
 `@文件/目录` 引用文件
+
+
+
+### skill
+
+
+
+
+
+### 插件
+
+superpower
