@@ -1,5 +1,3 @@
-# AI coding
-
 ## AI coding 理论
 
 
@@ -305,6 +303,8 @@ claude --version
         "CLAUDE_CODE_EFFORT_LEVEL": "max"
     },
     "theme": "dark",
+    // 读取 .gitignore 做目录扫描过滤
+    "respectGitignore": true,
     
     // 允许 Claude Code 执行的操作（不再需要每次确认）
     "permissions": {
@@ -342,7 +342,7 @@ CLAUDE.md 文件是分层加载，按需生效：
 
 生成 CLAUDE.md 文件方式：
 
-1. `/init` 创建项目级：在项目根目录运行 `claude` 后输入 `/init`，cc 会自动扫描项目并生成一份 `CLAUDE.md` 初稿。
+1. `/init` 创建项目级：在项目根目录运行 `claude` 后输入 `/init`，cc 会自动扫描项目并生成一份 `CLAUDE.md` 初稿。**在全局添加以下配置的情况下，也出现了 CLAUDE.md 内容为英文的情况。**
 2. `/memory`：可设置是否自动记忆，或直接编辑指定的 `CLAUDE.md` 文件。
 
 **全局设置**：
@@ -502,7 +502,86 @@ export ANTHROPIC_MODEL="sonnet"
 
 
 
-### skill
+### skills
+
+Skill 是 Claude Code 的**可复用模块化工作流技能包**，把重复的流程、规范、检查清单封装成 `SKILL.md`，让 Claude 按照固定流程完成任务，不需要每次重复写一大段提示词。
+
+skill 相当于做菜的菜谱，标准化流程制作一个菜。
+
+[Anthropic 官方 skill 库](https://github.com/anthropics/skills)
+
+~~~bash
+# 安装 Anthropic 官方全部 Skill（全局安装）
+npx skills add anthropics/skills -g
+
+# 只安装指定 Skill
+npx skills add anthropics/skills@webapp-testing -g
+
+# 可以创建、修改，提升 skill
+npx skills add anthropics/skills@skill-creator -g
+
+~~~
+
+[Vercel 官方库](https://github.com/vercel-labs/skills) 专注于 **React、Next.js、AI SDK、部署** 等前端生态。
+
+~~~bash
+# 只安装指定 Skill
+npx skills add vercel-labs/skills@find-skills -g -y
+~~~
+
+GitHub 社区 skill 库：
+
+| 地址                                                | 特色 |
+| --------------------------------------------------- | ---- |
+| https://github.com/ComposioHQ/awesome-claude-skills |      |
+| https://github.com/alirezarezvani/claude-skills     |      |
+| https://github.com/travisvn/awesome-claude-skills   |      |
+| https://github.com/glebis/claude-skills             |      |
+
+skill 聚合平台：
+
+| 地址                    |
+| ----------------------- |
+| https://skills.sh       |
+| https://skillsmp.com/zh |
+| https://agentskills.io  |
+
+
+
+#### 结构
+
+一个 skill 是一个完整目录，位于 `用户目录/.claude/skills/` 或 `项目目录/.claude/skills/` 下。
+
+一个 skill 文件组成：
+
+| 类型 | 名称             | 作用                                     |
+| ---- | ---------------- | ---------------------------------------- |
+| 文件 | SKILL.md         | 核心：技能描述文件（必选）               |
+| 目录 | scripts          | 辅助脚本目录（可选）                     |
+| 目录 | resources        | 配套资源目录（可选）                     |
+| 目录 | references       | 参考文档目录（可选）                     |
+| 文件 | requirements.txt | 依赖声明（可选，列出脚本需要的第三方包） |
+
+> SKILL.md
+
+~~~md
+---
+# 元数据 YAML 格式
+name: tdd-dev # 技能名称（唯一）
+version: 1.0 # 技能版本
+description: "TDD 测试驱动开发，先写单元测试，再实现业务代码" # 技能介绍
+trigger: ["测试"]	# 触发关键词
+tools: [] # 依赖工具
+author: name # 技能作者
+allowed-tools: ["ReadFile", "WriteFile", "Bash"] # 限定该 skill 可以调用哪些工具
+disallowed-tools: [] # 禁止使用的工具
+disabled: false # 是否禁用
+disable-model-invocation: false # 是否禁止开启子 Agent
+---
+
+# skill 名称
+
+~~~
 
 
 
@@ -510,4 +589,24 @@ export ANTHROPIC_MODEL="sonnet"
 
 ### 插件
 
-superpower
+#### superpower
+
+Superpowers 本质是一套**工作方法论集合**，通常会封装成多个可复用 Skill。安装后，AI 可以在合适的任务中调用这些方法论。
+
+**建议在项目中安装 superpower 插件。**
+
+~~~cmd
+# 英文版（原版）
+npx superpowers
+
+# 中文增强版
+npx superpowers-zh
+
+~~~
+
+安装后会在项目下生成 `.claude/skills/` 目录，包含所有 Skill 文件，同时修改项目的 `CLAUDE.md` 文件，表示要使用这些 skill。
+
+![image-20260806151036313](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20260806151036313.png)
+
+
+
