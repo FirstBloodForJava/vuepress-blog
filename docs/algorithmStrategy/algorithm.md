@@ -1534,3 +1534,23 @@ d2 = 矩阵的平方和 - 1到n^2的平方和
 
 
 
+## 离线算法
+
+通过改变回答询问的顺序，使问题更容易处理。
+
+1. [2343. 裁剪数字后查询第 K 小的数字](https://leetcode.cn/problems/query-kth-smallest-trimmed-number/) 1652
+2. [3607. 电网维护](https://leetcode.cn/problems/power-grid-maintenance/) 1700
+3. [2070. 每一个查询的最大美丽值](https://leetcode.cn/problems/most-beautiful-item-for-each-query/) 1724
+4. [1847. 最近的房间](https://leetcode.cn/problems/closest-room/) 2082
+5. [2503. 矩阵查询可获得的最大分数](https://leetcode.cn/problems/maximum-number-of-points-from-grid-queries/) 2196
+6. [1851. 包含每个查询的最小区间](https://leetcode.cn/problems/minimum-interval-to-include-each-query/) 2286
+7. [1697. 检查边长度限制的路径是否存在](https://leetcode.cn/problems/checking-existence-of-edge-length-limited-paths/) 2300
+8. [2940. 找到 Alice 和 Bob 可以相遇的建筑](https://leetcode.cn/problems/find-building-where-alice-and-bob-can-meet/) 2327
+9. [2747. 统计没有收到请求的服务器数目](https://leetcode.cn/problems/count-zero-request-servers/) 2405
+10. [1938. 查询最大基因差](https://leetcode.cn/problems/maximum-genetic-difference-query/) 2503
+11. [2736. 最大和查询](https://leetcode.cn/problems/maximum-sum-queries/) 2533
+12. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 2646
+13. [3382. 用点构造面积最大的矩形 II](https://leetcode.cn/problems/maximum-area-rectangle-with-point-constraints-ii/) 2723 静态二维数点
+
+
+

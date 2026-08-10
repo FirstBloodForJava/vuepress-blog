@@ -1767,7 +1767,7 @@ public class BasicWeightUnionFind {
 
 一个长为 16 的数组，数组下标从 1 开始。相邻两个数求和，直到合并后的数量为 1。
 
-观察：区间 [1, 11] 的和，等于 [1,8]，[9, 10], [11, 11] 关键区间的和，发现这里的区间长度，恰好对应 11 二进制 1 的 bit。11 = 1011 = 8 + 2 + 1。
+观察：区间 [1, 11] 的和，等于 [1,8]，[9, 10], [11, 11] 关键区间的和，发现这里的区间长度，恰好对应 11 二进制 1 的 bit。11 = 1011 = 8(1000) + 2(10) + 1(1)。
 
 按照这个规则，看 [1,  1] 到 [1, 8] 区间如何拆分：
 
@@ -1782,13 +1782,13 @@ public class BasicWeightUnionFind {
 [1, 8] = [1, 8]; 						8 = 8
 ~~~
 
-观察，发现总共有多少个不同的关键区间？
+观察，发现总共有多少个不同的关键区间(关注区间的右端点)？
 
 8 个。[1, 1]，[1, 2]，[3, 3]，[1, 4]，[5, 5]，[5, 6]，[7, 7]，[1, 8]。
 
 一般地：
 
-- 如果 i 是 2 的幂，那么 [1, i] 区间无需拆分（注意 lowbit(i) = i，i-lowbit(i) + 1 = 1，此时可以看作恰好拆分成 [1, i] 区间）。
+- 如果 i 是 2 的幂，那么 [1, i] 区间无需拆分（注意 lowbit(i) = i，i-lowbit(i) + 1 = 1，此时恰好拆分成 [1, i] 关键区间）。
 - 如果 i 不是 2 的幂，那么可以拆分出一个长为 lowbit(i) 的 [i - lowbit(i) + 1, i] 关键区间，问题转换成 [1, i-lowbit(i)] 区间如何拆分，这是一个规模更小的子问题。[1, 7] 拆分出一个 [7, 7] 关键区间，转换成 [1, 6] 区间怎么拆分。 
 
 按顺序拆分 [1, 1]，[1, 2]，[1, 3]，... [1, n] 每次恰好会拆分出一个新的关键区间 [i - lowbit(i) + 1, i]，[1, i - lowbit(i)] 关键区间再前面以及拆分，不算新的关键区间，所以总共有 n 个不同的关键区间。
@@ -1813,17 +1813,17 @@ public class BasicWeightUnionFind {
 注意到：
 
 ~~~md
-5 + lowbit(5) = 5 + 1 = 6;
-6 + lowbit(6) = 6 + 2 = 8;
-8 + lowbit(8) = 8 + 8 = 16;
+5(101) + lowbit(5) = 5 + 1 = 6;
+6(110) + lowbit(6) = 6 + 2 = 8;
+8(1000) + lowbit(8) = 8 + 8 = 16;
 ~~~
 
-猜想：如果 x 表示更新的是关键区间的右端点，那么下一个被更新关键区间右端点为 x + lowbit(x)。
+**猜想**：如果 x 表示更新的是关键区间的右端点，那么下一个被更新关键区间右端点为 x + lowbit(x)。
 
 需要证明两点：
 
-1. 右端点为 x 的关键区间，被右端点为 x+lowbit(x) 的关键区间所包含（右边的关键区间的左端点不变或变小，小于或等于 x-lowbit(x) + 1）。
-2. 右端点在 [x + 1, x + lowbit(x) - 1] 的关键区间，与右端点为 x 的关键区间没有交集（这里的关键区间左端点要大于 x 或 x+lowbit(x)）。
+1. 右端点为 x 的关键区间，被右端点为 `x+lowbit(x)` 的关键区间所包含（右边的关键区间的左端点不变或变小，小于或等于 `x-lowbit(x)+1`）。哪些区间要更新。
+2. 右端点在 [x+1, x+lowbit(x)-1] 的关键区间，与右端点为 x 的关键区间没有交集（这里的关键区间左端点要大于 x）。哪些区间不要更新。
 
 **1 的证明**：
 
@@ -1847,7 +1847,7 @@ y - lowbit(y) + 1 <= x - lowbit(x) + 1；
 
 ~~~md
 设 y = x + b，其中 1 < b < 2^k（2^k 表示 x 的 lowbit，同 1）
-只需要证明 y - lowbit(y) + 1 > x
+只需要证明 y - lowbit(y) + 1 > x，这里的关键区间和右端点为 x 的关键区间没有交集。
 y = m * 2^(k+1) + 2^k + b
 由于 b < 2^k，所以 lowbit(y) = lowbit(b)
 y - lowbit(y) + 1
@@ -1859,17 +1859,19 @@ y - lowbit(y) + 1
 说明 右端点在 [x + 1, x + lowbit(x) - 1] 的关键区间，与右端点为 x 的关键区间没有交集。
 ~~~
 
-更新 update(idx, val) ：
+更新 `update(idx, val)` ：
 
-1. 设 delta = val - nums[idx]，相当于把 index 增加 delta，然后把 nums[idx] = val；
-2. 初始化 i = idx + 1（关键区间的右端点，下标从 1 开始），tree[i] += delta，这是第一个更新的关键区间右端点，更新i += lowbit(i)。
-3. 不断循环第 2 步，直到 i > n（n 是 nums 长度）。
+1. 设 `delta = val - nums[idx]`，相当于把 index 增加 delta，然后把 `nums[idx] = val`；
+2. 初始化 `i = idx + 1`（关键区间的右端点，下标从 1 开始），`tree[i] += delta`，这是第一个更新的关键区间右端点，更新 `i += lowbit(i)`。
+3. 不断循环第 2 步，直到 `i > n`（n 是 nums 长度）。
 
 
 
-**如何更具 nums 数组初始化 tree  数组？**
+**如何根据 nums 数组初始化 tree  数组？**
 
-n log n 写法，把 tree 数组都初始化 为 0，对于每个 nums[i]，调用一次 update(idx, val)。
+**`O(nlogn)` 写法**
+
+把 tree 数组都初始化 为 0，对于每个 nums[i]，调用一次 update(idx, val)。
 
 ~~~java
 class NumArray {
@@ -1908,11 +1910,13 @@ class NumArray {
 }
 ~~~
 
-n 写法，计算 tree[i] 后，把 tree[i] 追加到 tree[i + lowbit[i]]。根据前面 update(idx, val)，i+lowbit(i) 为右端点的关键区间左端点，是包含 i 为右端点的关键区间。
+**O(n) 写法**
 
-n logn 更新 tree[1] 给 1, 2, 4, 8, ... 增加 nums[0]；
+计算 tree[i] 后，把 tree[i] 追加到 `tree[i + lowbit(i)`。`i+lowbit(i)` 的关键区间右端点，由后面的 i 继续更新。
 
-n 更新 tree[1]，tree[1] += nums[0]，tree[2] += tree[1]，下次更新 tree[2] += nums[0] 就是 [1, 2] 关键区间的和，再追加到 [1, 4] 关键区间，这样累计到 n，n 是 nums.length。
+`O(nlogn)` 更新 tree[1] 给 1, 2, 4, 8, ... 增加 nums[0]；
+
+`O(n)` 更新 tree[1]，tree[1] += nums[0]，tree[2] += tree[1]，下次更新 tree[2] += nums[0] 就是 [1, 2] 关键区间的和，再追加到 [1, 4] 关键区间，这样累计到 n，n 是 nums.length。
 
 ~~~java
 class NumArray {
@@ -1955,7 +1959,126 @@ class NumArray {
 }
 ~~~
 
+1. [307. 区域和检索 - 数组可修改](https://leetcode.cn/problems/range-sum-query-mutable/)
+2. [3072. 将元素分配到两个数组中 II](https://leetcode.cn/problems/distribute-elements-into-two-arrays-ii/) 2053 离散化
+3. [3624. 位计数深度为 K 的整数数目 II](https://leetcode.cn/problems/number-of-integers-with-popcount-depth-equal-to-k-ii/) 2086
+4. [3187. 数组中的峰值](https://leetcode.cn/problems/peaks-in-array/) 2154
+5. [3777. 使子字符串变交替的最少删除次数](https://leetcode.cn/problems/minimum-deletions-to-make-alternating-substring/) 2202 做法不止一种
+6. [1649. 通过指令创建有序数组](https://leetcode.cn/problems/create-sorted-array-through-instructions/) 2208
+7. [1626. 无矛盾的最佳球队](https://leetcode.cn/problems/best-team-with-no-conflicts/)
+8. [1409. 查询带键的排列](https://leetcode.cn/problems/queries-on-a-permutation-with-key/)
+9. [2250. 统计包含每个点的矩形数目](https://leetcode.cn/problems/count-number-of-rectangles-containing-each-point/)
+10. [2179. 统计数组中好三元组数目](https://leetcode.cn/problems/count-good-triplets-in-an-array/) 2272
+11. [1395. 统计作战单位数](https://leetcode.cn/problems/count-number-of-teams/)
+12. [2659. 将数组清空](https://leetcode.cn/problems/make-array-empty/) 2282
+13. [3915. 距离至少为 K 的交替子序列的最大和](https://leetcode.cn/problems/maximum-sum-of-alternating-subsequence-with-distance-at-least-k/) 2288
+14. [2653. 滑动子数组的美丽值](https://leetcode.cn/problems/sliding-subarray-beauty/) 树状数组二分
+15. [3515. 带权树中的最短路径](https://leetcode.cn/problems/shortest-path-in-a-weighted-tree/) 2312 差分树状数组
+16. [LCP 05. 发 LeetCoin](https://leetcode.cn/problems/coin-bonus/) 同 3515 题
+17. [1505. 最多 K 次交换相邻数位后得到的最小整数](https://leetcode.cn/problems/minimum-possible-integer-after-at-most-k-adjacent-swaps-on-digits/) 2337
+18. [3841. 查询树上回文路径](https://leetcode.cn/problems/palindromic-path-queries-in-a-tree/) 2384 差分树状数组
+19. [2926. 平衡子序列的最大和](https://leetcode.cn/problems/maximum-balanced-subsequence-sum/) 2448
+20. [2736. 最大和查询](https://leetcode.cn/problems/maximum-sum-queries/) 2533
+21. [3671. 子序列美丽值求和](https://leetcode.cn/problems/sum-of-beautiful-subsequences/) 2647 时间戳 懒初始化
+22. [3962. 至多 K 次交换后最大子数组和](https://leetcode.cn/problems/maximum-subarray-sum-after-at-most-k-swaps/) 2672 前 *k* 小之和
+23. [3382. 用点构造面积最大的矩形 II](https://leetcode.cn/problems/maximum-area-rectangle-with-point-constraints-ii/) 2723 静态二维数点
+24. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 第 k 小
+25. [3245. 交替组 III](https://leetcode.cn/problems/alternating-groups-iii/) 3112 环形数组
+26. [3027. 人员站位的方案数 II](https://leetcode.cn/problems/find-the-number-of-ways-to-place-people-ii/) **CDQ 分治**
+27. [1756. 设计最近使用（MRU）队列](https://leetcode.cn/problems/design-most-recently-used-queue/) （会员题）
+28. [60. 排列序列](https://leetcode.cn/problems/permutation-sequence/) 康托展开，可以做到 O(nlogn)
+29. [3109. 查找排列的下标](https://leetcode.cn/problems/find-the-index-of-permutation/) （会员题）60 题的数据加强版
+30. [2519. 统计 K-Big 索引的数量](https://leetcode.cn/problems/count-the-number-of-k-big-indices/) （会员题）
+31. [2613. 美数对](https://leetcode.cn/problems/beautiful-pairs/) （会员题）曼哈顿最近点对
+32. [2921. 价格递增的最大利润三元组 II](https://leetcode.cn/problems/maximum-profitable-triplets-with-increasing-prices-ii/) （会员题）
+33. [308. 二维区域和检索 - 矩阵可修改](https://leetcode.cn/problems/range-sum-query-2d-mutable/) （会员题）二维树状数组
 
+
+
+### 逆序对
+
+1. [3994. 划分数组的最少相邻交换次数](https://leetcode.cn/problems/minimum-adjacent-swaps-to-partition-array/) 1705 入门题（不需要树状数组）
+2. [LCR 170. 交易逆序对的总数](https://leetcode.cn/problems/shu-zu-zhong-de-ni-xu-dui-lcof/)
+3. [315. 计算右侧小于当前元素的个数](https://leetcode.cn/problems/count-of-smaller-numbers-after-self/)
+4. [493. 翻转对](https://leetcode.cn/problems/reverse-pairs/)
+5. [327. 区间和的个数](https://leetcode.cn/problems/count-of-range-sum/)
+6. [2426. 满足不等式的数对数目](https://leetcode.cn/problems/number-of-pairs-satisfying-inequality/) 2030
+7. [3768. 固定长度子数组中的最小逆序对数目](https://leetcode.cn/problems/minimum-inversion-count-in-subarrays-of-fixed-length/) 2158
+8. [1850. 邻位交换的最小次数](https://leetcode.cn/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/) 非暴力做法
+9. [2193. 得到回文串的最少操作次数](https://leetcode.cn/problems/minimum-number-of-moves-to-make-palindrome/) 非暴力做法
+10. [1885. 统计数对](https://leetcode.cn/problems/count-pairs-in-two-arrays/) （会员题）
+
+
+
+### 线段数
+
+1. [3479. 水果成篮 III](https://leetcode.cn/problems/fruits-into-baskets-iii/) 2178 线段树二分
+2. [2940. 找到 Alice 和 Bob 可以相遇的建筑](https://leetcode.cn/problems/find-building-where-alice-and-bob-can-meet/) 2327 线段树二分
+3. [2286. 以组为单位订音乐会的门票](https://leetcode.cn/problems/booking-concert-tickets-in-groups/) 2470 线段树二分
+4. [3161. 物块放置查询](https://leetcode.cn/problems/block-placement-queries/) 2513
+5. [3901. 好子序列查询](https://leetcode.cn/problems/good-subsequence-queries/) 2545
+6. [2213. 由单个字符重复的最长子字符串](https://leetcode.cn/problems/longest-substring-of-one-repeating-character/) 2629
+7. [3777. 使子字符串变交替的最少删除次数](https://leetcode.cn/problems/minimum-deletions-to-make-alternating-substring/)
+8. [3525. 求出数组的 X 值 II](https://leetcode.cn/problems/find-x-value-of-array-ii/) 2645
+9. [3165. 不包含相邻元素的子序列的最大和](https://leetcode.cn/problems/maximum-sum-of-subsequence-with-non-adjacent-elements/) 2697
+10. [3410. 删除所有值为某个元素后的最大子数组和](https://leetcode.cn/problems/maximize-subarray-sum-after-removing-all-occurrences-of-one-element/) 2844 做法不止一种
+11. [3501. 操作后最大活跃区段数 II](https://leetcode.cn/problems/maximize-active-section-with-trade-ii/) 2941 也可以用 ST 表做
+12. [LCP 81. 与非的谜题](https://leetcode.cn/problems/ryfUiz/)
+
+
+
+**思维扩展**
+
+1. [1157. 子数组中占绝大多数的元素](https://leetcode.cn/problems/online-majority-element-in-subarray/) 2205
+2. [2407. 最长递增子序列 II](https://leetcode.cn/problems/longest-increasing-subsequence-ii/) 2280
+3. [2770. 达到末尾下标所需的最大跳跃次数](https://leetcode.cn/problems/maximum-number-of-jumps-to-reach-the-last-index/) 做到 O(*n*log*n*)
+
+
+
+### Lazy 线段树
+
+1. [2569. 更新数组后处理求和查询](https://leetcode.cn/problems/handling-sum-queries-after-update/) 2398
+2. [1622. 奇妙序列](https://leetcode.cn/problems/fancy-sequence/) 2476 做法不止一种
+3. [2502. 设计内存分配器](https://leetcode.cn/problems/design-memory-allocator/)
+4. [2589. 完成所有任务的最少时间](https://leetcode.cn/problems/minimum-time-to-complete-all-tasks/) 非暴力做法
+5. [2547. 拆分数组的最小代价](https://leetcode.cn/problems/minimum-cost-to-split-an-array/) 非暴力做法
+6. [850. 矩形面积 II](https://leetcode.cn/problems/rectangle-area-ii/) 矩形面积并 扫描线 离散化
+7. [3454. 分割正方形 II](https://leetcode.cn/problems/separate-squares-ii/) 2671 同 850 题
+8. [3569. 分割数组后不同质数的最大数目](https://leetcode.cn/problems/maximize-count-of-distinct-primes-after-split/) 2697
+9. [3721. 最长平衡子数组 II](https://leetcode.cn/problems/longest-balanced-subarray-ii/) 2724 HH 项链 trick
+10. [2916. 子数组不同元素数目的平方和 II](https://leetcode.cn/problems/subarrays-distinct-element-sum-of-squares-ii/) 2816
+11. [LCP 52. 二叉搜索树染色](https://leetcode.cn/problems/QO5KpG/) 也可以用珂朵莉树或者并查集
+
+
+
+### 动态开点线段树
+
+1. [699. 掉落的方块](https://leetcode.cn/problems/falling-squares/)
+2. [715. Range 模块](https://leetcode.cn/problems/range-module/)
+3. [729. 我的日程安排表 I](https://leetcode.cn/problems/my-calendar-i/)
+4. [731. 我的日程安排表 II](https://leetcode.cn/problems/my-calendar-ii/)
+5. [732. 我的日程安排表 III](https://leetcode.cn/problems/my-calendar-iii/)
+6. [2276. 统计区间中的整数数目](https://leetcode.cn/problems/count-integers-in-intervals/) 2222
+7. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 2646 线段树合并
+
+
+
+### 可持久化线段树
+
+1. [3762. 使数组元素相等的最小操作次数](https://leetcode.cn/problems/minimum-operations-to-equalize-subarrays/) 2497
+
+
+
+### ST 表（Sparse Table）
+
+1. [3691. 最大子数组总值 II](https://leetcode.cn/problems/maximum-total-subarray-value-ii/) 2469
+2. [3501. 操作后最大活跃区段数 II](https://leetcode.cn/problems/maximize-active-section-with-trade-ii/) 2941
+
+
+
+**二维 ST 表**
+
+1. [3933. 矩阵中的局部最大值 II](https://leetcode.cn/problems/largest-local-values-in-a-matrix-ii/) **模板题**
 
 
 
@@ -1965,7 +2088,43 @@ class NumArray {
 
 ## 伸展树
 
+1. [2296. 设计一个文本编辑器](https://leetcode.cn/problems/design-a-text-editor/)
+2. [3526. 范围异或查询与子数组反转](https://leetcode.cn/problems/range-xor-queries-with-subarray-reversals/) （会员题）
+
+
+
 
 
 ## 根号算法
+
+
+
+### 分块
+
+1. [3943. 递增后的数对数量](https://leetcode.cn/problems/number-of-pairs-after-increment/) 2410
+
+
+
+### 根号分解（Sqrt Decomposition）
+
+1. [3655. 区间乘法查询后的异或 II](https://leetcode.cn/problems/xor-after-range-multiplication-queries-ii/) 2454
+2. [LCP 16. 游乐园的游览计划](https://leetcode.cn/problems/you-le-yuan-de-you-lan-ji-hua/)
+3. [1714. 数组中特殊等间距元素的和](https://leetcode.cn/problems/sum-of-special-evenly-spaced-elements-in-array/) （会员题）
+4. [3400. 右移后的最大匹配索引数](https://leetcode.cn/problems/maximum-number-of-matching-indices-after-right-shifts/) （会员题）非暴力做法
+
+
+
+### 莫队算法
+
+1. [3636. 查询超过阈值频率最高元素](https://leetcode.cn/problems/threshold-majority-queries/) 2451 回滚莫队
+2. [3590. 第 K 小的路径异或和](https://leetcode.cn/problems/kth-smallest-path-xor-sum/) 2646 做法不止一种
+3. [2846. 边权重均等查询](https://leetcode.cn/problems/minimum-edge-weight-equilibrium-queries-in-a-tree/) 树上莫队 和边权范围无关的做法
+
+
+
+### 其它
+
+1. [3234. 统计 1 显著的字符串的数量](https://leetcode.cn/problems/count-the-number-of-substrings-with-dominant-ones/) 2557
+
+
 
