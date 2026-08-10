@@ -606,7 +606,7 @@ npx superpowers-zh
 
 安装后会在项目下生成 `.claude/skills/` 目录，包含所有 Skill 文件，同时修改项目的 `CLAUDE.md` 文件，表示要使用这些 skill。
 
-![image-20260806151036313](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20260806151036313.png)
+![image-20260806151036313](http://47.101.155.205/image-20260806151036313.png)
 
 
 
