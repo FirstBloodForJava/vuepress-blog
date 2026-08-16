@@ -32,6 +32,50 @@ next[i] 表示子串 s[0: i] 最长公共真前缀和真后缀长度，next[0] =
 
 ![image-20260526202928303](http://47.101.155.205/image-20260526202928303.png)
 
+~~~java
+public class Solution {
+    
+    /**
+     * @param text
+     * @param pattern
+     * @return pattern 字符串再 text 中出现所有初始下标
+     */
+    public List<Integer> kmpSearch(char[] text, char[] pattern) {
+        // 初始化模式串
+        int m = pattern.length;
+        int[] next = new int[m];
+        int cnt = 0;
+        for (int i = 1; i < m; i++) {
+            while (cnt > 0 && pattern[i] != pattern[cnt]) {
+                cnt = pattern[cnt - 1];
+            }
+            if (pattern[cnt] == pattern[i]) {
+                cnt++;
+            }
+            next[i] = cnt;
+        }
+        // 开始匹配
+        List<Integer> ans = new ArrayList<>();
+        for (int i = 0, j = 0; i < text.length; i++) {
+            while (j > 0 && text[i] != pattern[j]) {
+                j = next[j - 1];
+            }
+            if (text[i] == pattern[j]) {
+                j++;
+            }
+            if (j == m) {
+                // [?, i] i - ? + 1 = m;
+                ans.add(i - m + 1);
+                j = next[j - 1];
+            }
+        }
+
+        return ans;
+    }
+
+}
+~~~
+
 
 
 1. [28. 找出字符串中第一个匹配项的下标](https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/) **模板题**
