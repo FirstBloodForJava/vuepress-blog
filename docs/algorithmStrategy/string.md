@@ -105,7 +105,7 @@ public class Solution {
 
 ## 2. Z 函数
 
-对于一个长为 n 的字符串 s，定义函数 z[i] 表示 s 和 s[i, n-1]（s[i] 开始的后缀） 的最长公共前缀长度，则 z 被称为 s 的 z 函数，特别地，z[0] = 0。
+对于一个长为 n 的字符串 s，定义函数 `z[i]` 表示 `s[i :]`（后缀） 和 s 的 LCP（最长公共前缀长度），则 z 被称为 s 的 z 函数，特别地，z[0] = 0。
 
 z 函数的朴素算法，时间复杂度 n^2。
 
@@ -122,17 +122,42 @@ public int[] z(char[] s) {
 
 依次从 1 到 n-1 顺序计算 z[i] 的值，在计算的过程中，会利用已经计算好的 z[0], z[1], ...z[i-1]。
 
-计算过程中维护右端点最靠右的匹配段，记为 [l, r]，根据定义，s[l : r] 是 s 的前缀，z[l] = r-l+1，在计算的过程中，保证 l <= i，初始化 l = r = 0。
+计算过程中维护右端点最靠右的匹配段（`Z-box`），记为 `[l, r]`，根据定义，`s[l : r]` 是 s 的前缀，`z[l] = r-l+1`，在计算的过程中，保证 `l <= i`，初始化 `l = r = 0`。
 
-在计算的过程中：s[l : r] = s[0 : r-l]
+在计算的过程中：`s[l : r] = s[0 : r-l]`
 
-- 如果 i <= r，根据定义有 s[i : r] = s[i-l : r-l]（[l, r] 左端点向右移动 `i-l`），则 z[i] >= min(z[i-l], r-i+1)，分类讨论：
-  - 如果 z[i-l] < r-i+1（s[i-l :r-l] 区间只有部分和前缀匹配，由于 s[i : r] = s[i-l : r-l]，所有不可能比 z[i-l] 大），则 z[i] = z[i-l]；
-  - 否则 z[i-l] >= r-i+1，则 z[i] = r-i+1，继续向右扩展 r，直到 s[i+z[i]] != s[z[i]]；
+- 如果 `i <= r`，根据匹配段定义有 `s[i : r] = s[i-l : r-l]`（[l, r] 左端点向右移动 `i-l`），则 `z[i] >= min(z[i-l], r-i+1)` ，分类讨论：
+  - 如果 `z[i-l] < r-i+1`（`s[i-l :r-l]` 区间只有部分和前缀匹配，由于 s[i : r] = s[i-l : r-l]，所有不可能比 z[i-l] 大），则 `z[i] = z[i-l]`；
+  - 否则 `z[i-l] >= r-i+1`，则 `z[i] = r-i+1`，继续向右扩展 r，直到 `s[i+z[i]] != s[z[i]]`；
 - 如果 i > r，则按照朴素算法，从 s[i] 开始比较，暴力计算 z[i]；
-- 计算出 z[i]，后，右端点为 i + z[i] - 1，如果大于 r，则更新 r = i + z[i] - 1，l = i；
+- 计算出 z[i]，后，右端点为 i + z[i] - 1，如果大于 r，则更新 `r = i + z[i] - 1，l = i`；
 
+~~~java
+public class Solution {
 
+    public int[] calculateZ(char[] cs) {
+        int n = cs.length;
+        int[] z = new int[n];
+        int l = 0, r = 0;
+        for (int i = 1; i < n; i++) {
+            z[i] = Math.max(Math.min(z[i - l], r - i + 1), 0);
+            while (i + z[i] < n && cs[i + z[i]] == cs[z[i]]) {
+                l = i;
+                r = i + z[i];
+                z[i]++;
+            }
+        }
+
+        return z;
+    }
+
+}
+~~~
+
+常用技巧：
+
+1. z[i] = n-i，长为 `n-i` 的前后缀相等 `3045`。
+2. 构造字符串 pattern + s，pattern 长度为 m，如果 z[m+i] >= i 说明 s[i] 开始的子串和 pattern 匹配。
 
 
 
