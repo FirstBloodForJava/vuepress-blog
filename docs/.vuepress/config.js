@@ -282,6 +282,7 @@ export default defineUserConfig({
           'RabbitMQ.md',
           'ActiveMQ.md',
           'kafka.md',
+          'KakfaIssues.md',
         ]
       },
       // Spring
