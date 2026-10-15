@@ -1733,23 +1733,40 @@ while(it.hasNext()){
 
 #### 哈希表 
 
-**HashMap的底层是哈希表的数据结构。哈希表是一个数组和链表的结合体。**
+**HashMap 的底层是哈希表的数据结构。哈希表是一个数组和链表的结合体。**
 
 ~~~java
-	static final int hash(Object key) {
-        int h;
-        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
-    }
+static final int hash(Object key) {
+    int h;
+    return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+}
 
-	for(int i = 0;i < 101;i++){
-		System.out.println(String.valueOf(i).hashCode());
-	}
-//hash值都不相同
+for(int i = 0;i < 101;i++){
+    System.out.println(String.valueOf(i).hashCode());
+}
+// hash值都不相同
 ~~~
 
-HashMap默认初始化容量是16，默认加载因子是0.75
+HashMap 默认初始化容量是16，默认加载因子是 0.75
 
-HashMap初始化容量建议是2的倍数。
+HashMap 初始化容量建议是 2 的幂。容量阈值，会取大于等于初始化容量的最小 2 的幂。
+
+~~~java
+static final int tableSizeFor(int cap) {
+    // -1 的二进制全是 1，带符号右移 cap-1 二进制前导零的个数，除了大于 MAXIMUM_CAPACITY 的情况
+    int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
+    // MAXIMUM_CAPACITY 
+    return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+}
+~~~
+
+链表转红黑树条件：**链表长度 ≥ 8 且数组容量 ≥ 64**
+
+![image-20261015204144607](http://47.101.155.205/image-20261015204144607.png)
+
+![image-20261015205125928](http://47.101.155.205/image-20261015205125928.png)
+
+
 
 
 
