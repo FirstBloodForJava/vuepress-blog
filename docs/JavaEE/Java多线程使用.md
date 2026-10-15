@@ -373,11 +373,11 @@ class Runner implements Runnable{
 
 ### ThreadLocal
 
-这个类提供了线程的局部变量。这个与普通变量的不同之处在于，访问这些变量都只能是 ThreadLocal 的 get 或 set 方法。ThreadLocal 通常作为一个类的私有静态属性使用。
+这个类提供了线程的局部变量。这个与普通变量的不同之处在于，访问这些变量都只能是 `ThreadLocal` 的 get 或 set 方法。`ThreadLocal` 通常作为一个类的私有静态属性使用。
 
 实现原理：每个线程存放了一个 `ThreadLocal.ThreadLocalMap`，该 map 的 key 就是 ThreadLocal 本身，value 就是线程存储的值。
 
-在 `ThreadLocal` 使用 `get/set` 会初始化线程的 `ThreadLocal.ThreadLocalMap` 属性，`ThreadLocalMap` 使用一个弱引用 `Entry(ThreadLocal)` 存放 key 和 value。Entry 使用弱引用的好处是，如果 ThreadLocal 对象没有强引用引用时，触发垃圾收集器时，会回收 Entry 中的 key 对象，再通过判断 Entry 中 key 为 null 情况来回收 value。
+在 `ThreadLocal` 使用 `get/set` 会初始化线程的 `ThreadLocal.ThreadLocalMap` 属性，`ThreadLocalMap` 使用一个弱引用 `Entry(ThreadLocal)` 存放 key 和 value。Entry 使用弱引用的好处是，如果 `ThreadLocal` 对象没有强引用引用时，触发垃圾收集器时，会回收 Entry 中的 key 对象()，再通过判断 Entry 中 key 为 null 情况来回收 value。
 
 ~~~java
 public class App {
@@ -429,7 +429,7 @@ class ThreadId {
 
 #### zuul 使用 ThreadLocal
 
-RequestContext 实现了保证每个请求都有一个自己唯一的RequestContext。
+RequestContext 实现了保证每个请求都有一个自己唯一的 RequestContext。
 
 ~~~java
 public class RequestContext extends ConcurrentHashMap<String, Object> {
