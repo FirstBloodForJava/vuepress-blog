@@ -73,8 +73,6 @@ public Iterator<E> iterator() {
 
 写时拷贝Set集合。
 
-#### ConcurrentHashMap
-
 
 
 ### Map
@@ -89,7 +87,7 @@ public Iterator<E> iterator() {
 
 #### SynchronizedMap
 
-Collections.synchronizedMap(map)将一个集合转换成一个线程安全的Map集合。
+Collections.synchronizedMap(map) 将一个集合转换成一个线程安全的 Map 集合。
 
 
 
@@ -97,9 +95,11 @@ Collections.synchronizedMap(map)将一个集合转换成一个线程安全的Map
 
 #### ConcurrentHashMap
 
-通过CAS机制和自旋锁实现线程安全，性能比HahsTable和SynchronizedMap要高。
+通过 CAS 机制和自旋锁实现线程安全，性能比 HahsTable 和 SynchronizedMap 要高。
 
+![image-20261015210306560](http://47.101.155.205/image-20261015210306560.png)
 
+![image-20261015211952352](http://47.101.155.205/image-20261015211952352.png)
 
 #### ConcurrentSkipListMap
 
