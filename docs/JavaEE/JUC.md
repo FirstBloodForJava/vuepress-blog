@@ -240,9 +240,9 @@ class Consumer implements Runnable{
 
 #### DelayQueue
 
-是一个无界的阻塞队列，队列的功能基于PriorityQueue(优先队列)实现。队列中的元素需要实现Delayed接口，一个是延期时间另外一个是重写compareTo()方法。
+是一个无界的阻塞延迟队列，队列的功能基于 `PriorityQueue`(优先队列)实现。队列中的元素需要实现 `Delayed`接口，一个是延期时间另外一个是重写 `compareTo()`方法。
 
-元素只有getDelay()返回的值小于等于0时才会被取出。
+元素只有 `getDelay()` 返回的值小于等于 0 时才会被取出，否则会阻塞线程，直到元素过期。
 
 线程安全：Lock锁实现。
 
