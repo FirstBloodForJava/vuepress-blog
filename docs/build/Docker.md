@@ -221,7 +221,33 @@ docker-compose-plugin
 
 
 
+## Windows 安装 Docker Desktop
 
+https://docs.docker.com/desktop/setup/install/windows-install/
+
+~~~bash
+# 1. 管理员身份打开 PowerShell
+wsl --install
+wsl --update
+wsl --version
+
+~~~
+
+
+
+![image-20261030102437844](http://47.101.155.205/image-20261030102437844.png)
+
+
+
+![image-20261030103246752](http://47.101.155.205/image-20261030103246752.png)
+
+
+
+![image-20261030103857827](http://47.101.155.205/image-20261030103857827.png)
+
+
+
+## Linux(CentOS) 安装 Docker
 
 
 
@@ -283,6 +309,9 @@ STATUS-容器的7种状态：
 ~~~bash
 #查看当前docker的镜像
 docker images
+
+# 查询指定镜像的信息
+docker image inspect [image-name]:[image-version]
 
 ~~~
 
