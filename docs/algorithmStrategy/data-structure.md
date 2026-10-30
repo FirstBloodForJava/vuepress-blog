@@ -2010,7 +2010,7 @@ class NumArray {
 
 
 
-### 线段数
+### 线段树
 
 1. [3479. 水果成篮 III](https://leetcode.cn/problems/fruits-into-baskets-iii/) 2178 线段树二分
 2. [2940. 找到 Alice 和 Bob 可以相遇的建筑](https://leetcode.cn/problems/find-building-where-alice-and-bob-can-meet/) 2327 线段树二分
