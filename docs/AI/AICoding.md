@@ -264,6 +264,9 @@ npm install -g @anthropic-ai/claude-code
 
 # 验证
 claude --version
+
+# 更新
+npm install -g @anthropic-ai/claude-code@latest
 ~~~
 
 ![image-20260617163821509](http://47.101.155.205/image-20260617163821509.png)
