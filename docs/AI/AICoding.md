@@ -613,3 +613,65 @@ npx superpowers-zh
 
 
 
+
+
+### MCP
+
+[MCP-Claude Code Docs](https://code.claude.com/docs/zh-CN/mcp-quickstart)
+
+mcp 使用提示词
+
+~~~txt
+请根据这个 MCP 官方文档帮我完成配置。先说明它会访问哪些数据、需要哪些密钥、配置会写到哪里，等我确认后再执行。
+~~~
+
+
+
+
+
+mcp 服务器范围：
+
+| 范围    | 文件                               | 可用于           |
+| ------- | ---------------------------------- | ---------------- |
+| local   | `~/.claude.json`，在此项目的条目下 | 当前项目         |
+| project | 项目根目录中的 `.mcp.json`         | 克隆项目的所有人 |
+| user    | `~/.claude.json`                   | 所有项目         |
+
+管理 mcp 服务器：
+
+| 命令                                             | 作用           |
+| ------------------------------------------------ | -------------- |
+| claude mcp remove claude-code-docs --scope local | 当前项目删除   |
+| claude mcp add --scope user                      | 为所有项目添加 |
+|                                                  |                |
+
+
+
+#### Database
+
+- [dm-mcp](https://github.com/saber1122/dm-mcp-server)
+
+**命令安装**：
+
+~~~bash
+claude mcp add dm-mcp --scope project -e JAVA_HOME=G:environmentJavajdk1.8.0_361 -- npx -y dm-mcp-server
+~~~
+
+**配置项目安装**：项目根目录下新建 `.mcp.json` 文件。启动 Claude 会提示是否应用该 mcp。
+
+~~~json
+{
+  "mcpServers": {
+    "dm-database": {
+      "command": "npx",
+      "args": ["-y", "dm-mcp-server"],
+      "env": {
+        "JAVA_HOME": "G:\\environment\\Java\\jdk1.8.0_361"
+      }
+    }
+  }
+}
+~~~
+
+![image-20261111104033871](C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20261111104033871.png)
+
